@@ -108,3 +108,14 @@ Open gaps the dashboard exposed:
 - [ ] Illumination levels not yet wired to `:hover` on every lit control (only opt-in via `data-lit-hover`)
 - [ ] Light-mode glow is the weakest part: etch effect needs its own design pass
 - [ ] Rejected in review: shadow-only overlays, one-lit-top "generic" panels, stacked lit provider buttons
+
+---
+
+## Round 3 log (a11y audit, light pass, garden system)
+- [x] AUDIT CORRECTION: earlier claim that `--stroke-control` passed 3:1 was WRONG in dark mode (measured 2.88:1). Fixed: dark .42 (4.1:1), light ticks .46 (3.5:1). Focused ticks 10.4:1 dark / 5.4:1 light. Focus tick is also 2px (non-colour cue).
+- [x] Light-mode lighting: pressed-ink etch (1px white under bar) + ambient wash (`--wash`), replaces glow
+- [x] Components added: `.me-side`, `.me-bars` (chart MVP), `.me-nav`, field inline action (`.me-affix` button)
+- [x] Bugs found by building the garden app and fixed in the framework: grid painted empty cells grey; table scroll-hint bands; links inheriting error colour; `hidden` attribute defeated by component display; focus offset selectors
+- [ ] Still open: line/area charts, date picker, combobox, command palette, tabs overflow hint, icons, light-mode review by you
+- [ ] AAA focus-appearance (2.4.13) not met for fields (ticks only); decide whether to add a second cue
+- [ ] Write Playwright + axe tests: this review was by eye plus a contrast script
