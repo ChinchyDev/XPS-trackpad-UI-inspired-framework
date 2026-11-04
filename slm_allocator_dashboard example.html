@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLM Allocator Dashboard</title>
+  <style>
+    /* ==========================================================================
+       PHASE 1: TOKENS & DUAL-THEME PHYSICS
+       ========================================================================== */
+    :root, [data-theme="dark"] {
+      --color-canvas: #08090d;
+      --color-panel: #101218;
+      --color-surface: #161922;
+      --color-text-primary: #f1f5f9;
+      --color-text-muted: #64748b;
+      --color-text-dim: #475569;
+      
+      --stroke-divider: rgba(255, 255, 255, 0.08);
+      --stroke-divider-active: rgba(255, 255, 255, 0.20);
+      
+      --accent-base: #6366f1;
+      --accent-core: #818cf8;
+      --accent-glow: rgba(99, 102, 241, 0.45);
+      --accent-fill: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+      --accent-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+      
+      --amber-base: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.35);
+
+      --xps-tick-idle: rgba(255, 255, 255, 0.20);
+      --xps-tick-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+      
+      --radius-micro: 2px;
+      --font-mono: -apple-system, BlinkMacSystemFont, "SF Pro Display", monospace;
+    }
+
+    [data-theme="light"] {
+      --color-canvas: #f1f5f9;
+      --color-panel: #ffffff;
+      --color-surface: #f8fafc;
+      --color-text-primary: #0f172a;
+      --color-text-muted: #64748b;
+      --color-text-dim: #94a3b8;
+      
+      --stroke-divider: rgba(0, 0, 0, 0.08);
+      --stroke-divider-active: rgba(0, 0, 0, 0.22);
+      
+      --accent-base: #4338ca;
+      --accent-core: #3730a3;
+      --accent-glow: rgba(67, 56, 202, 0.20);
+      --accent-fill: radial-gradient(ellipse at top, rgba(67, 56, 202, 0.08) 0%, transparent 75%);
+      --accent-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(67, 56, 202, 0.15);
+      
+      --amber-base: #d97706;
+      --amber-glow: rgba(217, 119, 6, 0.20);
+
+      --xps-tick-idle: rgba(0, 0, 0, 0.22);
+      --xps-tick-shadow: 0 0 6px rgba(55, 48, 163, 0.25);
+    }
+
+    /* Base Reset */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-mono); }
+    body {
+      background-color: var(--color-canvas);
+      color: var(--color-text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Typography Utilities */
+    .text-label { font-size: 10px; line-height: 14px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-text-muted); }
+    .text-title { font-size: 14px; line-height: 20px; letter-spacing: 0.10em; text-transform: uppercase; font-weight: 600; }
+    .text-body { font-size: 12px; line-height: 18px; letter-spacing: 0.02em; }
+    
+    /* Layout */
+    .dashboard {
+      width: 100%;
+      max-width: 1024px;
+      background: var(--color-panel);
+      border: 1px solid var(--stroke-divider);
+      border-radius: var(--radius-micro);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      min-height: 400px;
+    }
+
+    .col {
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      border-right: 1px solid var(--stroke-divider);
+    }
+    .col:last-child { border-right: none; }
+
+    /* ==========================================================================
+       PHASE 3: COMPOSITE HEADER (TOP LIGHT-BARS)
+       ========================================================================== */
+    header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--stroke-divider);
+      background: var(--color-surface);
+    }
+
+    .nav-docks {
+      display: flex;
+    }
+
+    .btn-top-bar {
+      position: relative;
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      padding: 16px 24px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border-right: 1px solid var(--stroke-divider);
+    }
+
+    .btn-top-bar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid transparent;
+      border-top-width: 2px;
+      border-bottom: none;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 40%, transparent 90%);
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 40%, transparent 90%);
+    }
+
+    .btn-top-bar:hover { color: var(--color-text-primary); }
+    
+    .btn-top-bar.active {
+      color: var(--color-text-primary);
+      background: var(--accent-fill);
+    }
+
+    .btn-top-bar.active::before {
+      border-color: var(--accent-core);
+      box-shadow: var(--accent-shadow);
+    }
+
+    .theme-toggle {
+      background: transparent;
+      border: none;
+      border-left: 1px solid var(--stroke-divider);
+      padding: 0 24px;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-toggle:hover { color: var(--color-text-primary); }
+
+    /* ==========================================================================
+       PHASE 2: CORE PRIMITIVES
+       ========================================================================== */
+    
+    /* 1. XPS Boundary Inputs */
+    .xps-field-anchor {
+      position: relative;
+      background: transparent;
+      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(128,128,128,0.02) 0%, rgba(128,128,128,0.08) 100%);
+      border-radius: var(--radius-micro);
+    }
+
+    .xps-field-anchor::before, .xps-field-anchor::after {
+      content: '';
+      position: absolute;
+      top: 20%; bottom: 20%;
+      width: 1px;
+      background: var(--xps-tick-idle);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .xps-field-anchor::before { left: 0; }
+    .xps-field-anchor::after { right: 0; }
+
+    .xps-field-anchor:focus-within::before, .xps-field-anchor:focus-within::after {
+      top: 10%; bottom: 10%;
+      background: var(--accent-base);
+      box-shadow: var(--xps-tick-shadow);
+    }
+
+    .xps-input, .xps-select {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--color-text-primary);
+    }
+    
+    .xps-select {
+      appearance: none;
+      cursor: pointer;
+    }
+    .xps-select-wrapper::after {
+      content: '';
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      border-right: 1px solid var(--color-text-muted);
+      border-bottom: 1px solid var(--color-text-muted);
+      transform: translateY(-70%) rotate(45deg);
+      pointer-events: none;
+      transition: all 0.2s;
+    }
+    .xps-field-anchor:focus-within.xps-select-wrapper::after {
+      border-color: var(--accent-base);
+    }
+
+    /* 2. Edge-Lit Checkbox */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border: 1px solid var(--stroke-divider);
+      border-radius: var(--radius-micro);
+      background: var(--color-surface);
+    }
+
+    .mono-checkbox {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      appearance: none;
+      background: transparent;
+      border: 1px solid var(--stroke-divider-active);
+      border-radius: var(--radius-micro);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .mono-checkbox:checked {
+      background: var(--accent-fill);
+      border-color: transparent;
+    }
+
+    .mono-checkbox:checked::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-top: 2px solid var(--accent-base);
+      border-left: 2px solid var(--accent-base);
+      border-radius: var(--radius-micro) 0 0 0;
+      box-shadow: var(--accent-shadow);
+      pointer-events: none;
+    }
+
+    /* 3. Recessed Trackpad Slide Switch */
+    .mono-switch {
+      position: relative;
+      width: 36px;
+      height: 18px;
+      background: transparent;
+      border: 1px solid var(--stroke-divider-active);
+      border-radius: var(--radius-micro);
+      cursor: pointer;
+    }
+
+    .mono-switch-node {
+      position: absolute;
+      top: 2px; bottom: 2px; left: 2px;
+      width: 2px;
+      background: var(--color-text-muted);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s;
+    }
+
+    .mono-switch.active .mono-switch-node {
+      transform: translateX(28px);
+      background: var(--accent-base);
+      box-shadow: var(--accent-shadow);
+    }
+
+    .mono-switch.active .mono-switch-node::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -1px; right: -1px;
+      height: 2px;
+      background: #fff;
+      box-shadow: 0 0 6px #fff;
+    }
+
+    /* 4. Precision Range Slider */
+    .mono-slider {
+      appearance: none;
+      width: 100%;
+      height: 16px;
+      background: transparent;
+      cursor: pointer;
+    }
+    .mono-slider:focus { outline: none; }
+    .mono-slider::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 1px;
+      background: var(--stroke-divider-active);
+    }
+    .mono-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 2px;
+      height: 16px;
+      background: var(--color-text-primary);
+      margin-top: -7.5px;
+      box-shadow: 0 -2px 6px var(--color-text-primary);
+      transition: all 0.2s;
+    }
+    .mono-slider:focus::-webkit-slider-thumb {
+      background: var(--accent-base);
+      box-shadow: var(--accent-shadow), 0 -3px 8px var(--accent-base);
+    }
+
+    /* 5. Status Beacons & Badges */
+    .status-beacon {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+      background: #10b981;
+      box-shadow: 0 0 8px rgba(16,185,129,0.5);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* 6. Split Panel (Accept/Cancel Reveal) */
+    .split-panel {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--color-surface);
+      border: 1px solid var(--stroke-divider);
+      border-radius: var(--radius-micro);
+      height: 48px;
+      overflow: hidden;
+      margin-top: auto;
+    }
+
+    .split-divider {
+      position: absolute;
+      top: 15%; bottom: 15%; left: 50%;
+      width: 1px;
+      background: var(--stroke-divider-active);
+      transform: translateX(-50%);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .split-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.3s;
+    }
+    .split-btn:hover { color: var(--color-text-primary); }
+
+    .split-btn-left.selected {
+      color: var(--color-text-primary);
+      background: radial-gradient(ellipse at 100% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 80%);
+    }
+    .split-btn-left.selected::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: var(--radius-micro) 0 0 var(--radius-micro);
+      border: 1px solid var(--accent-core);
+      border-right: none;
+      box-shadow: inset 4px 0 10px rgba(99,102,241,0.2), -2px 0 8px rgba(99,102,241,0.2);
+      -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,0.2) 70%, transparent 100%);
+      pointer-events: none;
+      animation: edgeReveal 0.3s forwards;
+    }
+    .split-divider.glow-left {
+      background: var(--accent-core);
+      box-shadow: 0 0 10px var(--accent-core), -4px 0 12px var(--accent-core);
+    }
+
+    .split-btn-right.selected {
+      color: var(--color-text-primary);
+      background: radial-gradient(ellipse at 0% 50%, rgba(245, 158, 11, 0.2) 0%, transparent 80%);
+    }
+    .split-btn-right.selected::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 0 var(--radius-micro) var(--radius-micro) 0;
+      border: 1px solid var(--amber-base);
+      border-left: none;
+      box-shadow: inset -4px 0 10px rgba(245,158,11,0.2), 2px 0 8px rgba(245,158,11,0.2);
+      -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.2) 70%, transparent 100%);
+      pointer-events: none;
+      animation: edgeReveal 0.3s forwards;
+    }
+    .split-divider.glow-right {
+      background: var(--amber-base);
+      box-shadow: 0 0 10px var(--amber-base), 4px 0 12px var(--amber-base);
+    }
+
+    @keyframes edgeReveal {
+      0% { opacity: 0; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="dashboard">
+    <!-- Header: Monolithic Navigation -->
+    <header>
+      <div class="nav-docks text-title">
+        <button class="btn-top-bar active" onclick="setTab(this)">SLM Allocator</button>
+        <button class="btn-top-bar" onclick="setTab(this)">Telemetry</button>
+        <button class="btn-top-bar" onclick="setTab(this)">Inference</button>
+      </div>
+      <button class="theme-toggle text-label" onclick="toggleTheme()">
+        <span id="theme-label">DARK MODE</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+    </header>
+
+    <div class="grid-container">
+      <!-- Column 1: XPS Boundary Inputs -->
+      <div class="col">
+        <div class="text-title" style="color: var(--accent-base);">01 // Configuration</div>
+        
+        <div style="display:flex; flex-direction: column; gap: 8px;">
+          <label class="text-label">Local Model Path</label>
+          <div class="xps-field-anchor">
+            <input type="text" class="xps-input text-body" value="/models/llama-3-8b-instruct.gguf" />
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction: column; gap: 8px;">
+          <label class="text-label">Context Window (Tokens)</label>
+          <div class="xps-field-anchor xps-select-wrapper">
+            <select class="xps-select text-body">
+              <option>4096 Tokens</option>
+              <option selected>8192 Tokens</option>
+              <option>32768 Tokens</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction: column; gap: 8px;">
+          <label class="text-label">System Prompt Override</label>
+          <div class="xps-field-anchor">
+            <input type="text" class="xps-input text-body" placeholder="You are a helpful local AI..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Controls & Sliders -->
+      <div class="col">
+        <div class="text-title" style="color: var(--accent-base);">02 // Hardware Limits</div>
+
+        <div class="toggle-row">
+          <label class="text-label">INT4 Quantization</label>
+          <input type="checkbox" class="mono-checkbox" checked />
+        </div>
+
+        <div class="toggle-row">
+          <label class="text-label">Unified Memory (Metal)</label>
+          <div class="mono-switch active" onclick="this.classList.toggle('active')">
+            <div class="mono-switch-node"></div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction: column; gap: 16px; margin-top: 16px;">
+          <div style="display:flex; justify-content: space-between;">
+            <label class="text-label">Max VRAM Allocation</label>
+            <span class="text-body" id="vram-val">12.5 GB</span>
+          </div>
+          <input type="range" min="4" max="24" step="0.5" value="12.5" class="mono-slider" oninput="document.getElementById('vram-val').textContent = this.value + ' GB'" />
+        </div>
+      </div>
+
+      <!-- Column 3: Status & Execution Panel -->
+      <div class="col">
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+          <div class="text-title" style="color: var(--accent-base);">03 // Execution</div>
+          <div style="display:flex; align-items: center; gap: 8px;">
+            <div class="status-beacon"></div>
+            <span class="text-label">Daemon Ready</span>
+          </div>
+        </div>
+        
+        <p class="text-body" style="color: var(--color-text-dim); margin-top: 8px; flex: 1;">
+          Review the allocation limits before mounting the SLM weights to physical memory. This will purge cached tensors.
+        </p>
+
+        <!-- Monolithic Split Action Panel -->
+        <div style="display:flex; flex-direction: column; gap: 8px;">
+          <div class="text-label" id="action-status" style="text-align: center; height: 14px;">Awaiting User Action...</div>
+          <div class="split-panel">
+            <div class="split-divider" id="split-divider"></div>
+            <button class="split-btn split-btn-left text-title" id="btn-load" onclick="handleSplitAction('load')">Load Weights</button>
+            <button class="split-btn split-btn-right text-title" id="btn-abort" onclick="handleSplitAction('abort')">Abort</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Theme Toggle Logic
+    function toggleTheme() {
+      const html = document.documentElement;
+      const label = document.getElementById('theme-label');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.setAttribute('data-theme', 'light');
+        label.textContent = 'LIGHT MODE';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        label.textContent = 'DARK MODE';
+      }
+    }
+
+    // Top Light-Bar Tab Logic
+    function setTab(clickedBtn) {
+      document.querySelectorAll('.btn-top-bar').forEach(btn => btn.classList.remove('active'));
+      clickedBtn.classList.add('active');
+    }
+
+    // Split Panel Directional Reveal Logic
+    function handleSplitAction(action) {
+      const btnLoad = document.getElementById('btn-load');
+      const btnAbort = document.getElementById('btn-abort');
+      const divider = document.getElementById('split-divider');
+      const statusText = document.getElementById('action-status');
+
+      // Reset states
+      btnLoad.classList.remove('selected');
+      btnAbort.classList.remove('selected');
+      divider.classList.remove('glow-left', 'glow-right');
+
+      if (action === 'load') {
+        btnLoad.classList.add('selected');
+        divider.classList.add('glow-left');
+        statusText.textContent = "STATUS: ALLOCATING VRAM...";
+        statusText.style.color = "var(--accent-base)";
+      } else {
+        btnAbort.classList.add('selected');
+        divider.classList.add('glow-right');
+        statusText.textContent = "STATUS: OPERATION ABORTED.";
+        statusText.style.color = "var(--amber-base)";
+      }
+    }
+  </script>
+</body>
+</html>
