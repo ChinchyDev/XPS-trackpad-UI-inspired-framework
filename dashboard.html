@@ -108,7 +108,7 @@
   <section role="tabpanel" id="p-inf" aria-labelledby="t-inf" hidden>
     <div class="pad col">
       <div class="me-field"><label class="me-label" for="prompt">Prompt</label><div class="me-anchor"><textarea id="prompt" placeholder="Ask the loaded model…"></textarea></div></div>
-      <div class="me-row"><button class="me-btn me-btn--primary" id="run">Run <span class="me-kbd">⌘↵</span></button><button class="me-btn me-btn--ghost">Clear</button></div>
+      <div class="split-wrap" style="margin-top:0;max-width:420px"><div class="me-split" id="inf-split"><button aria-pressed="false" data-c="l" id="run">Run <span class="me-kbd">⌘↵</span></button><button aria-pressed="false" data-c="r" id="clear">Clear</button></div></div>
       <div class="me-stack" id="out" hidden><div class="me-skeleton" style="width:90%"></div><div class="me-skeleton" style="width:70%"></div><div class="me-skeleton" style="width:80%"></div></div>
     </div>
   </section>
@@ -140,11 +140,17 @@ split.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)retu
   const load=b.dataset.c==='l';status.textContent=load?'STATUS: ALLOCATING VRAM…':'STATUS: OPERATION ABORTED.';status.style.color=load?'var(--accent-text)':'var(--warn-text)';
   toast(load?'ok':'warn',load?'Mounting weights…':'Operation aborted.');});
 /* toast + run */
-function toast(sig,msg){const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;$('#toasts').append(t);setTimeout(()=>t.remove(),3200);}
-$('#run').addEventListener('click',e=>{const b=e.currentTarget;b.setAttribute('aria-busy','true');$('#out').hidden=false;setTimeout(()=>{b.removeAttribute('aria-busy');toast('ok','Generation complete.');},1800);});
+/* notch notification: one at a time; the previous one is replaced */
+function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,420);},3200);}
+const inf=$('#inf-split');
+function infPress(b,c){$$('button',inf).forEach(x=>x.setAttribute('aria-pressed',x===b));inf.dataset.chosen=c;}
+function infRelease(b){b.setAttribute('aria-pressed','false');inf.removeAttribute('data-chosen');}
+$('#run').addEventListener('click',e=>{const b=e.currentTarget;infPress(b,'l');b.setAttribute('aria-busy','true');$('#out').hidden=false;setTimeout(()=>{b.removeAttribute('aria-busy');infRelease(b);toast('ok','Generation complete.');},1800);});
+$('#clear').addEventListener('click',e=>{const b=e.currentTarget;infPress(b,'r');$('#out').hidden=true;$('#prompt').value='';setTimeout(()=>infRelease(b),700);});
 /* table select */
 $$('.me-table tbody tr').forEach(r=>{r.addEventListener('click',()=>{$$('.me-table tbody tr').forEach(x=>x.removeAttribute('aria-selected'));r.setAttribute('aria-selected','true');});r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();r.click();}});});
 if(location.hash==='#demo'){vr.value=21.5;vram();batch.value=0;check();split.querySelector('[data-c=l]').click();$('#sampling').children[1].click();}
+if(location.hash.includes('light')){document.documentElement.dataset.theme='light';[...document.querySelectorAll('#seg-theme button')].forEach(b=>b.setAttribute('aria-pressed',b.dataset.v==='light'));}
 </script>
 </body>
 </html>

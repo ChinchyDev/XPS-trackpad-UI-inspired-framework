@@ -11,7 +11,8 @@
   [hidden] { display: none !important; }
 
   /* ---- login ---- */
-  #login { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  #login { min-height: 100vh; display: grid; place-items: center; padding: 24px; position: relative; }
+  .login-theme { position: absolute; top: 16px; right: 16px; }
   .login-shell { width: 100%; max-width: 960px; display: grid; grid-template-columns: 1.05fr 1fr; background: var(--color-panel); border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); overflow: hidden; }
   .login-hero { padding: 40px; display: flex; flex-direction: column; gap: 24px; border-right: 1px solid var(--stroke-divider); background: var(--color-surface); }
   .login-form { padding: 40px; display: flex; flex-direction: column; gap: 16px; }
@@ -21,8 +22,8 @@
 
   /* ---- app shell ---- */
   #app { min-height: 100vh; display: grid; grid-template-columns: 224px 1fr; }
-  .side-brand { padding: 16px; border-bottom: 1px solid var(--stroke-divider); }
-  .side-foot { margin-top: auto; padding: 16px; border-top: 1px solid var(--stroke-divider); }
+  .side-brand { padding: 4px 2px 8px; }
+  .side-foot { margin-top: auto; padding: 4px 2px; }
   .main { min-width: 0; display: flex; flex-direction: column; }
   .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 24px; min-height: 52px; background: var(--color-surface); border-bottom: 1px solid var(--stroke-divider); flex-wrap: wrap; }
   .content { padding: 24px; display: flex; flex-direction: column; gap: 24px; }
@@ -36,9 +37,9 @@
   .zone-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   @media (max-width: 900px) {
     #app { grid-template-columns: 1fr; }
-    .me-side { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--stroke-divider); }
-    .me-side > button { width: auto; flex: none; border-bottom: 0; border-right: 1px solid var(--stroke-divider); }
-    .side-brand, .side-foot, .me-side-group { display: none; }
+    .me-side { flex-direction: row; overflow-x: auto; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--stroke-divider); }
+    .me-side-set { flex: none; }
+    .me-side-set > .me-label, .side-brand, .side-foot { display: none; }
     .two { grid-template-columns: 1fr; }
     .content { padding: 16px; } .topbar { padding: 8px 16px; } .search { width: 100%; }
   }
@@ -48,6 +49,7 @@
 
 <!-- =============================== LOGIN =============================== -->
 <main id="login">
+  <div class="login-theme"><div class="me-segmented theme-seg" role="group" aria-label="Theme"><button aria-pressed="true" data-v="dark">Dark</button><button aria-pressed="false" data-v="light">Light</button></div></div>
   <div class="login-shell">
     <section class="login-hero" aria-hidden="true">
       <div class="brand">Plot<i>line</i></div>
@@ -89,13 +91,17 @@
 <div id="app" hidden>
   <nav class="me-side" aria-label="Main">
     <div class="side-brand"><div class="brand" style="font-size:16px">Plot<i>line</i></div></div>
-    <div class="me-side-group me-label">Garden</div>
-    <button data-view="overview" aria-current="page">Overview</button>
-    <button data-view="beds">Beds &amp; plots <span class="me-badge" id="bed-count">0</span></button>
-    <button data-view="irrigation">Irrigation</button>
-    <button data-view="tasks">Tasks <span class="me-badge" data-signal="warn" id="task-count">0</span></button>
-    <div class="me-side-group me-label">Admin</div>
-    <button data-view="users">Users</button>
+    <div class="me-side-set"><span class="me-label" id="sg-garden">Garden</span>
+      <div class="me-rail" role="group" aria-labelledby="sg-garden">
+        <button data-view="overview" aria-current="page">Overview</button>
+        <button data-view="beds">Beds &amp; plots <span class="me-badge" id="bed-count">0</span></button>
+        <button data-view="irrigation">Irrigation</button>
+        <button data-view="tasks">Tasks <span class="me-badge" data-signal="warn" id="task-count">0</span></button>
+      </div></div>
+    <div class="me-side-set"><span class="me-label" id="sg-admin">Admin</span>
+      <div class="me-rail" role="group" aria-labelledby="sg-admin">
+        <button data-view="users">Users</button>
+      </div></div>
     <div class="side-foot me-row" data-signal="ok"><span class="me-dot me-dot--pulse"></span><span class="me-label">12 sensors online</span></div>
   </nav>
 
@@ -104,7 +110,7 @@
       <ol class="me-crumbs" aria-label="Breadcrumb"><li><a href="#" data-view="overview">Plotline</a></li><li aria-current="page" id="crumb">Overview</li></ol>
       <div class="me-row">
         <div class="me-anchor search"><input id="search" placeholder="Search beds, people…" aria-label="Search"><span class="me-kbd">/</span></div>
-        <div class="me-segmented" id="seg-theme" role="group" aria-label="Theme"><button aria-pressed="true" data-v="dark">Dark</button><button aria-pressed="false" data-v="light">Light</button></div>
+        <div class="me-segmented theme-seg" id="seg-theme" role="group" aria-label="Theme"><button aria-pressed="true" data-v="dark">Dark</button><button aria-pressed="false" data-v="light">Light</button></div>
         <div class="menu-wrap">
           <button class="me-btn" id="um-btn" aria-haspopup="menu" aria-expanded="false">Admin ▾</button>
           <ul class="me-menu me-lit" id="um" role="menu" data-lit="t" hidden style="--lit-span:36%;--lit-ax:100%;right:0;top:calc(100% + 6px)">
@@ -231,14 +237,19 @@ const tasks=[{t:'Cover beds A2, B1 before frost',d:true,due:'Today'},{t:'Harvest
 const status=b=>b.moisture<35?{k:'warn',t:'Needs water'}:(b.harvest!==null&&b.harvest<=14)?{k:'ok',t:'Harvest soon'}:{k:'info',t:'Healthy'};
 
 /* ------------------------------ helpers ------------------------------ */
-function toast(sig,msg){const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;$('#toasts').append(t);setTimeout(()=>t.remove(),3400);}
+/* notch notification: hangs from the top edge, one at a time */
+function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,420);},3400);}
+/* side rails lie on their side on narrow screens (horizontal group-panel rules apply) */
+const railMQ=matchMedia('(max-width:900px)');function rails(){$$('.me-rail').forEach(r=>railMQ.matches?r.dataset.axis='x':r.removeAttribute('data-axis'));}
+railMQ.addEventListener('change',rails);rails();
 function fieldErr(id,bad){const f=document.getElementById(id);bad?f.dataset.signal='err':f.removeAttribute('data-signal');const i=$('input,select',f);if(i){i.setAttribute('aria-invalid',bad);}return bad;}
 function bars(el,vals){const mx=Math.max(...vals);el.innerHTML=vals.map((v,i)=>'<i style="--h:'+Math.round(v/mx*100)+'%" data-tip="'+'MTWTFSS'[i]+': '+v+' L"></i>').join('');}
 const WEEK=[280,310,260,340,295,355,300];
 bars($('#hero-bars'),WEEK);bars($('#bars'),WEEK);
 
 /* theme */
-$('#seg-theme').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('button',e.currentTarget).forEach(x=>x.setAttribute('aria-pressed',x===b));document.documentElement.dataset.theme=b.dataset.v;});
+function setTheme(v){document.documentElement.dataset.theme=v;$$('.theme-seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v));}
+$$('.theme-seg').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTheme(b.dataset.v);}));
 
 /* ------------------------------ login ------------------------------ */
 const loginErr=$('#login-err');
@@ -260,8 +271,8 @@ function leave(){$('#app').hidden=true;$('#login').hidden=false;$('#pw').value='
 /* ------------------------------ nav ------------------------------ */
 const NAMES={overview:'Overview',beds:'Beds & plots',irrigation:'Irrigation',tasks:'Tasks',users:'Users'};
 function go(v){$$('#views > [data-v]').forEach(s=>s.hidden=s.dataset.v!==v);
-  queueMicrotask(()=>$('.me-side > [aria-current]')?.scrollIntoView({inline:'center',block:'nearest'}));
-  $$('.me-side > button').forEach(b=>b.dataset.view===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));$('#crumb').textContent=NAMES[v];if(v==='beds')renderBeds();}
+  queueMicrotask(()=>$('.me-side [aria-current]')?.scrollIntoView({inline:'center',block:'nearest'}));
+  $$('.me-side button[data-view]').forEach(b=>b.dataset.view===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));$('#crumb').textContent=NAMES[v];if(v==='beds')renderBeds();}
 $('.me-side').addEventListener('click',e=>{const b=e.target.closest('button[data-view]');if(b)go(b.dataset.view);});
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go],a[data-view]');if(g){e.preventDefault();go(g.dataset.go||g.dataset.view);if(g.dataset.go==='beds')openBed();}});
 document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!$('#app').hidden){e.preventDefault();$('#search').focus();}});
@@ -336,10 +347,10 @@ bindSplit('#sp-del','#dlg-del',()=>{const u=users.splice(delIdx,1)[0];renderUser
 /* ------------------------------ boot ------------------------------ */
 overview();renderBeds();renderZones();renderUsers();
 const h=location.hash.slice(1);
-if(h.startsWith('app')){document.documentElement.dataset.theme=h.includes('light')?'light':'dark';$('#login').hidden=true;$('#app').hidden=false;
+if(h.startsWith('app')){setTheme(h.includes('light')?'light':'dark');$('#login').hidden=true;$('#app').hidden=false;
   const v=(h.match(/-(overview|beds|irrigation|tasks|users)/)||[,'overview'])[1];go(v);
   if(h.includes('modal'))openBed();if(h.includes('bad')){$('#nb-area').value=0;$('#sp-bed [data-c=l]').click();}if(h.includes('del')){$('[data-del="2"]').click();}if(h.includes('menu'))menu(true);}
-else{if(h.includes('light'))document.documentElement.dataset.theme='light';
+else{if(h.includes('light'))setTheme('light');
   if(h.includes('err')){$('#email').value='admin@plotline.io';$('#pw').value='wrong';$('#login-f').requestSubmit();}
   if(h.includes('sso'))$('#sso').children[1].click();}
 </script>

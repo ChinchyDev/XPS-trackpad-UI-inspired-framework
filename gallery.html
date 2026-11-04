@@ -48,6 +48,12 @@
       <button class="me-btn me-btn--primary" style="max-width:140px"><span class="me-truncate">A very long button label that must not break</span></button>
     </div>
     <div class="me-row">
+      <div><span class="me-label cell-label">Opposing pair · heat at rest on the risky one</span>
+        <div class="me-pair" id="pair1"><button class="me-btn me-btn--danger" data-hot>Delete bed</button><button class="me-btn">Keep bed</button></div></div>
+      <div><span class="me-label cell-label">Opposing pair · heat at rest on the safe one</span>
+        <div class="me-pair" id="pair2"><button class="me-btn me-btn--danger">Remove user</button><button class="me-btn" data-hot>Keep user</button></div></div>
+    </div>
+    <div class="me-row">
       <div class="me-btn-group"><button class="me-btn">Day</button><button class="me-btn" aria-pressed="true">Week</button><button class="me-btn">Month</button></div>
       <div class="me-segmented" role="group" aria-label="View" id="seg-demo"><button aria-pressed="true">List</button><button aria-pressed="false">Grid</button><button aria-pressed="false">Map</button></div>
       <span class="me-label">Shortcut</span> <span><span class="me-kbd">Ctrl</span> <span class="me-kbd">K</span></span>
@@ -90,7 +96,7 @@
       <label class="me-choice"><input type="checkbox" class="me-check" checked disabled> Disabled</label>
     </div>
     <div class="me-stack">
-      <span class="me-label">Radio (single left bar)</span>
+      <span class="me-label">Radio (square dot)</span>
       <label class="me-choice"><input type="radio" name="r" class="me-radio" checked> Greedy</label>
       <label class="me-choice"><input type="radio" name="r" class="me-radio"> Top-p</label>
       <label class="me-choice"><input type="radio" name="r" class="me-radio"> Beam search</label>
@@ -117,17 +123,22 @@
 <section>
   <span class="me-title">04 // Navigation</span>
   <div class="me-panel">
-    <div class="me-tabs" role="tablist" aria-label="Demo tabs" id="tabs">
+    <div style="padding:16px 24px 0"><div class="me-tabs" role="tablist" aria-label="Demo tabs" id="tabs">
       <button class="me-tab" role="tab" aria-selected="true" id="tb1" aria-controls="tp1">Allocator</button>
       <button class="me-tab" role="tab" aria-selected="false" tabindex="-1" id="tb2" aria-controls="tp2">Telemetry <span class="me-badge" data-signal="warn">3</span></button>
       <button class="me-tab" role="tab" aria-selected="false" tabindex="-1" id="tb3" aria-controls="tp3">Inference</button>
       <button class="me-tab" role="tab" aria-selected="false" tabindex="-1" id="tb4" aria-controls="tp3">Logs</button>
       <button class="me-tab" role="tab" aria-selected="false" tabindex="-1" id="tb5" aria-controls="tp3">Settings and long tab name</button>
-    </div>
+    </div></div>
     <div style="padding:24px" class="me-stack">
       <div role="tabpanel" id="tp1" aria-labelledby="tb1">Panel one. Use ← → Home End to move between tabs.</div>
       <div role="tabpanel" id="tp2" aria-labelledby="tb2" hidden>Panel two — telemetry.</div>
       <div role="tabpanel" id="tp3" hidden>Other panel.</div>
+      <hr class="me-rule">
+      <div class="me-row" style="align-items:flex-start;gap:32px">
+        <div style="width:200px"><span class="me-label cell-label">Rail (vertical group)</span><div class="me-rail" id="rail" role="group" aria-label="Demo rail"><button aria-current="page">Overview</button><button>Beds <span class="me-badge" data-signal="warn">2</span></button><button>Irrigation</button></div></div>
+        <div style="width:200px"><span class="me-label cell-label">Rail (single item)</span><div class="me-rail" role="group" aria-label="Single"><button aria-current="page">Users</button></div></div>
+      </div>
       <hr class="me-rule">
       <div class="me-row" style="justify-content:space-between">
         <ol class="me-crumbs" aria-label="Breadcrumb"><li><a href="#">Home</a></li><li><a href="#">Models</a></li><li aria-current="page">llama-3-8b</li></ol>
@@ -171,8 +182,10 @@
       <div class="me-stack"><span class="me-label">Skeleton</span><div class="me-skeleton" style="width:80%"></div><div class="me-skeleton" style="width:60%"></div><div class="me-skeleton" style="width:70%"></div></div>
       <div class="me-empty"><span class="me-title">No telemetry</span><span class="me-dim">Start the daemon to stream metrics.</span><button class="me-btn me-btn--primary">Start daemon</button></div>
       <div class="me-stack">
-        <span class="me-label">Badges</span>
+        <span class="me-label">Badges · lit from the floor</span>
         <div class="me-row"><span class="me-badge">Accent</span><span class="me-badge" data-signal="ok">Ok</span><span class="me-badge" data-signal="warn">Warn</span><span class="me-badge" data-signal="err">Err</span><span class="me-badge" data-signal="info">Info</span></div>
+        <span class="me-label">Status beacons · a light-bar, not a dot</span>
+        <div class="me-row"><span class="me-badge" data-signal="ok"><span class="me-dot me-dot--pulse"></span>Online</span><span class="me-badge" data-signal="warn"><span class="me-dot"></span>Degraded</span><span class="me-badge" data-signal="err"><span class="me-dot"></span>Down</span></div>
         <span class="me-label">Narrow container (220px)</span>
         <div class="narrow"><div class="me-field"><label class="me-label" for="nn">A really long label that wraps</label><div class="me-anchor"><input id="nn" value="text that overflows its box and should clip"></div></div></div>
       </div>
@@ -282,9 +295,16 @@ split.addEventListener('click', e => { const b = e.target.closest('button'); if(
   toast(b.dataset.c === 'l' ? 'ok' : 'warn', b.dataset.c === 'l' ? 'Allocating VRAM…' : 'Operation aborted.'); setTimeout(() => modal.close(), 600); });
 
 /* toast */
-function toast(sig, msg){ const t = document.createElement('div'); t.className = 'me-alert'; t.dataset.signal = sig; t.setAttribute('role','status');
-  t.innerHTML = `<span class="me-glyph">${{ok:'✓',warn:'!',err:'✕'}[sig]||'i'}</span><div></div>`; t.lastChild.textContent = msg; $('#toasts').append(t); setTimeout(() => t.remove(), 3500); }
+function toast(sig, msg){ const c = $('#toasts'); c.replaceChildren(); const t = document.createElement('div'); t.className = 'me-alert'; t.dataset.signal = sig; t.setAttribute('role','status');
+  t.innerHTML = `<span class="me-glyph">${{ok:'✓',warn:'!',err:'✕'}[sig]||'i'}</span><div></div>`; t.lastChild.textContent = msg; c.append(t);
+  setTimeout(() => { t.classList.add('is-out'); setTimeout(() => t.hidden = true, 420); }, 3500); }
+/* opposing pair: heat moves to whichever was clicked */
+$$('.me-pair').forEach(p => p.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return;
+  $$('button', p).forEach(x => x.toggleAttribute('data-hot', x === b)); }));
+$('#rail').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return; $$('button', e.currentTarget).forEach(x => x.toggleAttribute('aria-current', false) || (x === b && x.setAttribute('aria-current','page'))); });
+/* loading demo: click any busy-capable button to see the orbit */
 $('#fire-toast').addEventListener('click', () => toast('info', 'Telemetry stream connected.'));
+if(location.hash.includes('light')){document.documentElement.dataset.theme='light';[...document.querySelectorAll('#seg-theme button')].forEach(b=>b.setAttribute('aria-pressed',b.dataset.v==='light'));}
 </script>
 </body>
 </html>

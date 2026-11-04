@@ -119,3 +119,27 @@ Open gaps the dashboard exposed:
 - [ ] Still open: line/area charts, date picker, combobox, command palette, tabs overflow hint, icons, light-mode review by you
 - [ ] AAA focus-appearance (2.4.13) not met for fields (ticks only); decide whether to add a second cue
 - [ ] Write Playwright + axe tests: this review was by eye plus a contrast script
+
+---
+
+## Round 4: DESIGN RULES (from your review of dashboard / gallery / garden / lab v2)
+These are rules, not component notes. New components must pass them before they ship.
+
+1. **Backgrounds are never extreme.** Dark canvas `#14171d` / panel `#1b1f27` / surface `#222731` / overlay `#2a303c`. Light canvas `#dadee3` / panel `#e9ecef` / surface `#f0f2f4` / overlay `#f4f6f7`. No pure black or white. (Contrast re-measured: muted/dim text, signal text and strokes still pass; light signal text colours were darkened to compensate.)
+2. **Related items share ONE panel** (`.me-tabs`, `.me-rail`). Dividers between items are detached (never touch the frame) and visible even unlit. Where no group exists, there is no panel: the area is bare canvas.
+3. **Light source propagation.** The selected item's leading edge (top for tabs, left for rails) is the source. Attached outer frame edges carry the light fading away from the source. Detached dividers become their own source: a centred bar fading at both ends, lit on the selected item's side.
+4. **Every alert is full-perimeter** (info, ok, warn, err). Severity is the colour and glyph, not whether it glows.
+5. **Notifications are a notch:** top-centre, open from the middle outward, only the bottom edge lit and it appears first. No left-edge light. One at a time.
+6. **Opposing actions** (`.me-pair`): only the "hot" one wears the full perimeter; the heat moves to whichever was clicked. Both rest states are in the gallery to compare.
+7. **Loading buttons:** the edge light orbits the perimeter, top-left, anticlockwise. Icon buttons do not get this.
+8. **Checkbox and radio are plain:** real box with a tick, square with a dot, no light. The switch is the only selection control that emits light, and its light trails back across the track when on.
+9. **Row selection vs hover must be distinguishable:** hover = faint short bar + faint wash, selected = bright wider bar + gradient wash.
+10. **Badges** are lit from the floor (wash + short bottom bar); **status beacons** are a vertical light-bar, never a dot. Buttons light the top, fields the sides, badges the floor.
+11. Approved from the lab: D′ (3 fading edges, illumination levels), E′ (critical), G (split), I′ (single-panel list), K (field ticks). Not adopted: B′, F′, H′, J′ as drawn.
+
+Open after round 4:
+- [ ] Pair rest state: literal reading (risky one hot at rest) vs safe one hot at rest; both shown in gallery 01
+- [ ] Badges/beacons are a first pass; expect another round
+- [ ] Radio is a square with a square dot (no circles rule). One-line change if you want a round dot
+- [ ] Rails on narrow screens switch to `data-axis="x"` through JS (matchMedia); consider a CSS-only container-query version
+- [ ] `.me-tabs` overflow hint still missing
