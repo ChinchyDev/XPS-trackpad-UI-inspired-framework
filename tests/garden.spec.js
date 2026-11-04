@@ -98,6 +98,83 @@ test.describe('app behaviour', () => {
   });
 });
 
+test.describe('components added to close coverage gaps', () => {
+  test('pager: pages the beds table, new bed jumps to its page', async ({ page }) => {
+    await app(page, '#app-beds');
+    await expect(page.locator('#bed-t tbody tr')).toHaveCount(6);
+    await expect(page.locator('#bed-pager [aria-current=page]')).toHaveText('1');
+    await expect(page.locator('#bed-pager [aria-label="Previous page"]')).toBeDisabled();
+    await page.click('#bed-pager [aria-label="Next page"]');
+    await expect(page.locator('#bed-pager [aria-current=page]')).toHaveText('2');
+    await expect(page.locator('#bed-t tbody tr')).toHaveCount(4);
+    await expect(page.locator('#bed-pager [aria-label="Next page"]')).toBeDisabled();
+  });
+  test('tabs + nav: users filter by group, keyboard arrows, empty state', async ({ page }) => {
+    await app(page, '#app-users');
+    const rows = page.locator('#user-t tbody tr');
+    await expect(rows).toHaveCount(5);
+    await page.click('#ut-inv'); await expect(rows).toHaveCount(1);
+    await expect(page.locator('#ut-inv')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.locator('#user-pane')).toHaveAttribute('aria-labelledby', 'ut-inv');
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator('#ut-sus')).toBeFocused();
+    await expect(page.locator('#user-t .me-table-empty')).toBeVisible();
+    await page.keyboard.press('Home'); await expect(rows).toHaveCount(5);
+  });
+  test('tabs follow the group-panel rules: selected lit, divider detached, outer edge attached', async ({ page }) => {
+    await app(page, '#app-users');
+    const op = id => page.locator(id).evaluate(e => +getComputedStyle(e, '::before').opacity);
+    expect(await op('#ut-all')).toBe(1); expect(await op('#ut-adm')).toBe(0);
+    const d = await page.locator('#ut-adm').evaluate(e => { const c = getComputedStyle(e, '::after'); return { top: parseFloat(c.top), bottom: parseFloat(c.bottom) }; });
+    expect(d.top).toBeGreaterThan(4); expect(d.bottom).toBeGreaterThan(4);
+  });
+  test('accordion opens and closes', async ({ page }) => {
+    await app(page, '#app-irrigation');
+    const second = page.locator('.me-accordion details').nth(1);
+    await expect(second).not.toHaveAttribute('open', '');
+    await second.locator('summary').click(); await expect(second).toHaveAttribute('open', '');
+    await expect(second.locator('.me-acc-body')).toBeVisible();
+  });
+  test('stepper changes the run length and the button label', async ({ page }) => {
+    await app(page, '#app-irrigation');
+    const z = page.locator('#zones [data-z]').first();
+    await z.locator('[data-step="1"]').click();
+    await expect(z.locator('[data-rm]')).toHaveValue('10');
+    await expect(z.locator('[data-run]')).toHaveText('Run 10 min');
+    await z.locator('[data-step="-1"]').click(); await z.locator('[data-step="-1"]').click();
+    await expect(z.locator('[data-rm]')).toHaveValue('1'); // clamped at 1
+  });
+  test('button group filters tasks', async ({ page }) => {
+    await app(page, '#app-tasks');
+    const n = page.locator('#task-list .task');
+    const all = await n.count();
+    await page.click('#task-filter [data-f=done]'); const done = await n.count();
+    await page.click('#task-filter [data-f=open]'); const open = await n.count();
+    expect(done + open).toBe(all);
+    await expect(page.locator('#task-filter [data-f=open]')).toHaveAttribute('aria-pressed', 'true');
+  });
+  test('pair: heat follows the click; safe action is lit at rest', async ({ page }) => {
+    await app(page);
+    const cover = page.locator('#frost-pair [data-f=cover]'), ignore = page.locator('#frost-pair [data-f=ignore]');
+    await expect(cover).toHaveAttribute('data-hot', ''); await expect(ignore).not.toHaveAttribute('data-hot', '');
+    await ignore.click();
+    await expect(ignore).toHaveAttribute('data-hot', ''); await expect(cover).not.toHaveAttribute('data-hot', '');
+    const bc = await ignore.evaluate(e => getComputedStyle(e).borderTopColor), bc2 = await cover.evaluate(e => getComputedStyle(e).borderTopColor);
+    expect(bc).not.toBe(bc2);
+  });
+  test('skeleton shows, then real content replaces it', async ({ page }) => {
+    await app(page);
+    await expect(page.locator('#act-skel .me-skeleton').first()).toBeVisible();
+    await expect(page.locator('#activity')).toContainText('Sam watered', { timeout: 4000 });
+    await expect(page.locator('#act-skel')).toHaveCount(0);
+  });
+  test('long email is truncated, not wrapped', async ({ page }) => {
+    await app(page, '#app-users');
+    const t = page.locator('#user-t .me-truncate').last();
+    expect(await t.evaluate(e => getComputedStyle(e).textOverflow)).toBe('ellipsis');
+  });
+});
+
 test.describe('design rules', () => {
   for (const theme of ['dark', 'light']) {
     const hash = theme === 'dark' ? '#app' : '#app-light';

@@ -160,3 +160,7 @@ Open after round 4:
 - [x] Animation registry: `tests/animations.json`, every @keyframes must be listed
 - [x] Bugs found by the tests: collapsed rail buttons had no accessible name; touch 44px floor was invalid CSS (self-referencing var) so buttons collapsed to 20px on touch
 - Run: `npm test` (all), `npx playwright test --project=phone`, `npx playwright show-report`
+
+## Round 5b: coverage gaps closed
+- [x] garden.html now exercises all 68 framework components (baseline is empty). Added: pager (beds), tabs + nav + nav-end + table-empty + truncate (users), accordion + stepper (irrigation), btn-group (tasks filter), pair (frost protocol), skeleton (recent activity)
+- [ ] Badges: you want an innovative non-colour-coded, non-glowing design, or plain with no edge lighting. Options to prototype next
