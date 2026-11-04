@@ -16,8 +16,9 @@
   --stroke-divider: rgba(255,255,255,.08);
   --stroke-divider-hover: rgba(255,255,255,.20);
   --stroke-divider-active: rgba(255,255,255,.20);
-  --stroke-control: rgba(255,255,255,.32);   /* control outlines must hit 3:1 (WCAG 1.4.11) */
-  --tick-idle: rgba(255,255,255,.32);
+  --stroke-control: rgba(255,255,255,.42);   /* measured 4.1:1 on panel; WCAG 1.4.11 needs 3:1 */
+  --tick-idle: rgba(255,255,255,.42);
+  --wash: 6;                                  /* ambient wash strength (%): dark relies on glow instead */
 
   /* signal colours: base = light/fill, text = AA on panel */
   --accent: #22d3ee;  --accent-text: #22d3ee;
@@ -27,7 +28,9 @@
   --info: #818cf8;    --info-text: #818cf8;
 
   --glow-strength: 1;               /* dark = halos on, light = etches */
-  --scrim: rgba(0,0,0,.62);
+  --scrim: rgba(0,0,0,.35);
+  --scrim-filter: blur(5px) brightness(.55);   /* dark: blur is what reads; dimming near-black is invisible */
+  --color-overlay: #1a1e2a;                    /* raised surface: floating layers are visibly lighter than panels */
   --elev-1: 0 8px 24px rgba(0,0,0,.45);
   --elev-2: 0 30px 60px rgba(0,0,0,.6);
   --on-signal: #04141a;
@@ -45,7 +48,8 @@
   --stroke-divider-hover: rgba(0,0,0,.24);
   --stroke-divider-active: rgba(0,0,0,.30);
   --stroke-control: rgba(0,0,0,.45);
-  --tick-idle: rgba(0,0,0,.40);
+  --tick-idle: rgba(0,0,0,.46);   /* measured 3.5:1 */
+  --wash: 13;                       /* light physics: ambient wash + etch, no glow */
 
   --accent: #0e7490;  --accent-text: #0e7490;
   --ok: #059669;      --ok-text: #047857;
@@ -54,7 +58,9 @@
   --info: #4338ca;    --info-text: #4338ca;
 
   --glow-strength: 0;
-  --scrim: rgba(15,23,42,.4);
+  --scrim: rgba(15,23,42,.12);
+  --scrim-filter: blur(5px) brightness(.9);
+  --color-overlay: #ffffff;
   --elev-1: 0 6px 18px rgba(15,23,42,.14);
   --elev-2: 0 24px 48px rgba(15,23,42,.22);
 }
@@ -165,22 +171,31 @@
 .me-anchor { position: relative; display: flex; align-items: center; min-height: var(--control-h); padding: 0 var(--space-4);
   background: linear-gradient(180deg, color-mix(in srgb, var(--color-text-muted) 3%, transparent), color-mix(in srgb, var(--color-text-muted) 11%, transparent));
   border-radius: var(--radius-micro); }
-.me-anchor::before, .me-anchor::after { content: ""; position: absolute; top: 20%; bottom: 20%; width: 1px;
-  background: var(--tick-idle); transition: all var(--dur) var(--ease); pointer-events: none; }
+.me-anchor::before, .me-anchor::after { content: ""; position: absolute; top: 10%; bottom: 10%; width: 1px;
+  background: linear-gradient(180deg, transparent, var(--tick-idle) 16%, var(--tick-idle) 84%, transparent);
+  transition: all var(--dur) var(--ease); pointer-events: none; }
 .me-anchor::before { left: 0 } .me-anchor::after { right: 0 }
-.me-anchor:hover::before, .me-anchor:hover::after { top: 14%; bottom: 14%; }
+.me-anchor:hover::before, .me-anchor:hover::after { top: 4%; bottom: 4%; }
+.me-anchor:focus-within::before, .me-anchor:focus-within::after { width: 2px; }
 .me-anchor:focus-within::before, .me-anchor:focus-within::after,
 [data-signal="err"] .me-anchor::before, [data-signal="err"] .me-anchor::after,
-.me-anchor[data-signal]::before, .me-anchor[data-signal]::after { top: 8%; bottom: 8%; background: var(--sig); box-shadow: var(--sig-tick-shadow); }
+.me-anchor[data-signal]::before, .me-anchor[data-signal]::after { top: 0; bottom: 0; background: linear-gradient(180deg, transparent, var(--sig) 30%, var(--sig) 70%, transparent);
+  filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); }
 .me-anchor:has(:disabled)::before, .me-anchor:has(:disabled)::after { background: var(--stroke-divider); box-shadow: none; }
 /* error bottom hint-line so error also reads w/o colour */
 [data-signal="err"] .me-anchor { box-shadow: inset 0 -1px 0 var(--sig); }
+.me-anchor > :where(input, select, textarea):focus-visible { outline: 0; }
+@media (forced-colors: active) { .me-anchor:focus-within { outline: 2px solid Highlight; } }
 .me-anchor > :where(input, select, textarea) { width: 100%; min-width: 0; background: transparent; border: 0; outline: 0; padding: 0; }
 .me-anchor :where(input, textarea)::placeholder { color: var(--color-text-dim); opacity: 1; }
 .me-anchor > textarea { padding: var(--space-3) 0; min-height: 88px; resize: vertical; }
 .me-anchor:has(> textarea) { align-items: stretch; }
 .me-anchor > :where(.me-affix) { color: var(--color-text-dim); white-space: nowrap; padding-right: var(--space-2); }
 .me-anchor > .me-affix:last-child { padding: 0 0 0 var(--space-2); }
+/* inline action inside a field (show/hide password, clear, copy) */
+.me-anchor > button.me-affix { align-self: stretch; padding: 0 0 0 var(--space-3); background: transparent; border: 0; cursor: pointer; text-transform: uppercase; font-size: 10px; letter-spacing: .12em; color: var(--color-text-muted); }
+.me-anchor > button.me-affix:hover { color: var(--color-text-primary); }
+.me-anchor > button.me-affix:focus-visible { outline-offset: -3px; }
 /* select */
 .me-anchor > select { appearance: none; cursor: pointer; padding-right: 20px; color-scheme: inherit; }
 .me-anchor:has(> select)::after { right: 0 }
@@ -236,6 +251,11 @@
 
 /* ---------- 7. NAVIGATION ------------------------------------------------ */
 .me-tabs { display: flex; overflow-x: auto; scrollbar-width: none; background: var(--color-surface); border-bottom: 1px solid var(--stroke-divider); }
+/* nav bar: <header class="me-nav"><div class="me-tabs">..</div><div class="me-nav-end">..</div></header> */
+.me-nav { display: flex; flex-wrap: wrap; background: var(--color-surface); border-bottom: 1px solid var(--stroke-divider); }
+.me-nav > .me-tabs { flex: 1 1 0; min-width: 0; border-bottom: 0; }
+.me-nav-end { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-4); border-left: 1px solid var(--stroke-divider); }
+@media (max-width: 640px) { .me-nav > .me-tabs { flex-basis: 100%; } .me-nav-end { flex: 1 1 100%; border-left: 0; border-top: 1px solid var(--stroke-divider); min-height: var(--control-h); } }
 .me-tab { position: relative; flex: none; padding: var(--space-4) var(--space-6); background: transparent; border: 0; border-right: 1px solid var(--stroke-divider);
   cursor: pointer; color: var(--color-text-muted); text-transform: uppercase; font-size: 13px; letter-spacing: .1em; font-weight: 600; transition: color var(--dur); }
 .me-tab::before { content: ""; position: absolute; inset: 0; border: 1px solid transparent; border-top-width: 2px; border-bottom: 0; pointer-events: none;
@@ -260,7 +280,13 @@
 .me-link:hover { background-size: 100% 2px; }
 
 /* ---------- 8. DATA DISPLAY ---------------------------------------------- */
-.me-table-wrap { overflow: auto; border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); max-height: 360px; }
+.me-table-wrap { overflow: auto; border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); max-height: 360px;
+  /* edge-light scroll hint: appears only on the side that still has content */
+  background:
+    linear-gradient(90deg, var(--color-panel) 30%, transparent) 0 0 / 28px 100% no-repeat local,
+    linear-gradient(270deg, var(--color-panel) 30%, transparent) 100% 0 / 28px 100% no-repeat local,
+    linear-gradient(90deg, color-mix(in srgb, var(--sig) 45%, transparent), transparent) 0 0 / 14px 100% no-repeat scroll,
+    linear-gradient(270deg, color-mix(in srgb, var(--sig) 45%, transparent), transparent) 100% 0 / 14px 100% no-repeat scroll; }
 .me-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .me-table th, .me-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid var(--stroke-divider); border-right: 1px solid var(--stroke-divider); white-space: nowrap; }
 .me-table :is(th,td):last-child { border-right: 0; }
@@ -308,18 +334,18 @@
 .me-alert > .me-glyph { color: var(--sig-text); font-weight: 700; flex: none; width: 14px; text-align: center; }  /* glyph per signal => not colour-only */
 
 .me-toasts { position: fixed; right: var(--space-4); bottom: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); z-index: var(--z-toast); width: min(360px, calc(100vw - 32px)); }
-.me-toasts .me-alert { border-radius: var(--radius-float); box-shadow: var(--elev-1); background: var(--color-panel); animation: me-in .3s var(--ease); }
+.me-toasts .me-alert { border-radius: var(--radius-float); background: var(--color-overlay); animation: me-in .3s var(--ease); }
 @keyframes me-in { from { opacity: 0; transform: translateX(16px) } }
 
 [data-tip] { position: relative; }
 [data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(4px); white-space: nowrap; z-index: var(--z-tip);
-  padding: 4px 8px; font-size: 11px; background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--stroke-divider-hover); border-top: 2px solid var(--accent);
-  border-radius: var(--radius-float); box-shadow: var(--elev-1); opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s var(--ease); }
+  padding: 4px 8px; font-size: 11px; background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--stroke-divider-hover);
+  border-radius: var(--radius-float); box-shadow: none; opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s var(--ease); }
 [data-tip]:is(:hover, :focus-visible)::after { opacity: 1; transform: translateX(-50%); transition-delay: .35s; }
 
 /* ---------- 10. OVERLAYS ------------------------------------------------- */
-.me-menu { position: absolute; z-index: var(--z-dropdown); min-width: 200px; padding: 0; list-style: none; background: var(--color-panel);
-  border: 1px solid var(--stroke-divider-hover); border-top: 2px solid var(--accent); border-radius: var(--radius-float); box-shadow: var(--elev-1); }
+.me-menu { position: absolute; z-index: var(--z-dropdown); min-width: 200px; padding: 0; list-style: none; background: var(--color-overlay);
+  border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); box-shadow: none; }
 .me-menu[hidden] { display: none; }
 .me-menu-item { display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); width: 100%; padding: var(--space-2) var(--space-4); min-height: calc(var(--control-h) - 4px);
   background: transparent; border: 0; border-bottom: 1px solid var(--stroke-divider); text-align: left; cursor: pointer; color: var(--color-text-muted); box-shadow: inset 0 0 0 var(--sig); }
@@ -327,9 +353,9 @@
 .me-menu-item:is(:hover, :focus-visible, [aria-selected="true"]) { color: var(--color-text-primary); box-shadow: inset 2px 0 0 var(--sig); background: var(--sig-fill); outline: 0; }
 .me-menu-item[data-signal="err"] { color: var(--err-text); }
 
-dialog.me-modal { padding: 0; width: min(520px, calc(100vw - 32px)); background: var(--color-panel); color: var(--color-text-primary);
-  border: 1px solid var(--stroke-divider-hover); border-top: 2px solid var(--sig); border-radius: var(--radius-float); box-shadow: var(--elev-2); }
-dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: blur(2px); }
+dialog.me-modal { padding: 0; width: min(520px, calc(100vw - 32px)); background: var(--color-overlay); color: var(--color-text-primary);
+  border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); box-shadow: none; }
+dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: var(--scrim-filter); }
 .me-modal-head { padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--stroke-divider); display: flex; justify-content: space-between; align-items: center; }
 .me-modal-body { padding: var(--space-6); max-height: 60vh; overflow: auto; }
 
@@ -341,34 +367,107 @@ dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: blur(2px)
 .me-split > button { position: relative; background: transparent; border: 0; cursor: pointer; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; transition: color var(--dur); }
 .me-split > button:hover { color: var(--color-text-primary); }
 .me-split > button[aria-pressed="true"] { color: var(--color-text-primary); }
-.me-split > button:first-of-type[aria-pressed="true"] { background: radial-gradient(ellipse at 100% 50%, color-mix(in srgb, var(--l) 22%, transparent), transparent 80%); box-shadow: inset 0 -2px 0 var(--l); }
-.me-split > button:last-of-type[aria-pressed="true"]  { background: radial-gradient(ellipse at 0% 50%, color-mix(in srgb, var(--r) 22%, transparent), transparent 80%); box-shadow: inset 0 -2px 0 var(--r); }
+/* Selected side: 1px light on top, bottom and OUTER edge; the edge facing the divider stays open.
+   The light is brightest next to the divider and fades outward (mask), as in the original XPS example. */
+.me-split > button::after { content: ""; position: absolute; inset: -1px; pointer-events: none; opacity: 0; }
+.me-split > button[aria-pressed="true"] { color: var(--color-text-primary); }
+.me-split > button[aria-pressed="true"]::after { opacity: 1; animation: me-edge-reveal .3s var(--ease) both; }
+.me-split > button:first-of-type[aria-pressed="true"] { background: radial-gradient(ellipse at 100% 50%, color-mix(in srgb, var(--l) 22%, transparent) 0%, transparent 80%); }
+.me-split > button:first-of-type::after { border: 1px solid var(--l); border-right: 0; border-radius: var(--radius-float) 0 0 var(--radius-float);
+  box-shadow: inset calc(4px * var(--glow-strength)) 0 10px color-mix(in srgb, var(--l) 25%, transparent), calc(-2px * var(--glow-strength)) 0 8px color-mix(in srgb, var(--l) 25%, transparent);
+  -webkit-mask-image: linear-gradient(to left, #000 0%, rgba(0,0,0,.2) 70%, transparent 100%); mask-image: linear-gradient(to left, #000 0%, rgba(0,0,0,.2) 70%, transparent 100%); }
+.me-split > button:last-of-type[aria-pressed="true"] { background: radial-gradient(ellipse at 0% 50%, color-mix(in srgb, var(--r) 22%, transparent) 0%, transparent 80%); }
+.me-split > button:last-of-type::after { border: 1px solid var(--r); border-left: 0; border-radius: 0 var(--radius-float) var(--radius-float) 0;
+  box-shadow: inset calc(-4px * var(--glow-strength)) 0 10px color-mix(in srgb, var(--r) 25%, transparent), calc(2px * var(--glow-strength)) 0 8px color-mix(in srgb, var(--r) 25%, transparent);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, rgba(0,0,0,.2) 70%, transparent 100%); mask-image: linear-gradient(to right, #000 0%, rgba(0,0,0,.2) 70%, transparent 100%); }
+.me-split[data-chosen="l"]::after { box-shadow: 0 0 calc(10px * var(--glow-strength)) var(--l), calc(-4px * var(--glow-strength)) 0 12px color-mix(in srgb, var(--l) calc(100% * var(--glow-strength)), transparent); }
+.me-split[data-chosen="r"]::after { box-shadow: 0 0 calc(10px * var(--glow-strength)) var(--r), calc(4px * var(--glow-strength)) 0 12px color-mix(in srgb, var(--r) calc(100% * var(--glow-strength)), transparent); }
+@keyframes me-edge-reveal { from { opacity: 0; transform: scale(.98) } to { opacity: 1; transform: scale(1) } }
 
-/* ---------- 10b. ELEVATION TOOLKIT (experimental) ------------------------
-   Compose any overlay from three independent layers:
-   1. edge light   : data-lit="t r b l" (any subset; space separated)   -> light as structure
-   2. depth        : data-depth="shadow | frame | none"                 -> how it separates from the page
-   3. backdrop     : <dialog>::backdrop via data-scrim="dim | blur | none"
-   Edge light fades toward its ends, like the XPS trackpad etch lines.        */
-.me-lit { position: relative; }
+/* ---------- 10b. EDGE LIGHT TOOLKIT --------------------------------------
+   Light is a bar that LOSES ENERGY toward its ends (like the XPS etch lines), never a full-length stroke.
+     data-lit="t r b l"   which edges emit (any subset)
+     --lit-span: 60%      length of each bar (default 100%, still fading at both ends)
+     --lit-ax / --lit-ay  where along the edge the bar sits (0%..100%, default 50% = centred)
+     --lit-level: 0..1    illumination: rest .35 / hover .65 / active 1 (opacity of the whole light)
+   Depth is independent:  data-depth="frame | none | shadow"   (shadow is a light-theme tool)         */
+.me-lit:where(:not(dialog, .me-menu)) { position: relative; }
+.me-lit {
+  --lit-h: linear-gradient(90deg,  transparent 0, var(--sig) 38%, var(--sig) 62%, transparent 100%);
+  --lit-v: linear-gradient(180deg, transparent 0, var(--sig) 38%, var(--sig) 62%, transparent 100%);
+  --lit-bg: var(--lit-t, none) var(--lit-ax, 50%) 0    / var(--lit-span, 100%) 2px no-repeat,
+            var(--lit-b, none) var(--lit-ax, 50%) 100% / var(--lit-span, 100%) 2px no-repeat,
+            var(--lit-l, none) 0    var(--lit-ay, 50%) / 2px var(--lit-span, 100%) no-repeat,
+            var(--lit-r, none) 100% var(--lit-ay, 50%) / 2px var(--lit-span, 100%) no-repeat,
+            var(--lit-wt, none) var(--lit-ax, 50%) 0    / var(--lit-span, 100%) 36px no-repeat,
+            var(--lit-wb, none) var(--lit-ax, 50%) 100% / var(--lit-span, 100%) 36px no-repeat;
+  --lit-wash-c: color-mix(in srgb, var(--sig) calc(var(--wash) * 1%), transparent);
+}
+.me-lit[data-lit~="t"] { --lit-wt: radial-gradient(ellipse 60% 100% at 50% 0%, var(--lit-wash-c), transparent); }
+.me-lit[data-lit~="b"] { --lit-wb: radial-gradient(ellipse 60% 100% at 50% 100%, var(--lit-wash-c), transparent); }
 .me-lit::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: 1;
-  border: 2px solid transparent;
-  border-top-color:    var(--lit-t, transparent);  border-right-color: var(--lit-r, transparent);
-  border-bottom-color: var(--lit-b, transparent);  border-left-color:  var(--lit-l, transparent);
-  box-shadow: var(--lit-sh-t, 0 0 #0000), var(--lit-sh-r, 0 0 #0000), var(--lit-sh-b, 0 0 #0000), var(--lit-sh-l, 0 0 #0000); }
-.me-lit[data-lit~="t"] { --lit-t: var(--sig); --lit-sh-t: inset 0 6px 8px -6px color-mix(in srgb, var(--sig) calc(70% * var(--glow-strength) + 25%), transparent); }
-.me-lit[data-lit~="r"] { --lit-r: var(--sig); --lit-sh-r: inset -6px 0 8px -6px color-mix(in srgb, var(--sig) calc(70% * var(--glow-strength) + 25%), transparent); }
-.me-lit[data-lit~="b"] { --lit-b: var(--sig); --lit-sh-b: inset 0 -6px 8px -6px color-mix(in srgb, var(--sig) calc(70% * var(--glow-strength) + 25%), transparent); }
-.me-lit[data-lit~="l"] { --lit-l: var(--sig); --lit-sh-l: inset 6px 0 8px -6px color-mix(in srgb, var(--sig) calc(70% * var(--glow-strength) + 25%), transparent); }
-/* a button that opts into edge light swaps its top-bar pseudo for the full edge-light frame */
-.me-btn.me-lit::before { left: auto; top: auto; height: auto; inset: -1px; background: none; opacity: 1; border-radius: inherit; }
-.me-btn.me-lit:hover { --lit-brighten: 1; }
-[data-depth="frame"]  { box-shadow: none !important; border-color: var(--stroke-divider-hover) !important; }
-[data-depth="none"]   { box-shadow: none !important; }
+  background: var(--lit-bg); opacity: var(--lit-level, 1); transition: opacity var(--dur) var(--ease);
+  filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--sig))
+          drop-shadow(0 calc(1px * (1 - var(--glow-strength))) 0 rgba(255,255,255,calc(.95 * (1 - var(--glow-strength))))); }  /* light: pressed-ink etch */
+.me-lit[data-lit~="t"] { --lit-t: var(--lit-h); }
+.me-lit[data-lit~="b"] { --lit-b: var(--lit-h); }
+.me-lit[data-lit~="l"] { --lit-l: var(--lit-v); }
+.me-lit[data-lit~="r"] { --lit-r: var(--lit-v); }
+.me-lit[data-lit-level="rest"]  { --lit-level: .15; }
+.me-lit[data-lit-level="hover"] { --lit-level: .55; }
+.me-lit[data-lit-hover]         { --lit-level: .2; }
+.me-lit[data-lit-hover]:is(:hover, :focus-visible) { --lit-level: .6; }
+.me-lit[data-lit-hover]:is(:active, [aria-pressed="true"], [aria-selected="true"]) { --lit-level: 1; }
+/* a button's built-in top bar is replaced by the edge-light layer when it opts in */
+.me-btn.me-lit::before { inset: -1px; height: auto; background: var(--lit-bg); box-shadow: none; opacity: var(--lit-level, 1); border-radius: inherit; }
+[data-depth="frame"]  { box-shadow: none; border-color: var(--stroke-divider-hover); }
+[data-depth="none"]   { box-shadow: none; }
 [data-depth="shadow"] { box-shadow: var(--elev-2); }
-dialog[data-scrim="blur"]::backdrop { backdrop-filter: blur(6px) saturate(.8); }
-dialog[data-scrim="none"]::backdrop { background: transparent; }
-dialog[data-scrim="dim"]::backdrop  { backdrop-filter: none; }
+dialog[data-scrim="dim"]::backdrop   { backdrop-filter: none; }
+dialog[data-scrim="blur"]::backdrop  { background: transparent; }
+dialog[data-scrim="none"]::backdrop  { background: transparent; backdrop-filter: none; }
+
+/* ---------- 10c. SELECTION PANEL (one panel, light shows the selection) ---
+   Outer frame is dim and always visible. Selecting a row lights ONLY the dividers touching it,
+   as short fading bars. Outer edges never light.                                               */
+.me-list { display: flex; flex-direction: column; background: var(--color-panel); border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-soft); overflow: hidden; --lit-w: 56%; }
+.me-list > button { position: relative; display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-h); padding: 0 var(--space-4); text-align: left;
+  background: transparent; border: 0; border-top: 1px solid var(--stroke-divider); cursor: pointer; color: var(--color-text-muted); transition: color var(--dur), background var(--dur); }
+.me-list > button:first-child { border-top: 0; }
+.me-list > button::before, .me-list > button::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--sig) 38%, var(--sig) 62%, transparent) var(--lit-pos, 50%) 0 / var(--lit-w) 100% no-repeat;
+  filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--sig)); transition: opacity var(--dur) var(--ease); }
+.me-list > button::before { top: -1px; }
+.me-list > button::after { bottom: -1px; }
+.me-list > button:first-child::before, .me-list > button:last-child::after { display: none; }
+.me-list > button:is(:hover, :focus-visible) { color: var(--color-text-primary); }
+.me-list > button:is(:hover, :focus-visible)::before, .me-list > button:is(:hover, :focus-visible)::after { opacity: .3; }
+.me-list > button[aria-pressed="true"] { color: var(--color-text-primary);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sig) 12%, transparent), transparent 38%, transparent 62%, color-mix(in srgb, var(--sig) 12%, transparent)); }
+.me-list > button[aria-pressed="true"]:first-child { background: linear-gradient(0deg, color-mix(in srgb, var(--sig) 12%, transparent), transparent 55%); }
+.me-list > button[aria-pressed="true"]:last-child  { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) 12%, transparent), transparent 55%); }
+.me-list > button[aria-pressed="true"]::before, .me-list > button[aria-pressed="true"]::after { opacity: 1; }
+
+/* ---------- 10d. SIDE NAV + BAR CHART ------------------------------------- */
+.me-side { display: flex; flex-direction: column; background: var(--color-surface); border-right: 1px solid var(--stroke-divider); min-width: 0; }
+.me-side-group { padding: var(--space-4) var(--space-4) var(--space-2); }
+.me-side > button { position: relative; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); width: 100%; min-height: var(--control-h);
+  padding: 0 var(--space-4); background: transparent; border: 0; border-bottom: 1px solid var(--stroke-divider); text-align: left; cursor: pointer; color: var(--color-text-muted);
+  text-transform: uppercase; font-size: 11px; letter-spacing: .1em; transition: color var(--dur), background var(--dur); }
+.me-side > button::before { content: ""; position: absolute; left: -1px; top: 0; bottom: 0; width: 2px; opacity: 0; transition: opacity var(--dur) var(--ease);
+  background: linear-gradient(180deg, transparent, var(--sig) 30%, var(--sig) 70%, transparent); filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--sig)); }
+.me-side > button:hover { color: var(--color-text-primary); }
+.me-side > button:hover::before { opacity: .3; }
+.me-side > button[aria-current="page"] { color: var(--color-text-primary); background: linear-gradient(90deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent 70%); }
+.me-side > button[aria-current="page"]::before { opacity: 1; }
+
+.me-bars { display: flex; align-items: flex-end; gap: var(--space-2); height: 128px; padding-top: var(--space-2); border-bottom: 1px solid var(--stroke-control); }
+.me-bars > i { position: relative; flex: 1; height: var(--h, 50%); min-width: 6px; font-style: normal;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 2.5%), transparent), transparent);
+  border-top: 2px solid var(--sig); transition: height .5s var(--ease); }
+.me-bars > i:hover { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 4%), transparent), transparent); }
+.me-bars-x { display: flex; gap: var(--space-2); }
+.me-bars-x > span { flex: 1; text-align: center; font-size: 10px; color: var(--color-text-dim); letter-spacing: .1em; }
 
 /* ---------- 11. DISCLOSURE ----------------------------------------------- */
 .me-accordion > details { border-bottom: 1px solid var(--stroke-divider); }

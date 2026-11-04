@@ -86,3 +86,25 @@ Hard cap: **4px**. Compare the usual 12–24px "card" look you're avoiding.
 - **W3C Design Tokens (DTCG)** format and Style Dictionary for builds.
 - **User preference queries**: `prefers-color-scheme`, `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`.
 - **Watch, don't adopt yet**: APCA (WCAG 3 draft contrast model).
+
+---
+
+## Findings log (from building dashboard.html on the framework)
+Decisions from elevation review (v2 lab):
+- [x] Shadows dropped from overlays in both themes; separation = raised surface (`--color-overlay`) + frame + blur scrim
+- [x] Full-length top accent lines removed everywhere (menus, tooltip, modal). Light is now short, fading bars
+- [x] Edge light fades at both ends; `--lit-span`, `--lit-ax/ay`, `--lit-level` (rest .2 / hover .55 / active 1)
+- [x] Fields: only L/R ticks light, fading at both ends; focus ring suppressed in favour of the ticks (forced-colors fallback kept)
+- [x] `.me-list`: one panel, light shows the selection on touching dividers only
+- [x] Split footer rebuilt from the original: 3 edges, fade away from divider, directional divider glow
+- [x] `.me-nav` (tabs + trailing actions) wraps on narrow screens; table scroll-hint on overflow
+
+Open gaps the dashboard exposed:
+- [ ] Charts / sparklines (Telemetry tab is a placeholder)
+- [ ] Tabs have no overflow hint when scrolled (third tab clipped on phones)
+- [ ] Field ticks as the ONLY focus indicator: audit against WCAG 2.4.13 (focus appearance); consider a short bottom bar as a second cue
+- [ ] Idle field boundary contrast with faded ticks: measure against 1.4.11 (3:1)
+- [ ] No undo / neutral state for the split footer
+- [ ] Illumination levels not yet wired to `:hover` on every lit control (only opt-in via `data-lit-hover`)
+- [ ] Light-mode glow is the weakest part: etch effect needs its own design pass
+- [ ] Rejected in review: shadow-only overlays, one-lit-top "generic" panels, stacked lit provider buttons

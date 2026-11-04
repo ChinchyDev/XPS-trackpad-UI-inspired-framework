@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLM Allocator — built on monoedge.css</title>
+<link rel="stylesheet" href="monoedge.css">
+<style>
+  /* page layout ONLY. Every control, state and light effect comes from the framework. */
+  body { margin: 0; min-height: 100vh; display: flex; justify-content: center; padding: 24px; box-sizing: border-box; }
+  .app { width: 100%; max-width: 1100px; align-self: flex-start; background: var(--color-panel); border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); overflow: hidden; }
+  .section-title { color: var(--accent-text); }
+  .pad { padding: var(--space-6); }
+  .stats { --cell-min: 180px; border-left: 0; border-right: 0; border-radius: 0; }
+  .split-wrap { margin-top: auto; border: 1px solid var(--stroke-divider); border-radius: var(--radius-soft); overflow: hidden; }
+  .split-wrap .me-split { border-top: 0; }
+  .col { display: flex; flex-direction: column; gap: var(--space-4); }
+</style>
+</head>
+<body class="me">
+<main class="app">
+  <header class="me-nav">
+    <div class="me-tabs" role="tablist" aria-label="Sections" id="tabs">
+      <button class="me-tab" role="tab" aria-selected="true"  aria-controls="p-alloc" id="t-alloc">SLM Allocator</button>
+      <button class="me-tab" role="tab" aria-selected="false" aria-controls="p-tele"  id="t-tele" tabindex="-1">Telemetry <span class="me-badge" data-signal="warn">1</span></button>
+      <button class="me-tab" role="tab" aria-selected="false" aria-controls="p-inf"   id="t-inf"  tabindex="-1">Inference</button>
+    </div>
+    <div class="me-nav-end"><div class="me-segmented" id="seg-theme" role="group" aria-label="Theme"><button aria-pressed="true" data-v="dark">Dark</button><button aria-pressed="false" data-v="light">Light</button></div></div>
+  </header>
+
+  <!-- ===== ALLOCATOR ===== -->
+  <section role="tabpanel" id="p-alloc" aria-labelledby="t-alloc">
+    <div class="me-grid" style="border:0;border-radius:0;--cell-min:300px">
+      <div class="col">
+        <div class="me-title section-title">01 // Configuration</div>
+        <div class="me-field"><label class="me-label" for="path">Local model path</label>
+          <div class="me-anchor"><input id="path" value="/models/llama-3-8b-instruct.gguf"></div>
+          <span class="me-hint">Absolute path to a .gguf file.</span></div>
+        <div class="me-field"><label class="me-label" for="ctx">Context window</label>
+          <div class="me-anchor"><select id="ctx"><option>4096 tokens</option><option selected>8192 tokens</option><option>32768 tokens</option></select><span class="me-select-caret"></span></div></div>
+        <div class="me-field"><label class="me-label" for="sys">System prompt override</label>
+          <div class="me-anchor"><textarea id="sys" placeholder="You are a helpful local AI…"></textarea></div></div>
+        <div class="me-field"><span class="me-label">Sampling</span>
+          <div class="me-list" id="sampling" role="group" aria-label="Sampling strategy">
+            <button aria-pressed="true">Greedy</button><button aria-pressed="false">Top-p</button><button aria-pressed="false">Beam search</button></div></div>
+      </div>
+
+      <div class="col">
+        <div class="me-title section-title">02 // Hardware limits</div>
+        <label class="me-choice"><input type="checkbox" class="me-check" checked> INT4 quantisation</label>
+        <label class="me-choice"><input type="checkbox" class="me-check"> Flash attention</label>
+        <div class="me-row" style="justify-content:space-between"><span class="me-label" id="um">Unified memory (Metal)</span><button class="me-switch" role="switch" aria-checked="true" aria-labelledby="um"></button></div>
+        <hr class="me-rule">
+        <div class="me-field">
+          <div class="me-row" style="justify-content:space-between"><label class="me-label" for="vram">Max VRAM allocation</label><output class="me-num" id="vram-o">12.5 GB</output></div>
+          <input id="vram" class="me-slider" type="range" min="4" max="24" step="0.5" value="12.5">
+          <div class="me-meter" id="vram-m" style="--v:52%" role="progressbar" aria-label="VRAM share" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100"><i></i></div>
+          <div class="me-alert" data-signal="warn" id="vram-warn" role="status" hidden><span class="me-glyph">!</span><div><div class="me-alert-title">High allocation</div>Leaves under 4 GB for the system.</div></div>
+        </div>
+        <div class="me-field" id="batch-f"><label class="me-label" for="batch">Batch size</label>
+          <div class="me-anchor" style="padding-right:0"><input id="batch" type="number" class="me-num" value="512" min="1" max="4096"><span class="me-affix">tokens</span>
+            <div class="me-stepper"><button aria-label="Halve" data-d="-1">−</button><button aria-label="Double" data-d="1">+</button></div></div>
+          <span class="me-hint">1 – 4096</span><span class="me-error-msg" id="batch-e">Must be between 1 and 4096.</span></div>
+      </div>
+
+      <div class="col">
+        <div class="me-row" style="justify-content:space-between"><div class="me-title section-title">03 // Execution</div>
+          <span class="me-row" data-signal="ok" style="gap:8px" id="daemon"><span class="me-dot me-dot--pulse"></span><span class="me-label">Daemon ready</span></span></div>
+        <p class="me-dim" style="flex:1">Review the allocation limits before mounting the SLM weights to physical memory. This will purge cached tensors.</p>
+        <div class="me-label" id="status" role="status" style="text-align:center;min-height:14px">Awaiting user action…</div>
+        <div class="split-wrap"><div class="me-split" id="split"><button aria-pressed="false" data-c="l">Load weights</button><button aria-pressed="false" data-c="r">Abort</button></div></div>
+      </div>
+    </div>
+
+    <div class="me-grid stats">
+      <div class="me-stat"><span class="me-label">Tokens / sec</span><span class="me-stat-value">84.2</span><span class="me-delta">▲ 6.1% vs last run</span></div>
+      <div class="me-stat"><span class="me-label">Resident weights</span><span class="me-stat-value">5.7<span class="me-dim" style="font-size:14px"> GB</span></span><span class="me-delta me-dim">Q4_K_M</span></div>
+      <div class="me-stat" data-signal="warn"><span class="me-label">Cache pressure</span><span class="me-stat-value me-sig">71%</span><span class="me-delta">▲ rising</span></div>
+      <div class="me-stat" data-signal="ok"><span class="me-label">Uptime</span><span class="me-stat-value me-sig">6d 04h</span><span class="me-delta me-dim">since last restart</span></div>
+    </div>
+
+    <div class="pad">
+      <div class="me-table-wrap">
+        <table class="me-table">
+          <caption class="me-label">Available models</caption>
+          <thead><tr><th class="me-label" scope="col">Name</th><th class="me-label num" scope="col">Params (B)</th><th class="me-label num" scope="col">VRAM (GB)</th><th class="me-label" scope="col">Status</th></tr></thead>
+          <tbody>
+            <tr tabindex="0" aria-selected="true"><td>llama-3-8b-instruct.Q4_K_M</td><td class="num">8.0</td><td class="num">5.7</td><td><span class="me-badge" data-signal="ok"><span class="me-dot"></span>Loaded</span></td></tr>
+            <tr tabindex="0"><td>mistral-7b-v0.3</td><td class="num">7.2</td><td class="num">4.9</td><td><span class="me-badge" data-signal="info">Idle</span></td></tr>
+            <tr tabindex="0"><td>qwen2.5-32b-instruct</td><td class="num">32.0</td><td class="num">21.8</td><td><span class="me-badge" data-signal="warn">Exceeds limit</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TELEMETRY ===== -->
+  <section role="tabpanel" id="p-tele" aria-labelledby="t-tele" hidden>
+    <div class="pad col">
+      <div class="me-alert" data-signal="warn" role="alert"><span class="me-glyph">!</span><div><div class="me-alert-title">Cache pressure rising</div>KV cache at 71% of budget.</div></div>
+      <div class="me-field"><div class="me-row" style="justify-content:space-between"><span class="me-label">KV cache</span><span class="me-num">71%</span></div><div class="me-meter me-meter-ticks" style="--v:71%" data-signal="warn"><i></i></div></div>
+      <div class="me-field"><div class="me-row" style="justify-content:space-between"><span class="me-label">GPU</span><span class="me-num">38%</span></div><div class="me-meter" style="--v:38%"><i></i></div></div>
+      <div class="me-empty"><span class="me-title">No chart component yet</span><span class="me-dim">Gap found by building this page: charts are not in the framework.</span></div>
+    </div>
+  </section>
+
+  <!-- ===== INFERENCE ===== -->
+  <section role="tabpanel" id="p-inf" aria-labelledby="t-inf" hidden>
+    <div class="pad col">
+      <div class="me-field"><label class="me-label" for="prompt">Prompt</label><div class="me-anchor"><textarea id="prompt" placeholder="Ask the loaded model…"></textarea></div></div>
+      <div class="me-row"><button class="me-btn me-btn--primary" id="run">Run <span class="me-kbd">⌘↵</span></button><button class="me-btn me-btn--ghost">Clear</button></div>
+      <div class="me-stack" id="out" hidden><div class="me-skeleton" style="width:90%"></div><div class="me-skeleton" style="width:70%"></div><div class="me-skeleton" style="width:80%"></div></div>
+    </div>
+  </section>
+</main>
+<div class="me-toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+/* theme */
+$('#seg-theme').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('button',e.currentTarget).forEach(x=>x.setAttribute('aria-pressed',x===b));document.documentElement.dataset.theme=b.dataset.v;});
+/* tabs */
+const tabs=$$('#tabs [role=tab]');
+function sel(t){tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).hidden=!on;});}
+tabs.forEach((t,i)=>{t.addEventListener('click',()=>sel(t));t.addEventListener('keydown',e=>{const k={ArrowRight:i+1,ArrowLeft:i-1,Home:0,End:tabs.length-1}[e.key];if(k===undefined)return;e.preventDefault();const n=tabs[(k+tabs.length)%tabs.length];n.focus();sel(n);});});
+/* switches / lists */
+$$('.me-switch').forEach(s=>s.addEventListener('click',()=>s.setAttribute('aria-checked',s.getAttribute('aria-checked')!=='true')));
+const sampling=$('#sampling');sampling.addEventListener('click',e=>{const b=e.target.closest('button');if(b)$$('button',sampling).forEach(x=>x.setAttribute('aria-pressed',x===b));});
+/* vram */
+const vr=$('#vram');function vram(){const v=+vr.value,pct=(v-vr.min)/(vr.max-vr.min)*100;vr.style.setProperty('--pct',pct+'%');$('#vram-o').textContent=v+' GB';
+  $('#vram-m').style.setProperty('--v',(v/24*100)+'%');$('#vram-m').setAttribute('aria-valuenow',Math.round(v/24*100));$('#vram-m').dataset.signal=v>20?'warn':'';$('#vram-warn').hidden=v<=20;}
+vr.addEventListener('input',vram);vram();
+/* batch validation + stepper */
+const batch=$('#batch');function check(){const v=+batch.value,bad=!(v>=1&&v<=4096);$('#batch-f').dataset.signal=bad?'err':'';batch.setAttribute('aria-invalid',bad);if(bad)batch.setAttribute('aria-describedby','batch-e');else batch.removeAttribute('aria-describedby');}
+batch.addEventListener('input',check);
+$$('.me-stepper button').forEach(b=>b.addEventListener('click',()=>{batch.value=Math.round(b.dataset.d>0?batch.value*2:batch.value/2);check();}));
+/* split */
+const split=$('#split'),status=$('#status');
+split.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('button',split).forEach(x=>x.setAttribute('aria-pressed',x===b));split.dataset.chosen=b.dataset.c;
+  const load=b.dataset.c==='l';status.textContent=load?'STATUS: ALLOCATING VRAM…':'STATUS: OPERATION ABORTED.';status.style.color=load?'var(--accent-text)':'var(--warn-text)';
+  toast(load?'ok':'warn',load?'Mounting weights…':'Operation aborted.');});
+/* toast + run */
+function toast(sig,msg){const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;$('#toasts').append(t);setTimeout(()=>t.remove(),3200);}
+$('#run').addEventListener('click',e=>{const b=e.currentTarget;b.setAttribute('aria-busy','true');$('#out').hidden=false;setTimeout(()=>{b.removeAttribute('aria-busy');toast('ok','Generation complete.');},1800);});
+/* table select */
+$$('.me-table tbody tr').forEach(r=>{r.addEventListener('click',()=>{$$('.me-table tbody tr').forEach(x=>x.removeAttribute('aria-selected'));r.setAttribute('aria-selected','true');});r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();r.click();}});});
+if(location.hash==='#demo'){vr.value=21.5;vram();batch.value=0;check();split.querySelector('[data-c=l]').click();$('#sampling').children[1].click();}
+</script>
+</body>
+</html>
