@@ -170,3 +170,4 @@ Open after round 4:
 ## Round 6
 - [x] Rule 4b: a critical DECISION dialog lights top/left/right only; the bottom edge stays dark so the options (split footer) stay readable
 - [x] Badges: typographic tag chosen. Plain "[ 10 ]"; warn = bracketed UPPERCASE bold; status and critical = solid block (`.me-badge--fill`, auto for err). Light theme uses the darker text-colour as fill so white text passes AA. Candidates A and C and badge-lab.html deleted
+- [x] Badge rule: only a STATUS gets a fill (`.me-badge--fill`). Everything else (roles, counts, due dates) is plain unboxed text, no brackets. Roles are neutral, no signal tint

@@ -361,17 +361,14 @@
 .me-table caption { text-align: left; padding: var(--space-3) var(--space-4); caption-side: top; }
 .me-table-empty { padding: var(--space-8); text-align: center; }
 
-/* Badge: a typographic tag. Quiet by default ("[ 10 ]"); importance is case, weight and FILL, so it never depends on hue alone.
-     plain / notice / ok  -> bracketed lowercase          warn -> bracketed UPPERCASE bold
-     status (add .me-badge--fill) and critical -> solid block with reversed text                                           */
-.me-badge { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 0; height: 18px; font-size: 10px; letter-spacing: .1em; text-transform: lowercase;
+/* Badge. Two kinds only:
+     plain  (.me-badge)              roles, counts, due dates: just small text, no box, no brackets. A signal tints the text.
+     status (.me-badge.me-badge--fill) a status word: solid block with reversed text. Nothing that is not a status gets a fill. */
+.me-badge { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; height: 18px; padding: 0; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
   color: var(--color-text-muted); background: none; border: 0; border-radius: 0; }
-.me-badge::before { content: "["; color: var(--color-text-dim); margin-right: -2px; }
-.me-badge::after  { content: "]"; color: var(--color-text-dim); margin-left: -2px; }
-.me-badge[data-signal="warn"]:not(.me-badge--fill) { color: var(--color-text-primary); text-transform: uppercase; font-weight: 700; }
-.me-badge--fill, .me-badge[data-signal="err"] { padding: 0 var(--space-2); background: var(--sig); color: var(--on-signal); text-transform: uppercase; font-weight: 700; border-radius: var(--radius-micro); }
-.me-badge--fill::before, .me-badge--fill::after, .me-badge[data-signal="err"]::before, .me-badge[data-signal="err"]::after { content: none; }
-[data-theme="light"] .me-badge--fill, [data-theme="light"] .me-badge[data-signal="err"] { background: var(--sig-text); color: #fff; }   /* darker fill so white text passes AA */
+.me-badge[data-signal] { color: var(--sig-text); font-weight: 700; }
+.me-badge--fill { padding: 0 var(--space-2); background: var(--sig); color: var(--on-signal) !important; font-weight: 700; border-radius: var(--radius-micro); }
+[data-theme="light"] .me-badge--fill { background: var(--sig-text); color: #fff !important; }   /* darker fill so white text passes AA */
 .me-badge--fill .me-dot { background: currentColor; filter: none; height: 10px; }
 /* Status beacon: a short vertical light-bar (not a dot) that fades at both ends; pulse = it breathes */
 .me-dot { flex: none; width: 2px; height: 12px; background: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent); filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--sig)); }
