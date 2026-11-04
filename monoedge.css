@@ -82,7 +82,7 @@
 }
 [data-density="compact"] { --control-h: 28px; }
 [data-density="roomy"]   { --control-h: 44px; }
-@media (pointer: coarse) { :root { --control-h: max(44px, var(--control-h)); } }  /* touch: 44px floor */
+@media (pointer: coarse) { :root, [data-density] { --control-h: 44px; } }  /* touch: 44px floor (a var() referencing itself is invalid, so set the value outright) */
 
 /* signal scopes: set one attribute, whole component re-colours */
 [data-signal="ok"]   { --sig: var(--ok);   --sig-text: var(--ok-text); }
@@ -542,8 +542,8 @@ dialog[data-scrim="none"]::backdrop  { background: transparent; backdrop-filter:
 .me-side[data-min] { align-items: stretch; padding-inline: var(--space-3); }
 .me-side[data-min] .me-side-set > .me-label, .me-side[data-min] .me-rail > button > .me-badge { display: none; }
 .me-side[data-min] .me-rail > button { justify-content: center; padding: 0; }
-.me-side[data-min] .me-rail > button > .me-side-txt { display: none; }
-.me-side[data-min] .me-rail > button:is(:hover, :focus-visible) > .me-side-txt { display: block; position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); flex: none; z-index: var(--z-tip);
+.me-side[data-min] .me-rail > button > .me-side-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* visually hidden, still the accessible name */
+.me-side[data-min] .me-rail > button:is(:hover, :focus-visible) > .me-side-txt { width: auto; height: auto; overflow: visible; clip-path: none; position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); flex: none; z-index: var(--z-tip);
   padding: 4px 12px; white-space: nowrap; background: var(--color-overlay); border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); color: var(--color-text-primary); pointer-events: none; }
 .me-side [data-collapse] .me-ico { transition: transform var(--dur) var(--ease); }
 .me-side[data-min] [data-collapse] .me-ico { transform: scaleX(-1); }

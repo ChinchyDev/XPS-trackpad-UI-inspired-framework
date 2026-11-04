@@ -153,3 +153,10 @@ Open after round 4:
 - [ ] Collapsed rail hides count badges; decide on a tiny beacon instead
 - [ ] Icons are a 9-icon first set; the full ~40 set still to draw
 - [ ] Badges revamp (deferred by you)
+
+## Round 5: tests (npm test)
+- [x] Playwright (Edge, no download) + axe: `tests/garden.spec.js` (behaviour + design rules R1-R9, desktop and phone), `tests/a11y.spec.js` (axe WCAG 2.2 AA on every garden state in both themes), `tests/tracking.spec.js`
+- [x] garden.html is the deployment: component coverage is tracked by `tests/coverage-baseline.json` (known gaps). New component not in garden = failing test
+- [x] Animation registry: `tests/animations.json`, every @keyframes must be listed
+- [x] Bugs found by the tests: collapsed rail buttons had no accessible name; touch 44px floor was invalid CSS (self-referencing var) so buttons collapsed to 20px on touch
+- Run: `npm test` (all), `npx playwright test --project=phone`, `npx playwright show-report`

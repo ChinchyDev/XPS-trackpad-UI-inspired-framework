@@ -1,0 +1,10 @@
+{
+  "me-scan":        { "where": "busy split button (Run)", "trigger": "aria-busy=true", "duration": "1s loop", "purpose": "progress without a number" },
+  "me-orbit":       { "where": ".me-btn[aria-busy]", "trigger": "aria-busy=true", "duration": "1.5s loop", "purpose": "edge light travels the perimeter top-left, anticlockwise (loading)" },
+  "me-pulse":       { "where": ".me-dot--pulse", "trigger": "always", "duration": "2s loop", "purpose": "live status beacon breathes" },
+  "me-slide":       { "where": ".me-meter[data-indeterminate]", "trigger": "always", "duration": "1.4s loop", "purpose": "indeterminate progress" },
+  "me-shimmer":     { "where": ".me-skeleton", "trigger": "always", "duration": "1.4s loop", "purpose": "loading placeholder" },
+  "me-notch-in":    { "where": ".me-toasts > .me-alert", "trigger": "toast appended", "duration": "1.5s", "purpose": "bottom edge peeks first, spreads from centre, body drops behind it" },
+  "me-notch-out":   { "where": ".me-toasts > .me-alert.is-out", "trigger": "dwell of about 4.7s elapsed", "duration": ".8s", "purpose": "reverse of the entrance" },
+  "me-edge-reveal": { "where": ".me-split > button[aria-pressed=true]", "trigger": "split choice", "duration": ".3s", "purpose": "selected side's light fades in" }
+}
