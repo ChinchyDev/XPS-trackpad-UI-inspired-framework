@@ -168,6 +168,15 @@ test.describe('components added to close coverage gaps', () => {
     await expect(page.locator('#activity')).toContainText('Sam watered', { timeout: 4000 });
     await expect(page.locator('#act-skel')).toHaveCount(0);
   });
+  for (const theme of ['dark', 'light']) test(`select options are readable in the open list (${theme})`, async ({ page }) => {
+    await app(page, theme === 'dark' ? '#app-users' : '#app-light-users');
+    await page.click('#invite');
+    const c = await page.locator('#iv-role option').first().evaluate(o => { const s = getComputedStyle(o);
+      const rgb = v => (v.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+      const lum = ([r, g, b]) => { const f = x => { x /= 255; return x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4; }; return .2126 * f(r) + .7152 * f(g) + .0722 * f(b); };
+      const a = lum(rgb(s.color)), d = lum(rgb(s.backgroundColor)); return (Math.max(a, d) + .05) / (Math.min(a, d) + .05); });
+    expect(c).toBeGreaterThan(4.5);
+  });
   test('long email is truncated, not wrapped', async ({ page }) => {
     await app(page, '#app-users');
     const t = page.locator('#user-t .me-truncate').last();

@@ -168,10 +168,10 @@
           <th scope="col" class="me-label">Status</th>
         </tr></thead>
         <tbody>
-          <tr tabindex="0"><td>llama-3-8b-instruct.Q4_K_M</td><td class="num">8.0</td><td class="num">5.7</td><td><span class="me-badge" data-signal="ok"><span class="me-dot"></span>Loaded</span></td></tr>
-          <tr tabindex="0"><td>mistral-7b-v0.3</td><td class="num">7.2</td><td class="num">4.9</td><td><span class="me-badge" data-signal="info">Idle</span></td></tr>
-          <tr tabindex="0"><td>qwen2.5-32b-instruct-with-an-absurdly-long-filename.gguf</td><td class="num">32.0</td><td class="num">21.8</td><td><span class="me-badge" data-signal="warn">Near limit</span></td></tr>
-          <tr tabindex="0"><td>phi-3-mini</td><td class="num">3.8</td><td class="num">2.4</td><td><span class="me-badge" data-signal="err">Failed</span></td></tr>
+          <tr tabindex="0"><td>llama-3-8b-instruct.Q4_K_M</td><td class="num">8.0</td><td class="num">5.7</td><td><span class="me-badge me-badge--fill" data-signal="ok"><span class="me-dot"></span>Loaded</span></td></tr>
+          <tr tabindex="0"><td>mistral-7b-v0.3</td><td class="num">7.2</td><td class="num">4.9</td><td><span class="me-badge me-badge--fill" data-signal="info">Idle</span></td></tr>
+          <tr tabindex="0"><td>qwen2.5-32b-instruct-with-an-absurdly-long-filename.gguf</td><td class="num">32.0</td><td class="num">21.8</td><td><span class="me-badge me-badge--fill" data-signal="warn">Near limit</span></td></tr>
+          <tr tabindex="0"><td>phi-3-mini</td><td class="num">3.8</td><td class="num">2.4</td><td><span class="me-badge me-badge--fill" data-signal="err">Failed</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -180,10 +180,10 @@
       <div class="me-stack"><span class="me-label">Skeleton</span><div class="me-skeleton" style="width:80%"></div><div class="me-skeleton" style="width:60%"></div><div class="me-skeleton" style="width:70%"></div></div>
       <div class="me-empty"><span class="me-title">No telemetry</span><span class="me-dim">Start the daemon to stream metrics.</span><button class="me-btn me-btn--primary">Start daemon</button></div>
       <div class="me-stack">
-        <span class="me-label">Badges · lit from the floor</span>
-        <div class="me-row"><span class="me-badge">Accent</span><span class="me-badge" data-signal="ok">Ok</span><span class="me-badge" data-signal="warn">Warn</span><span class="me-badge" data-signal="err">Err</span><span class="me-badge" data-signal="info">Info</span></div>
-        <span class="me-label">Status beacons · a light-bar, not a dot</span>
-        <div class="me-row"><span class="me-badge" data-signal="ok"><span class="me-dot me-dot--pulse"></span>Online</span><span class="me-badge" data-signal="warn"><span class="me-dot"></span>Degraded</span><span class="me-badge" data-signal="err"><span class="me-dot"></span>Down</span></div>
+        <span class="me-label">Badges · typographic tag</span>
+        <div class="me-row"><span class="me-badge">Accent</span><span class="me-badge" data-signal="ok">Ok</span><span class="me-badge" data-signal="info">Notice</span><span class="me-badge" data-signal="warn">Warn</span><span class="me-badge" data-signal="err">Critical</span><span class="me-badge">10</span></div>
+        <span class="me-label">Status badges · filled (me-badge--fill)</span>
+        <div class="me-row"><span class="me-badge me-badge--fill" data-signal="ok"><span class="me-dot me-dot--pulse"></span>Online</span><span class="me-badge me-badge--fill" data-signal="info">Idle</span><span class="me-badge me-badge--fill" data-signal="warn">Degraded</span><span class="me-badge me-badge--fill" data-signal="err">Down</span></div>
         <span class="me-label">Narrow container (220px)</span>
         <div class="narrow"><div class="me-field"><label class="me-label" for="nn">A really long label that wraps</label><div class="me-anchor"><input id="nn" value="text that overflows its box and should clip"></div></div></div>
       </div>

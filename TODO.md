@@ -164,3 +164,9 @@ Open after round 4:
 ## Round 5b: coverage gaps closed
 - [x] garden.html now exercises all 68 framework components (baseline is empty). Added: pager (beds), tabs + nav + nav-end + table-empty + truncate (users), accordion + stepper (irrigation), btn-group (tasks filter), pair (frost protocol), skeleton (recent activity)
 - [ ] Badges: you want an innovative non-colour-coded, non-glowing design, or plain with no edge lighting. Options to prototype next
+- [x] Select dropdown options were black-on-dark in the open list (invite role). Fixed with explicit option colours + a test in both themes
+- [ ] Badge candidates A glyph / B tag / C notch are in monoedge.css and badge-lab.html; coverage baseline lists them until one is chosen and moved into garden
+
+## Round 6
+- [x] Rule 4b: a critical DECISION dialog lights top/left/right only; the bottom edge stays dark so the options (split footer) stay readable
+- [x] Badges: typographic tag chosen. Plain "[ 10 ]"; warn = bracketed UPPERCASE bold; status and critical = solid block (`.me-badge--fill`, auto for err). Light theme uses the darker text-colour as fill so white text passes AA. Candidates A and C and badge-lab.html deleted

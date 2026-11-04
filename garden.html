@@ -258,7 +258,7 @@
   <div class="me-split" id="sp-inv"><button data-c="l" aria-pressed="false">Send invite</button><button data-c="r" aria-pressed="false">Cancel</button></div>
 </dialog>
 
-<dialog class="me-modal me-lit" id="dlg-del" data-signal="err" data-lit="t r b l" aria-labelledby="del-h">
+<dialog class="me-modal me-lit" id="dlg-del" data-signal="err" data-lit="t r l" aria-labelledby="del-h">
   <div class="me-modal-head"><span class="me-title me-sig" id="del-h">Remove user?</span></div>
   <div class="me-modal-body"><span id="del-t">They will lose access immediately.</span> <span class="me-dim">This cannot be undone.</span></div>
   <div class="me-split" id="sp-del" style="--l:var(--err);--r:var(--warn)"><button data-c="l" aria-pressed="false">Remove</button><button data-c="r" aria-pressed="false" autofocus>Keep</button></div>
@@ -368,7 +368,7 @@ function renderBeds(){
   rows.sort((a,b)=>{const x=a[sortK],y=b[sortK];return (typeof x==='number'?x-y:String(x).localeCompare(y))*(sortAsc?1:-1);});
   const all=rows.length,pages=Math.max(1,Math.ceil(all/PAGE));bedPage=Math.min(bedPage,pages-1);rows=rows.slice(bedPage*PAGE,bedPage*PAGE+PAGE);
   $('#bed-pager').hidden=pages<2;$('#bed-pager').innerHTML='<button aria-label="Previous page" data-p="'+(bedPage-1)+'" '+(bedPage===0?'disabled':'')+'>‹</button>'+Array.from({length:pages},(_,i)=>'<button data-p="'+i+'" '+(i===bedPage?'aria-current="page"':'')+' aria-label="Page '+(i+1)+'">'+(i+1)+'</button>').join('')+'<button aria-label="Next page" data-p="'+(bedPage+1)+'" '+(bedPage===pages-1?'disabled':'')+'>›</button>';
-  $('#bed-t tbody').innerHTML=rows.map(b=>{const s=status(b);return '<tr tabindex="0" data-n="'+esc(b.name)+'"'+(sel===b.name?' aria-selected="true"':'')+'><td>'+esc(b.name)+'</td><td>'+b.zone+'</td><td>'+esc(b.crop)+'</td><td class="num">'+b.area+'</td><td class="num">'+b.moisture+'%</td><td><span class="me-badge" data-signal="'+s.k+'">'+s.t+'</span></td></tr>';}).join('');
+  $('#bed-t tbody').innerHTML=rows.map(b=>{const s=status(b);return '<tr tabindex="0" data-n="'+esc(b.name)+'"'+(sel===b.name?' aria-selected="true"':'')+'><td>'+esc(b.name)+'</td><td>'+b.zone+'</td><td>'+esc(b.crop)+'</td><td class="num">'+b.area+'</td><td class="num">'+b.moisture+'%</td><td><span class="me-badge me-badge--fill" data-signal="'+s.k+'">'+s.t+'</span></td></tr>';}).join('');
   $('#bed-n').textContent=all+' of '+beds.length;$('#bed-empty').hidden=all>0;$('#bed-t').parentElement.hidden=all===0;}
 $('#bed-pager').addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(!b)return;bedPage=+b.dataset.p;renderBeds();});
 $('#bed-filter').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;filter=b.dataset.f;bedPage=0;$$('button',$('#bed-filter')).forEach(x=>x.setAttribute('aria-pressed',x===b));renderBeds();});
@@ -400,7 +400,7 @@ $('#user-tabs').addEventListener('keydown',e=>{const t=$$('[role=tab]',$('#user-
 function selUserTab(b){userGroup=b.dataset.g;$$('[role=tab]',$('#user-tabs')).forEach(x=>{x.setAttribute('aria-selected',x===b);x.tabIndex=x===b?0:-1;});$('#user-pane').setAttribute('aria-labelledby',b.id);renderUsers();}
 function renderUsers(){const vis=users.map((u,i)=>({u,i})).filter(x=>inGroup(x.u));$('#user-n').textContent=vis.length+' of '+users.length;
   if(!vis.length){$('#user-t tbody').innerHTML='<tr><td colspan="4" class="me-table-empty"><span class="me-title">No '+userGroup+' users</span><br><span class="me-dim">Nothing here yet.</span></td></tr>';return;}
-  $('#user-t tbody').innerHTML=vis.map(({u,i})=>'<tr><td>'+esc(u.n)+'<div class="me-hint me-truncate" style="max-width:26ch">'+esc(u.e)+'</div></td><td><span class="me-badge" '+(u.r==='Admin'?'':'data-signal="info"')+'>'+u.r+'</span></td><td><span class="me-badge" data-signal="'+(u.s==='Active'?'ok':'warn')+'">'+u.s+'</span></td><td class="num"><button class="me-btn me-btn--ghost" data-del="'+i+'" '+(u.r==='Admin'&&u.n==='Alex Rivera'?'disabled':'')+'>Remove</button></td></tr>').join('');}
+  $('#user-t tbody').innerHTML=vis.map(({u,i})=>'<tr><td>'+esc(u.n)+'<div class="me-hint me-truncate" style="max-width:26ch">'+esc(u.e)+'</div></td><td><span class="me-badge" '+(u.r==='Admin'?'':'data-signal="info"')+'>'+u.r+'</span></td><td><span class="me-badge me-badge--fill" data-signal="'+(u.s==='Active'?'ok':'warn')+'">'+u.s+'</span></td><td class="num"><button class="me-btn me-btn--ghost" data-del="'+i+'" '+(u.r==='Admin'&&u.n==='Alex Rivera'?'disabled':'')+'>Remove</button></td></tr>').join('');}
 $('#user-t').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;delIdx=+b.dataset.del;$('#del-h').textContent='Remove '+users[delIdx].n+'?';$('#del-t').textContent='They will lose access immediately.';resetSplit('#sp-del');$('#dlg-del').showModal();});
 
 /* ------------------------------ dialogs + split ------------------------------ */
