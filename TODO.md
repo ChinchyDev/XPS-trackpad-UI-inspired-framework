@@ -143,3 +143,13 @@ Open after round 4:
 - [ ] Radio is a square with a square dot (no circles rule). One-line change if you want a round dot
 - [ ] Rails on narrow screens switch to `data-axis="x"` through JS (matchMedia); consider a CSS-only container-query version
 - [ ] `.me-tabs` overflow hint still missing
+
+## Round 4b (decisions)
+- [x] Opposing pair: the SAFE action is lit at rest (decided)
+- [x] Radio stays a square with a square dot (decided)
+- [x] Signal colours are standard: red critical, amber warning, green ok. Notice (`info`) is sky blue, no more indigo/purple. Garden "Healthy" is now green, "Harvest soon" is notice blue
+- [x] Alerts radius 4px; notch animation 1.5s in / .8s out, dwell ~4.7s
+- [x] Side nav v2 (from concept image): brand mark, icon + label rails, footer icon group, collapse to icon rail with hover tags. Icon spec in `.me-ico`; icons live as an inline SVG sprite in garden.html
+- [ ] Collapsed rail hides count badges; decide on a tiny beacon instead
+- [ ] Icons are a 9-icon first set; the full ~40 set still to draw
+- [ ] Badges revamp (deferred by you)

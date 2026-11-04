@@ -141,7 +141,7 @@ split.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)retu
   toast(load?'ok':'warn',load?'Mounting weights…':'Operation aborted.');});
 /* toast + run */
 /* notch notification: one at a time; the previous one is replaced */
-function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,420);},3200);}
+function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,850);},4600);}
 const inf=$('#inf-split');
 function infPress(b,c){$$('button',inf).forEach(x=>x.setAttribute('aria-pressed',x===b));inf.dataset.chosen=c;}
 function infRelease(b){b.setAttribute('aria-pressed','false');inf.removeAttribute('data-chosen');}

@@ -48,9 +48,7 @@
       <button class="me-btn me-btn--primary" style="max-width:140px"><span class="me-truncate">A very long button label that must not break</span></button>
     </div>
     <div class="me-row">
-      <div><span class="me-label cell-label">Opposing pair · heat at rest on the risky one</span>
-        <div class="me-pair" id="pair1"><button class="me-btn me-btn--danger" data-hot>Delete bed</button><button class="me-btn">Keep bed</button></div></div>
-      <div><span class="me-label cell-label">Opposing pair · heat at rest on the safe one</span>
+      <div><span class="me-label cell-label">Opposing pair · the safe action is lit at rest; heat follows the click</span>
         <div class="me-pair" id="pair2"><button class="me-btn me-btn--danger">Remove user</button><button class="me-btn" data-hot>Keep user</button></div></div>
     </div>
     <div class="me-row">
@@ -297,7 +295,7 @@ split.addEventListener('click', e => { const b = e.target.closest('button'); if(
 /* toast */
 function toast(sig, msg){ const c = $('#toasts'); c.replaceChildren(); const t = document.createElement('div'); t.className = 'me-alert'; t.dataset.signal = sig; t.setAttribute('role','status');
   t.innerHTML = `<span class="me-glyph">${{ok:'✓',warn:'!',err:'✕'}[sig]||'i'}</span><div></div>`; t.lastChild.textContent = msg; c.append(t);
-  setTimeout(() => { t.classList.add('is-out'); setTimeout(() => t.hidden = true, 420); }, 3500); }
+  setTimeout(() => { t.classList.add('is-out'); setTimeout(() => t.hidden = true, 850); }, 4800); }
 /* opposing pair: heat moves to whichever was clicked */
 $$('.me-pair').forEach(p => p.addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return;
   $$('button', p).forEach(x => x.toggleAttribute('data-hot', x === b)); }));

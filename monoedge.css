@@ -25,7 +25,7 @@
   --ok: #10b981;      --ok-text: #34d399;
   --warn: #f59e0b;    --warn-text: #f59e0b;
   --err: #f43f5e;     --err-text: #fb7185;
-  --info: #818cf8;    --info-text: #9aa5fb;
+  --info: #60a5fa;    --info-text: #7db4fb;   /* notice = sky blue; signal colours stay standard: red critical, amber warning, green good */
 
   --glow-strength: 1;               /* dark = halos on, light = etches */
   --scrim: rgba(0,0,0,.35);
@@ -55,7 +55,7 @@
   --ok: #059669;      --ok-text: #046c4e;
   --warn: #d97706;    --warn-text: #93450a;
   --err: #e11d48;     --err-text: #b01036;
-  --info: #4338ca;    --info-text: #4338ca;
+  --info: #1e56c8;    --info-text: #1e56c8;
 
   --glow-strength: 0;
   --scrim: rgba(15,23,42,.12);
@@ -388,7 +388,7 @@
 /* ---------- 9. FEEDBACK -------------------------------------------------- */
 /* Every alert (info, ok, warn, err) wears the FULL perimeter: four bars that fade at both ends (see toolkit 10b). */
 .me-alert { position: relative; display: flex; gap: var(--space-3); padding: var(--space-3) var(--space-4);
-  background: var(--color-surface); border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro);
+  background: var(--color-surface); border: 1px solid var(--stroke-divider); border-radius: var(--radius-float);
   --lit-in: 12%; --lit-out: 88%; --lit-t: var(--lit-h); --lit-b: var(--lit-h); --lit-l: var(--lit-v); --lit-r: var(--lit-v); }
 .me-alert-title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--sig-text); font-weight: 600; }
 .me-alert > .me-glyph { color: var(--sig-text); font-weight: 700; flex: none; width: 14px; text-align: center; }  /* glyph per signal => not colour-only */
@@ -400,8 +400,8 @@
 .me-toasts > .me-alert { pointer-events: auto; width: 100%; justify-content: center; align-items: center; text-align: left; border: 0; border-radius: 0 0 var(--radius-float) var(--radius-float);
   background: var(--color-overlay); padding: var(--space-3) var(--space-6) calc(var(--space-3) + 2px);
   --lit-t: none; --lit-l: none; --lit-r: none; --lit-wt: none; --lit-in: 8%; --lit-out: 92%;
-  animation: me-notch-in .75s var(--ease) both; }
-.me-toasts > .me-alert.is-out { animation: me-notch-out .4s var(--ease) both; }
+  animation: me-notch-in 1.5s var(--ease) both; }
+.me-toasts > .me-alert.is-out { animation: me-notch-out .8s var(--ease) both; }
 .me-toasts > .me-alert .me-alert-title { display: none; }
 @keyframes me-notch-in {
   0%   { clip-path: inset(0 50% -24px 50%); transform: translateY(calc(-100% + 3px)); }   /* only the bottom bar shows, as a point at the centre */
@@ -530,9 +530,23 @@ dialog[data-scrim="none"]::backdrop  { background: transparent; backdrop-filter:
 .me-list > button[aria-pressed="true"]::before, .me-list > button[aria-pressed="true"]::after { opacity: 1; }
 
 /* ---------- 10d. SIDE NAV + BAR CHART ------------------------------------- */
-.me-side { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4); min-width: 0; }   /* no fill, no rule: the rails ARE the panels */
+.me-side { position: relative; z-index: 5; display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4); min-width: 0; }   /* no fill, no rule: the rails ARE the panels */
 .me-side-set { display: flex; flex-direction: column; gap: var(--space-2); }
 .me-side-set > .me-label { padding-left: 2px; }
+/* icons: 16px grid, 1.25 stroke, square caps, mitred joins, no circles. One segment (stroke:var(--ico-l)) lights with the item. */
+.me-ico { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: square; stroke-linejoin: miter; }
+.me-rail > button:is(:hover, :focus-visible, [aria-current="page"], [aria-selected="true"]) { --ico-l: var(--sig); }
+.me-side .me-rail > button { justify-content: flex-start; }
+.me-side .me-rail > button > .me-side-txt { flex: 1; min-width: 0; text-align: left; }
+/* collapsed: icon-only rail; the label becomes a floating tag on hover / focus */
+.me-side[data-min] { align-items: stretch; padding-inline: var(--space-3); }
+.me-side[data-min] .me-side-set > .me-label, .me-side[data-min] .me-rail > button > .me-badge { display: none; }
+.me-side[data-min] .me-rail > button { justify-content: center; padding: 0; }
+.me-side[data-min] .me-rail > button > .me-side-txt { display: none; }
+.me-side[data-min] .me-rail > button:is(:hover, :focus-visible) > .me-side-txt { display: block; position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); flex: none; z-index: var(--z-tip);
+  padding: 4px 12px; white-space: nowrap; background: var(--color-overlay); border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); color: var(--color-text-primary); pointer-events: none; }
+.me-side [data-collapse] .me-ico { transition: transform var(--dur) var(--ease); }
+.me-side[data-min] [data-collapse] .me-ico { transform: scaleX(-1); }
 
 .me-bars { display: flex; align-items: flex-end; gap: var(--space-2); height: 128px; padding-top: var(--space-2); border-bottom: 1px solid var(--stroke-control); }
 .me-bars > i { position: relative; flex: 1; height: var(--h, 50%); min-width: 6px; font-style: normal;

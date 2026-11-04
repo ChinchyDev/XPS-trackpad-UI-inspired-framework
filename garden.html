@@ -22,8 +22,21 @@
 
   /* ---- app shell ---- */
   #app { min-height: 100vh; display: grid; grid-template-columns: 224px 1fr; }
-  .side-brand { padding: 4px 2px 8px; }
-  .side-foot { margin-top: auto; padding: 4px 2px; }
+  #app { transition: grid-template-columns .45s var(--ease); }
+  .me-side { position: sticky; top: 0; height: 100vh; }
+  .me-side .me-side-txt { white-space: nowrap; }
+  .me-side .me-rail > button { letter-spacing: .06em; gap: 10px; }
+  #app[data-min] { grid-template-columns: 64px 1fr; }
+  .side-brand { display: flex; align-items: center; gap: 12px; padding: 4px 2px 8px; }
+  .brand-mark { position: relative; flex: none; width: 24px; height: 24px; box-shadow: inset 0 0 0 1px var(--stroke-divider-hover); }
+  .brand-mark::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent) 25%, var(--accent) 75%, transparent); filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--accent)); }
+  .brand-mark::after { content: ""; position: absolute; left: 7px; right: 7px; top: 7px; bottom: 7px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); }
+  .side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding: 4px 0; }
+  .side-status { padding: 0 2px; }
+  .me-side .me-rail[data-h] > button { flex: 1; justify-content: center; padding: 9px 0; font-size: 11px; }
+  #side[data-min] .brand, #side[data-min] .side-status-t { display: none; }
+  #side[data-min] .side-brand { justify-content: center; padding-inline: 0; }
+  #side[data-min] .side-status { justify-content: center; }
   .main { min-width: 0; display: flex; flex-direction: column; }
   .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 24px; min-height: 52px; background: var(--color-surface); border-bottom: 1px solid var(--stroke-divider); flex-wrap: wrap; }
   .content { padding: 24px; display: flex; flex-direction: column; gap: 24px; }
@@ -37,9 +50,10 @@
   .zone-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
   @media (max-width: 900px) {
     #app { grid-template-columns: 1fr; }
-    .me-side { flex-direction: row; overflow-x: auto; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--stroke-divider); }
+    .me-side { position: static; height: auto; flex-direction: row; overflow-x: auto; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--stroke-divider); }
     .me-side-set { flex: none; }
     .me-side-set > .me-label, .side-brand, .side-foot { display: none; }
+    #app[data-min] { grid-template-columns: 1fr; }
     .two { grid-template-columns: 1fr; }
     .content { padding: 16px; } .topbar { padding: 8px 16px; } .search { width: 100%; }
   }
@@ -89,20 +103,36 @@
 
 <!-- ============================== APP SHELL ============================== -->
 <div id="app" hidden>
-  <nav class="me-side" aria-label="Main">
-    <div class="side-brand"><div class="brand" style="font-size:16px">Plot<i>line</i></div></div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <symbol id="i-overview" viewBox="0 0 16 16"><path d="M9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/><path d="M2 2h5v5H2z" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-beds" viewBox="0 0 16 16"><path d="M2 3h12v10H2zM8 3v10"/><path d="M2 8h12" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-irrigation" viewBox="0 0 16 16"><path d="M12 8v4l-2 2H6l-2-2V8"/><path d="M8 2l4 6M8 2L4 8" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-tasks" viewBox="0 0 16 16"><path d="M2 4h2M2 8h2M2 12h2M6 4h8M6 12h8"/><path d="M6 8h8" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-users" viewBox="0 0 16 16"><path d="M2 14v-3h12v3M5 2v5h6V2"/><path d="M5 2h6" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-collapse" viewBox="0 0 16 16"><path d="M2 2h12v12H2zM11 6L9 8l2 2"/><path d="M6 2v12" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 16 16"><path d="M2 5h12M2 11h12"/><path d="M5 3v4M11 9v4" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-docs" viewBox="0 0 16 16"><path d="M3 2h7l3 3v9H3z"/><path d="M6 8h4M6 11h4" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-help" viewBox="0 0 16 16"><path d="M2 3h12v8H6l-4 3z"/><path d="M5 6h6" style="stroke:var(--ico-l,currentColor)"/></symbol>
+  </defs></svg>
+  <nav class="me-side" aria-label="Main" id="side">
+    <div class="side-brand"><span class="brand-mark" aria-hidden="true"></span><div class="brand" style="font-size:16px">Plot<i>line</i></div></div>
     <div class="me-side-set"><span class="me-label" id="sg-garden">Garden</span>
       <div class="me-rail" role="group" aria-labelledby="sg-garden">
-        <button data-view="overview" aria-current="page">Overview</button>
-        <button data-view="beds">Beds &amp; plots <span class="me-badge" id="bed-count">0</span></button>
-        <button data-view="irrigation">Irrigation</button>
-        <button data-view="tasks">Tasks <span class="me-badge" data-signal="warn" id="task-count">0</span></button>
+        <button data-view="overview" aria-current="page"><svg class="me-ico" aria-hidden="true"><use href="#i-overview"/></svg><span class="me-side-txt">Overview</span></button>
+        <button data-view="beds"><svg class="me-ico" aria-hidden="true"><use href="#i-beds"/></svg><span class="me-side-txt">Beds &amp; plots</span><span class="me-badge" id="bed-count">0</span></button>
+        <button data-view="irrigation"><svg class="me-ico" aria-hidden="true"><use href="#i-irrigation"/></svg><span class="me-side-txt">Irrigation</span></button>
+        <button data-view="tasks"><svg class="me-ico" aria-hidden="true"><use href="#i-tasks"/></svg><span class="me-side-txt">Tasks</span><span class="me-badge" data-signal="warn" id="task-count">0</span></button>
       </div></div>
     <div class="me-side-set"><span class="me-label" id="sg-admin">Admin</span>
       <div class="me-rail" role="group" aria-labelledby="sg-admin">
-        <button data-view="users">Users</button>
+        <button data-view="users"><svg class="me-ico" aria-hidden="true"><use href="#i-users"/></svg><span class="me-side-txt">Users</span></button>
       </div></div>
-    <div class="side-foot me-row" data-signal="ok"><span class="me-dot me-dot--pulse"></span><span class="me-label">12 sensors online</span></div>
+    <div class="side-foot">
+      <div class="me-row side-status" data-signal="ok"><span class="me-dot me-dot--pulse"></span><span class="me-label side-status-t">12 sensors online</span></div>
+      <div class="me-rail" data-h role="group" aria-label="Help and settings">
+        <button aria-label="Settings" data-act="settings"><svg class="me-ico" aria-hidden="true"><use href="#i-settings"/></svg></button><button aria-label="Docs" data-act="docs"><svg class="me-ico" aria-hidden="true"><use href="#i-docs"/></svg></button><button aria-label="Support" data-act="help"><svg class="me-ico" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+      <div class="me-rail" role="group" aria-label="Sidebar"><button data-collapse aria-expanded="true"><svg class="me-ico" aria-hidden="true"><use href="#i-collapse"/></svg><span class="me-side-txt">Collapse sidebar</span></button></div>
+    </div>
   </nav>
 
   <div class="main">
@@ -234,14 +264,16 @@ const beds=[
 const users=[{n:'Alex Rivera',e:'alex@plotline.io',r:'Admin',s:'Active'},{n:'Sam Okafor',e:'sam@plotline.io',r:'Gardener',s:'Active'},{n:'Jo Tanaka',e:'jo@plotline.io',r:'Gardener',s:'Active'},{n:'Priya Nair',e:'priya@plotline.io',r:'Viewer',s:'Active'},{n:'m.chen@volunteers.org',e:'m.chen@volunteers.org',r:'Gardener',s:'Invited'}];
 const zones=[{n:'North',m:36,t:35,auto:true},{n:'South',m:41,t:40,auto:true},{n:'Tunnel',m:55,t:45,auto:false},{n:'Orchard',m:47,t:30,auto:true}];
 const tasks=[{t:'Cover beds A2, B1 before frost',d:true,due:'Today'},{t:'Harvest salad table',d:false,due:'Today'},{t:'Check drip line in South zone',d:false,due:'Today'},{t:'Order seed potatoes',d:false,due:'Fri'},{t:'Turn compost bay 2',d:true,due:'Mon'},{t:'Sharpen secateurs',d:false,due:'Sat'}];
-const status=b=>b.moisture<35?{k:'warn',t:'Needs water'}:(b.harvest!==null&&b.harvest<=14)?{k:'ok',t:'Harvest soon'}:{k:'info',t:'Healthy'};
+const status=b=>b.moisture<35?{k:'warn',t:'Needs water'}:(b.harvest!==null&&b.harvest<=14)?{k:'info',t:'Harvest soon'}:{k:'ok',t:'Healthy'};
 
 /* ------------------------------ helpers ------------------------------ */
 /* notch notification: hangs from the top edge, one at a time */
-function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,420);},3400);}
+function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,850);},4800);}
 /* side rails lie on their side on narrow screens (horizontal group-panel rules apply) */
-const railMQ=matchMedia('(max-width:900px)');function rails(){$$('.me-rail').forEach(r=>railMQ.matches?r.dataset.axis='x':r.removeAttribute('data-axis'));}
+const railMQ=matchMedia('(max-width:900px)');
+function rails(){const min=$('#app').hasAttribute('data-min');$$('.me-rail').forEach(r=>{const x=railMQ.matches||(r.hasAttribute('data-h')&&!min);if(x)r.dataset.axis='x';else delete r.dataset.axis;});}
 railMQ.addEventListener('change',rails);rails();
+$('[data-collapse]').addEventListener('click',e=>{const app=$('#app'),on=!app.hasAttribute('data-min');app.toggleAttribute('data-min',on);$('#side').toggleAttribute('data-min',on);e.currentTarget.setAttribute('aria-expanded',String(!on));rails();});
 function fieldErr(id,bad){const f=document.getElementById(id);bad?f.dataset.signal='err':f.removeAttribute('data-signal');const i=$('input,select',f);if(i){i.setAttribute('aria-invalid',bad);}return bad;}
 function bars(el,vals){const mx=Math.max(...vals);el.innerHTML=vals.map((v,i)=>'<i style="--h:'+Math.round(v/mx*100)+'%" data-tip="'+'MTWTFSS'[i]+': '+v+' L"></i>').join('');}
 const WEEK=[280,310,260,340,295,355,300];
@@ -349,7 +381,7 @@ overview();renderBeds();renderZones();renderUsers();
 const h=location.hash.slice(1);
 if(h.startsWith('app')){setTheme(h.includes('light')?'light':'dark');$('#login').hidden=true;$('#app').hidden=false;
   const v=(h.match(/-(overview|beds|irrigation|tasks|users)/)||[,'overview'])[1];go(v);
-  if(h.includes('modal'))openBed();if(h.includes('bad')){$('#nb-area').value=0;$('#sp-bed [data-c=l]').click();}if(h.includes('del')){$('[data-del="2"]').click();}if(h.includes('menu'))menu(true);}
+  if(h.includes('modal'))openBed();if(h.includes('bad')){$('#nb-area').value=0;$('#sp-bed [data-c=l]').click();}if(h.includes('del')){$('[data-del="2"]').click();}if(h.includes('menu'))menu(true);if(h.includes('min'))$('[data-collapse]').click();}
 else{if(h.includes('light'))setTheme('light');
   if(h.includes('err')){$('#email').value='admin@plotline.io';$('#pw').value='wrong';$('#login-f').requestSubmit();}
   if(h.includes('sso'))$('#sso').children[1].click();}
