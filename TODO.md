@@ -1,173 +1,127 @@
-# Edge-Lit Framework: Road to v1.0 release
+# Edge-Lit Framework: Road to v1.0
 
 Design thesis (from XPS 14/16 2026): **flush surfaces + minimal edge indicators.**
-The 2024 invisible trackpad failed because users couldn't find its edges, and the 2026 model added etched boundary lines. Rule: *a control may be unboxed, but never unlocatable.*
+The 2024 invisible trackpad failed because users couldn't find its edges; the 2026 model added etched boundary lines. Rule: *a control may be unboxed, but never unlocatable.*
 
 Legend: [ ] todo · [x] done · (D) needs your decision
-
-## Phase 0: Decisions (unblock everything)
-- [x] (D) Accent = **cyan** (`#22d3ee` dark / `#0e7490` light). Developer-overridable via `--accent`. Indigo is now the `info` signal.
-- [x] (D) Radius policy approved (0 / 2 / 3 / 4, hard cap 4px).
-- [~] (D) Overlay elevation: **experiment, don't decide yet.** Toolkit built (`data-lit`, `data-depth`, `data-scrim`) + `elevation-lab.html`. Needs the original OAuth example for reference.
-- [x] (D) Radio = square with left bar.
-- [x] (D) Typography: all-mono for now; revisit before release.
-- [x] (D) Delivery: CSS first, then Web Components; React wrapper only where it earns its place.
-
-## Phase 1: Foundations
-- [x] Token set, dual theme, signal system (`monoedge.css`)
-- [x] Contrast audit and fix
-- [x] Introduce radius scale tokens (0 / 2 / 3 / 4) and apply per the policy
-- [ ] Tokens as W3C DTCG JSON, built to CSS, Tailwind and JS with Style Dictionary (one source of truth)
-- [ ] Colours in OKLCH so a new accent is derived, not hand-tuned, and auto-checked for 4.5:1 / 3:1
-- [ ] CSS cascade layers (`@layer reset, tokens, base, components, utilities`) so users can override safely
-- [ ] Logical properties everywhere (inline-start/end) for RTL
-- [ ] Container queries for components (not just viewport media queries)
-- [ ] Automated contrast test over every token pair, both themes, run in CI
-
-## Phase 2: Edge-indicator system (the signature)
-- [x] Generic edge-light layer: `.me-lit[data-lit="t r b l"]` (any subset) works on panels, menus, buttons
-- [ ] Edge light fades toward its ends (like the trackpad etch lines); currently solid
-- [ ] Light-mode scrim is muddy at 40%; tune to ~25-30%
-- [~] Document the "edge vocabulary": ticks (fields), L-light (check), left bar (radio, row hover), top bar (tab, button, segment)
-- [ ] "Locatability" rule: every interactive zone must show at least one edge cue at rest
-- [ ] Haptic equivalent: `navigator.vibrate` and `:active` micro-travel (1px) for press feedback
-- [ ] Palm-rejection analogue: guard against accidental activation of large flush zones (confirm on destructive actions)
-- [ ] Add touch and pointer demos (a literal trackpad-style region, e.g. a 2D pad control)
-
-## Phase 3: Components
-- [x] First pass of ~35 components
-- [ ] Combobox / autocomplete, date and time picker, file upload, command palette
-- [ ] Tree view, multi-select, tag input, rating-free alternative
-- [ ] Charts: hairline axes, light-bar series, sparkline
-- [ ] Stepper / wizard, side nav, app shell, toolbar
-- [ ] Form layout patterns and validation timing guidance
-- [ ] Verify every ARIA pattern in a real browser (tabs, menu, dialog, switch, accordion, table sort)
-
-## Phase 4: Icons (see guidance in chat / below)
-- [ ] Grid and stroke spec
-- [ ] 40-icon starter set (SVG sprite, `currentColor`)
-- [ ] Lit-edge variant (one segment in `--sig`)
-- [ ] Icon button sizing and hit-area rules
-
-## Phase 5: Quality and standards
-- [ ] WCAG 2.2 AA audit (1.4.3, 1.4.11, 1.4.1, 2.4.7, 2.4.11, 2.5.8, 3.3.1)
-- [ ] Screen reader pass (NVDA + VoiceOver) on the gallery
-- [ ] Keyboard-only pass; visual regression screenshots (Playwright) in dark, light, compact, roomy
-- [ ] Cross-browser: Chrome, Firefox, Safari (fix `color-mix` fallback)
-- [ ] Performance budget: CSS < 30 KB gzipped, no JS needed for core components
-- [ ] Reduced-motion, forced-colors, high-contrast, print verified
-
-## Phase 6: Release
-- [ ] Name and logo
-- [ ] Docs site (generated from the gallery, one page per component, do/don't examples)
-- [ ] Real demo apps (dashboard, settings, data table) to find remaining gaps
-- [ ] Package (npm), semver, changelog, licence
-- [ ] Rewrite the spec document from the tokens (no hand-maintained duplicates)
+Workflow: **garden.html is the deployment.** Every component is exercised there, and `npm test` enforces it (see Testing).
 
 ---
 
-## Radius policy (proposed)
-Principle: corner radius is a *signal*, not decoration. Rounded corners read as friendly, touchable and safe. Sharp corners read as precise and structural, and they draw attention. Nested radii should follow `inner = outer − gap`.
+## 1. NEXT UP (in order)
 
-| Token | Value | Use | Why |
-|---|---|---|---|
-| `--radius-none` | 0 | Dividers, grid cells, table cells, tabs, split panels, anything that touches a neighbour | Structure and "light as structure" |
-| `--radius-micro` | 2px | Default for inputs, checkboxes, badges, kbd, menus | Keeps the identity; just enough to avoid pixel-sharp corners |
-| `--radius-soft` | 3px | Buttons and primary actions, segmented controls | These are the things people press; a slightly softer corner invites touch |
-| `--radius-float` | 4px | Floating layers: modals, menus, tooltips, toasts | Detached surfaces need to read as separate objects |
-| circle | never | Exception only if you decide for radio (see Phase 0) | |
+### 1A. Missing components, built in garden first
+Each one must pass the Design Rules below, appear in garden, and come with a Playwright test + axe pass in both themes.
+1. [ ] **Line / area chart** (Overview and a new Telemetry view). Hairline axes, light-bar series, sparkline variant. Replaces the placeholder in dashboard.html
+2. [ ] **Date and time picker** (e.g. harvest date on a bed, task due date)
+3. [ ] **Combobox / autocomplete** (zone or crop on the bed form, global search suggestions)
+4. [ ] **Command palette** (opened with Ctrl+K, jump to view or bed)
+5. [ ] **File upload** (bed photo)
+6. [ ] **Tabs overflow hint** (scrolled tab strip hides tabs on phones)
+7. [ ] Tree view, multi-select, tag input, toolbar, stepper / wizard (lower priority)
 
-Hard cap: **4px**. Compare the usual 12–24px "card" look you're avoiding.
+### 1B. Gaps in what already exists
+- [ ] Collapsed side rail hides count badges; show a tiny beacon instead (D)
+- [ ] Fields: ticks are the ONLY focus cue, so WCAG 2.4.13 (AAA) is not met. Add a second cue? (D)
+- [ ] Measure idle field boundary (faded ticks) against 1.4.11 (3:1)
+- [ ] No neutral / undo state for the split footer
+- [ ] Illumination levels (`data-lit-hover`) not wired to every lit control
+- [ ] Light-mode lighting is still the weakest area (etch + wash): needs its own review pass
+- [ ] Rails switch to horizontal through JS `matchMedia`; make it CSS-only (container query)
+- [ ] Remove the unused legacy `me-scan` once nothing needs it, and keep `tests/animations.json` in sync
+
+### 1C. Icons
+- [ ] Draw the full ~40-icon set (9 exist in garden.html: overview, beds, irrigation, tasks, users, collapse, settings, docs, help). Spec: 16px grid, 1.25 stroke, square caps, mitre joins, no circles, one segment lit via `--ico-l`
+- [ ] Move the sprite out of garden.html into its own file
+- [ ] Icon-button sizing and hit-area rules
+
+### 1D. Delivery (do after 1A so the API is settled)
+- [ ] Tokens as W3C DTCG JSON, built with Style Dictionary to CSS / Tailwind / JS (one source of truth)
+- [ ] OKLCH colours so a new accent is derived and auto-checked for 4.5:1 / 3:1
+- [ ] CSS cascade layers (`reset, tokens, base, components, utilities`)
+- [ ] Logical properties everywhere (RTL); container queries for components
+- [ ] Web Components wrappers; React wrapper only where it earns its place
+- [ ] `color-mix` fallback for older Safari / Firefox
+
+---
+
+## 2. TESTING (done, run `npm test`)
+- `tests/garden.spec.js`: behaviour of every garden view + the design rules, desktop and phone (`@responsive`)
+- `tests/a11y.spec.js`: axe WCAG 2.2 AA on 10 garden states x dark/light
+- `tests/tracking.spec.js`:
+  - **component coverage**: every `.me-*` class in monoedge.css must appear in garden.html or be listed in `tests/coverage-baseline.json` (currently empty: all 69 covered)
+  - **animation registry**: every `@keyframes` must be listed in `tests/animations.json`
+  - runtime checks: notch duration and reduced motion, loading orbit direction
+- Bugs these tests found: collapsed rail had no accessible name; touch 44px floor was invalid CSS (self-referencing var); amber fill with light text failed contrast; select options black-on-dark
+- Still to add: visual regression screenshots (dark, light, compact, roomy), Firefox + WebKit projects, automated contrast test over every token pair, screen reader pass (NVDA + VoiceOver)
+
+---
+
+## 3. DESIGN RULES (decided; new components must pass these)
+1. **Backgrounds are never extreme.** Dark: canvas `#14171d`, panel `#1b1f27`, surface `#222731`, overlay `#2a303c`. Light: canvas `#dadee3`, panel `#e9ecef`, surface `#f0f2f4`, overlay `#f4f6f7`. No pure black or white.
+2. **Related items share ONE panel** (`.me-tabs`, `.me-rail`). Dividers between items are detached (never touch the frame) and visible when unlit. Where no group exists there is no panel: bare canvas.
+3. **Light source propagation.** The selected item's leading edge (top for tabs, left for rails) is the source. Attached outer edges carry the light fading away from it. Detached dividers become their own source: a centred bar fading at both ends, lit on the selected item's side.
+4. **Every alert is full perimeter** (info, ok, warn, err). Severity is colour + glyph.
+   - 4b. A critical **decision** dialog lights top / left / right only. The bottom edge stays dark so the options are readable.
+5. **Notifications are a notch:** top-centre, open from the middle outward, only the bottom edge lit and it appears first. One at a time. 1.5s in, 0.8s out, about 4.7s dwell.
+6. **Opposing actions** (`.me-pair`): only the hot one wears the full perimeter; the safe action is hot at rest; heat follows the click.
+7. **Loading buttons:** the edge light orbits the perimeter, from top-left, anticlockwise. Icon buttons do not.
+8. **Checkbox and radio are plain:** box with a tick, square with a square dot, no light. The switch is the only selection control that emits light; its light trails back across the track when on.
+9. **Row hover vs selected must differ:** hover = faint short bar + faint wash; selected = bright wider bar + gradient wash.
+10. **Badges:** only a STATUS gets a fill (`.me-badge--fill`: solid block, reversed text). Everything else (roles, counts, due dates) is plain unboxed text with no brackets and no signal tint unless it is a warning. Status beacons are a vertical light-bar, never a dot.
+11. **Signal colours are standard:** red critical, amber warning, green ok, sky blue notice. No other hues.
+12. **Light placement vocabulary:** buttons light the top, fields the sides (ticks), switch trails, tabs/rails per rule 3, alerts the full perimeter, notch the bottom.
+13. **Radius is capped at 4px** (policy below).
+14. Approved from the elevation lab: three fading edges with illumination levels, critical full perimeter, split footer, single-panel list, field ticks. Shadows are not used on overlays; separation = raised surface + frame + blur scrim.
+
+---
+
+## 4. DECISIONS LOG
+- [x] Accent = cyan (`#22d3ee` dark / `#0e7490` light), overridable via `--accent`
+- [x] Radius policy approved; radio = square; all-mono typography for now (revisit before release)
+- [x] Delivery: CSS first, then Web Components; React wrapper only where it fits
+- [x] Opposing pair: safe action lit at rest. Radio stays square-dotted.
+- [x] Badge design: typographic; status filled, everything else plain
+- [x] Side nav concept (brand, icon rails, footer icon group, collapse to icon rail with hover tags) adapted from the supplied image
+
+## 5. LATER (quality, standards, release)
+**Quality and standards**
+- [ ] Full WCAG 2.2 AA audit by hand (1.4.3, 1.4.11, 1.4.1, 2.4.7, 2.4.11, 2.5.8, 3.3.1) on top of axe
+- [ ] Cross-browser pass: Chrome, Firefox, Safari
+- [ ] Performance budget: CSS under 30 KB gzipped, no JS for core components
+- [ ] Reduced-motion, forced-colors, high-contrast, print verified
+- [ ] Locatability rule: every interactive zone shows at least one edge cue at rest
+- [ ] Haptics and press micro-travel; guard against accidental activation of large flush zones; a literal 2D trackpad-style pad control
+
+**Release**
+- [ ] Name and logo
+- [ ] Docs site generated from garden (one page per component, do / don't)
+- [ ] Package (npm), semver, changelog, licence
+- [ ] Regenerate the spec document from the tokens (no hand-maintained duplicates)
+
+---
+
+## Radius policy
+Principle: corner radius is a *signal*, not decoration. Sharp reads as precise and structural; slightly softer invites touch. Nested radii: `inner = outer - gap`.
+
+| Token | Value | Use |
+|---|---|---|
+| `--radius-none` | 0 | Dividers, grid cells, table cells, tabs, split panels, anything touching a neighbour |
+| `--radius-micro` | 2px | Inputs, checkboxes, kbd, status fills |
+| `--radius-soft` | 3px | Buttons, segmented controls, group panels |
+| `--radius-float` | 4px | Floating layers: modals, menus, tooltips, notch, alerts |
+| circle | never | |
+
+Hard cap: **4px** (enforced by a test).
 
 ## Standards to adopt
-- **WCAG 2.2 AA**: text 4.5:1, non-text and control boundaries 3:1, target size ≥ 24px (2.5.8), visible focus (2.4.7 / 2.4.11), no colour-only meaning (1.4.1).
-- **WAI-ARIA Authoring Practices**: tabs, menu button, dialog, switch, accordion, grid and listbox patterns.
-- **Touch targets**: 44×44 (Apple HIG, WCAG AAA 2.5.5), 48 (Material). Handled via `pointer: coarse`.
-- **W3C Design Tokens (DTCG)** format and Style Dictionary for builds.
-- **User preference queries**: `prefers-color-scheme`, `prefers-reduced-motion`, `prefers-contrast`, `forced-colors`.
-- **Watch, don't adopt yet**: APCA (WCAG 3 draft contrast model).
+- **WCAG 2.2 AA**: text 4.5:1, non-text and control boundaries 3:1, target size at least 24px (2.5.8), visible focus, no colour-only meaning.
+- **WAI-ARIA Authoring Practices**: tabs, menu button, dialog, switch, accordion, grid, listbox.
+- **Touch targets**: 44x44 via `pointer: coarse` (verified by test).
+- **W3C Design Tokens (DTCG)** + Style Dictionary.
+- **User preference queries**: colour scheme, reduced motion, contrast, forced colours.
+- **Watch, don't adopt yet**: APCA (WCAG 3 draft).
 
----
-
-## Findings log (from building dashboard.html on the framework)
-Decisions from elevation review (v2 lab):
-- [x] Shadows dropped from overlays in both themes; separation = raised surface (`--color-overlay`) + frame + blur scrim
-- [x] Full-length top accent lines removed everywhere (menus, tooltip, modal). Light is now short, fading bars
-- [x] Edge light fades at both ends; `--lit-span`, `--lit-ax/ay`, `--lit-level` (rest .2 / hover .55 / active 1)
-- [x] Fields: only L/R ticks light, fading at both ends; focus ring suppressed in favour of the ticks (forced-colors fallback kept)
-- [x] `.me-list`: one panel, light shows the selection on touching dividers only
-- [x] Split footer rebuilt from the original: 3 edges, fade away from divider, directional divider glow
-- [x] `.me-nav` (tabs + trailing actions) wraps on narrow screens; table scroll-hint on overflow
-
-Open gaps the dashboard exposed:
-- [ ] Charts / sparklines (Telemetry tab is a placeholder)
-- [ ] Tabs have no overflow hint when scrolled (third tab clipped on phones)
-- [ ] Field ticks as the ONLY focus indicator: audit against WCAG 2.4.13 (focus appearance); consider a short bottom bar as a second cue
-- [ ] Idle field boundary contrast with faded ticks: measure against 1.4.11 (3:1)
-- [ ] No undo / neutral state for the split footer
-- [ ] Illumination levels not yet wired to `:hover` on every lit control (only opt-in via `data-lit-hover`)
-- [ ] Light-mode glow is the weakest part: etch effect needs its own design pass
-- [ ] Rejected in review: shadow-only overlays, one-lit-top "generic" panels, stacked lit provider buttons
-
----
-
-## Round 3 log (a11y audit, light pass, garden system)
-- [x] AUDIT CORRECTION: earlier claim that `--stroke-control` passed 3:1 was WRONG in dark mode (measured 2.88:1). Fixed: dark .42 (4.1:1), light ticks .46 (3.5:1). Focused ticks 10.4:1 dark / 5.4:1 light. Focus tick is also 2px (non-colour cue).
-- [x] Light-mode lighting: pressed-ink etch (1px white under bar) + ambient wash (`--wash`), replaces glow
-- [x] Components added: `.me-side`, `.me-bars` (chart MVP), `.me-nav`, field inline action (`.me-affix` button)
-- [x] Bugs found by building the garden app and fixed in the framework: grid painted empty cells grey; table scroll-hint bands; links inheriting error colour; `hidden` attribute defeated by component display; focus offset selectors
-- [ ] Still open: line/area charts, date picker, combobox, command palette, tabs overflow hint, icons, light-mode review by you
-- [ ] AAA focus-appearance (2.4.13) not met for fields (ticks only); decide whether to add a second cue
-- [ ] Write Playwright + axe tests: this review was by eye plus a contrast script
-
----
-
-## Round 4: DESIGN RULES (from your review of dashboard / gallery / garden / lab v2)
-These are rules, not component notes. New components must pass them before they ship.
-
-1. **Backgrounds are never extreme.** Dark canvas `#14171d` / panel `#1b1f27` / surface `#222731` / overlay `#2a303c`. Light canvas `#dadee3` / panel `#e9ecef` / surface `#f0f2f4` / overlay `#f4f6f7`. No pure black or white. (Contrast re-measured: muted/dim text, signal text and strokes still pass; light signal text colours were darkened to compensate.)
-2. **Related items share ONE panel** (`.me-tabs`, `.me-rail`). Dividers between items are detached (never touch the frame) and visible even unlit. Where no group exists, there is no panel: the area is bare canvas.
-3. **Light source propagation.** The selected item's leading edge (top for tabs, left for rails) is the source. Attached outer frame edges carry the light fading away from the source. Detached dividers become their own source: a centred bar fading at both ends, lit on the selected item's side.
-4. **Every alert is full-perimeter** (info, ok, warn, err). Severity is the colour and glyph, not whether it glows.
-5. **Notifications are a notch:** top-centre, open from the middle outward, only the bottom edge lit and it appears first. No left-edge light. One at a time.
-6. **Opposing actions** (`.me-pair`): only the "hot" one wears the full perimeter; the heat moves to whichever was clicked. Both rest states are in the gallery to compare.
-7. **Loading buttons:** the edge light orbits the perimeter, top-left, anticlockwise. Icon buttons do not get this.
-8. **Checkbox and radio are plain:** real box with a tick, square with a dot, no light. The switch is the only selection control that emits light, and its light trails back across the track when on.
-9. **Row selection vs hover must be distinguishable:** hover = faint short bar + faint wash, selected = bright wider bar + gradient wash.
-10. **Badges** are lit from the floor (wash + short bottom bar); **status beacons** are a vertical light-bar, never a dot. Buttons light the top, fields the sides, badges the floor.
-11. Approved from the lab: D′ (3 fading edges, illumination levels), E′ (critical), G (split), I′ (single-panel list), K (field ticks). Not adopted: B′, F′, H′, J′ as drawn.
-
-Open after round 4:
-- [ ] Pair rest state: literal reading (risky one hot at rest) vs safe one hot at rest; both shown in gallery 01
-- [ ] Badges/beacons are a first pass; expect another round
-- [ ] Radio is a square with a square dot (no circles rule). One-line change if you want a round dot
-- [ ] Rails on narrow screens switch to `data-axis="x"` through JS (matchMedia); consider a CSS-only container-query version
-- [ ] `.me-tabs` overflow hint still missing
-
-## Round 4b (decisions)
-- [x] Opposing pair: the SAFE action is lit at rest (decided)
-- [x] Radio stays a square with a square dot (decided)
-- [x] Signal colours are standard: red critical, amber warning, green ok. Notice (`info`) is sky blue, no more indigo/purple. Garden "Healthy" is now green, "Harvest soon" is notice blue
-- [x] Alerts radius 4px; notch animation 1.5s in / .8s out, dwell ~4.7s
-- [x] Side nav v2 (from concept image): brand mark, icon + label rails, footer icon group, collapse to icon rail with hover tags. Icon spec in `.me-ico`; icons live as an inline SVG sprite in garden.html
-- [ ] Collapsed rail hides count badges; decide on a tiny beacon instead
-- [ ] Icons are a 9-icon first set; the full ~40 set still to draw
-- [ ] Badges revamp (deferred by you)
-
-## Round 5: tests (npm test)
-- [x] Playwright (Edge, no download) + axe: `tests/garden.spec.js` (behaviour + design rules R1-R9, desktop and phone), `tests/a11y.spec.js` (axe WCAG 2.2 AA on every garden state in both themes), `tests/tracking.spec.js`
-- [x] garden.html is the deployment: component coverage is tracked by `tests/coverage-baseline.json` (known gaps). New component not in garden = failing test
-- [x] Animation registry: `tests/animations.json`, every @keyframes must be listed
-- [x] Bugs found by the tests: collapsed rail buttons had no accessible name; touch 44px floor was invalid CSS (self-referencing var) so buttons collapsed to 20px on touch
-- Run: `npm test` (all), `npx playwright test --project=phone`, `npx playwright show-report`
-
-## Round 5b: coverage gaps closed
-- [x] garden.html now exercises all 68 framework components (baseline is empty). Added: pager (beds), tabs + nav + nav-end + table-empty + truncate (users), accordion + stepper (irrigation), btn-group (tasks filter), pair (frost protocol), skeleton (recent activity)
-- [ ] Badges: you want an innovative non-colour-coded, non-glowing design, or plain with no edge lighting. Options to prototype next
-- [x] Select dropdown options were black-on-dark in the open list (invite role). Fixed with explicit option colours + a test in both themes
-- [ ] Badge candidates A glyph / B tag / C notch are in monoedge.css and badge-lab.html; coverage baseline lists them until one is chosen and moved into garden
-
-## Round 6
-- [x] Rule 4b: a critical DECISION dialog lights top/left/right only; the bottom edge stays dark so the options (split footer) stay readable
-- [x] Badges: typographic tag chosen. Plain "[ 10 ]"; warn = bracketed UPPERCASE bold; status and critical = solid block (`.me-badge--fill`, auto for err). Light theme uses the darker text-colour as fill so white text passes AA. Candidates A and C and badge-lab.html deleted
-- [x] Badge rule: only a STATUS gets a fill (`.me-badge--fill`). Everything else (roles, counts, due dates) is plain unboxed text, no brackets. Roles are neutral, no signal tint
+## Archive (history, all resolved)
+- Round 1-3: first-pass components, contrast fixes (dark `--stroke-control` was 2.88:1 and was corrected), light-mode etch + wash, garden app, grid / table / link / `hidden` bugs
+- Round 4-6: backgrounds softened, grouped panels, notch toasts, simple checkbox/radio, switch trail, side nav v2, tests, coverage gaps closed, badge redesign
