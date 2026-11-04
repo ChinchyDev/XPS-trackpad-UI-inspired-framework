@@ -20,17 +20,17 @@
   --tick-idle: rgba(255,255,255,.32);
 
   /* signal colours: base = light/fill, text = AA on panel */
-  --accent: #6366f1;  --accent-text: #818cf8;
+  --accent: #22d3ee;  --accent-text: #22d3ee;
   --ok: #10b981;      --ok-text: #34d399;
   --warn: #f59e0b;    --warn-text: #f59e0b;
   --err: #f43f5e;     --err-text: #fb7185;
-  --info: #38bdf8;    --info-text: #38bdf8;
+  --info: #818cf8;    --info-text: #818cf8;
 
   --glow-strength: 1;               /* dark = halos on, light = etches */
   --scrim: rgba(0,0,0,.62);
   --elev-1: 0 8px 24px rgba(0,0,0,.45);
   --elev-2: 0 30px 60px rgba(0,0,0,.6);
-  --on-signal: #fff;
+  --on-signal: #04141a;
 }
 [data-theme="light"] {
   color-scheme: light;
@@ -47,11 +47,11 @@
   --stroke-control: rgba(0,0,0,.45);
   --tick-idle: rgba(0,0,0,.40);
 
-  --accent: #4338ca;  --accent-text: #4338ca;
+  --accent: #0e7490;  --accent-text: #0e7490;
   --ok: #059669;      --ok-text: #047857;
   --warn: #d97706;    --warn-text: #b45309;
   --err: #e11d48;     --err-text: #be123c;
-  --info: #0284c7;    --info-text: #0369a1;
+  --info: #4338ca;    --info-text: #4338ca;
 
   --glow-strength: 0;
   --scrim: rgba(15,23,42,.4);
@@ -63,7 +63,7 @@
   --sig: var(--accent);
   --sig-text: var(--accent-text);
 
-  --radius-none: 0;  --radius-micro: 2px;
+  --radius-none: 0;  --radius-micro: 2px;  --radius-soft: 3px;  --radius-float: 4px;  /* hard cap: 4px */
   --stroke-hairline: 1px;  --stroke-bar: 2px;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px;
 
@@ -131,7 +131,7 @@
 .me-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
   min-height: var(--control-h); padding: 0 var(--space-4); cursor: pointer; text-transform: uppercase;
   font-size: 11px; letter-spacing: .1em; font-weight: 600;
-  background: var(--color-surface); border: 1px solid var(--stroke-control); border-radius: var(--radius-micro);
+  background: var(--color-surface); border: 1px solid var(--stroke-control); border-radius: var(--radius-soft);
   color: var(--color-text-muted); transition: color var(--dur), border-color var(--dur), background var(--dur); }
 .me-btn::before { content: ""; position: absolute; left: -1px; right: -1px; top: -1px; height: 2px;
   background: var(--sig); box-shadow: var(--sig-shadow); opacity: 0; transition: opacity var(--dur) var(--ease); pointer-events: none; }
@@ -150,8 +150,8 @@
   animation: me-scan 1s linear infinite; }
 @keyframes me-scan { from { background-position: -100% 0 } to { background-position: 200% 0 } }
 .me-btn-group { display: inline-flex; } .me-btn-group > .me-btn + .me-btn { margin-left: -1px; border-radius: 0; }
-.me-btn-group > .me-btn:first-child { border-radius: var(--radius-micro) 0 0 var(--radius-micro); }
-.me-btn-group > .me-btn:last-child  { border-radius: 0 var(--radius-micro) var(--radius-micro) 0; }
+.me-btn-group > .me-btn:first-child { border-radius: var(--radius-soft) 0 0 var(--radius-soft); }
+.me-btn-group > .me-btn:last-child  { border-radius: 0 var(--radius-soft) var(--radius-soft) 0; }
 
 /* ---------- 5. FIELDS (XPS boundary ticks) -------------------------------- */
 .me-field { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -217,7 +217,7 @@
 .me-switch::before, .me-check::after { }
 .me-switch:hover { border-color: var(--color-text-muted); }
 
-.me-segmented { display: inline-flex; border: 1px solid var(--stroke-control); border-radius: var(--radius-micro); }
+.me-segmented { display: inline-flex; border: 1px solid var(--stroke-control); border-radius: var(--radius-soft); }
 .me-segmented > button { position: relative; min-height: calc(var(--control-h) - 2px); padding: 0 var(--space-4); background: transparent; border: 0; cursor: pointer;
   color: var(--color-text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: .1em; }
 .me-segmented > button + button { border-left: 1px solid var(--stroke-divider); }
@@ -308,18 +308,18 @@
 .me-alert > .me-glyph { color: var(--sig-text); font-weight: 700; flex: none; width: 14px; text-align: center; }  /* glyph per signal => not colour-only */
 
 .me-toasts { position: fixed; right: var(--space-4); bottom: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); z-index: var(--z-toast); width: min(360px, calc(100vw - 32px)); }
-.me-toasts .me-alert { box-shadow: var(--elev-1); background: var(--color-panel); animation: me-in .3s var(--ease); }
+.me-toasts .me-alert { border-radius: var(--radius-float); box-shadow: var(--elev-1); background: var(--color-panel); animation: me-in .3s var(--ease); }
 @keyframes me-in { from { opacity: 0; transform: translateX(16px) } }
 
 [data-tip] { position: relative; }
 [data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(4px); white-space: nowrap; z-index: var(--z-tip);
   padding: 4px 8px; font-size: 11px; background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--stroke-divider-hover); border-top: 2px solid var(--accent);
-  border-radius: var(--radius-micro); box-shadow: var(--elev-1); opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s var(--ease); }
+  border-radius: var(--radius-float); box-shadow: var(--elev-1); opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s var(--ease); }
 [data-tip]:is(:hover, :focus-visible)::after { opacity: 1; transform: translateX(-50%); transition-delay: .35s; }
 
 /* ---------- 10. OVERLAYS ------------------------------------------------- */
 .me-menu { position: absolute; z-index: var(--z-dropdown); min-width: 200px; padding: 0; list-style: none; background: var(--color-panel);
-  border: 1px solid var(--stroke-divider-hover); border-top: 2px solid var(--accent); border-radius: var(--radius-micro); box-shadow: var(--elev-1); }
+  border: 1px solid var(--stroke-divider-hover); border-top: 2px solid var(--accent); border-radius: var(--radius-float); box-shadow: var(--elev-1); }
 .me-menu[hidden] { display: none; }
 .me-menu-item { display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); width: 100%; padding: var(--space-2) var(--space-4); min-height: calc(var(--control-h) - 4px);
   background: transparent; border: 0; border-bottom: 1px solid var(--stroke-divider); text-align: left; cursor: pointer; color: var(--color-text-muted); box-shadow: inset 0 0 0 var(--sig); }
@@ -328,7 +328,7 @@
 .me-menu-item[data-signal="err"] { color: var(--err-text); }
 
 dialog.me-modal { padding: 0; width: min(520px, calc(100vw - 32px)); background: var(--color-panel); color: var(--color-text-primary);
-  border: 1px solid var(--stroke-divider-hover); border-top: 2px solid var(--sig); border-radius: var(--radius-micro); box-shadow: var(--elev-2); }
+  border: 1px solid var(--stroke-divider-hover); border-top: 2px solid var(--sig); border-radius: var(--radius-float); box-shadow: var(--elev-2); }
 dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: blur(2px); }
 .me-modal-head { padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--stroke-divider); display: flex; justify-content: space-between; align-items: center; }
 .me-modal-body { padding: var(--space-6); max-height: 60vh; overflow: auto; }
@@ -343,6 +343,32 @@ dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: blur(2px)
 .me-split > button[aria-pressed="true"] { color: var(--color-text-primary); }
 .me-split > button:first-of-type[aria-pressed="true"] { background: radial-gradient(ellipse at 100% 50%, color-mix(in srgb, var(--l) 22%, transparent), transparent 80%); box-shadow: inset 0 -2px 0 var(--l); }
 .me-split > button:last-of-type[aria-pressed="true"]  { background: radial-gradient(ellipse at 0% 50%, color-mix(in srgb, var(--r) 22%, transparent), transparent 80%); box-shadow: inset 0 -2px 0 var(--r); }
+
+/* ---------- 10b. ELEVATION TOOLKIT (experimental) ------------------------
+   Compose any overlay from three independent layers:
+   1. edge light   : data-lit="t r b l" (any subset; space separated)   -> light as structure
+   2. depth        : data-depth="shadow | frame | none"                 -> how it separates from the page
+   3. backdrop     : <dialog>::backdrop via data-scrim="dim | blur | none"
+   Edge light fades toward its ends, like the XPS trackpad etch lines.        */
+.me-lit { position: relative; }
+.me-lit::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: 1;
+  border: 2px solid transparent;
+  border-top-color:    var(--lit-t, transparent);  border-right-color: var(--lit-r, transparent);
+  border-bottom-color: var(--lit-b, transparent);  border-left-color:  var(--lit-l, transparent);
+  box-shadow: var(--lit-sh-t, 0 0 #0000), var(--lit-sh-r, 0 0 #0000), var(--lit-sh-b, 0 0 #0000), var(--lit-sh-l, 0 0 #0000); }
+.me-lit[data-lit~="t"] { --lit-t: var(--sig); --lit-sh-t: inset 0 6px 8px -6px color-mix(in srgb, var(--sig) calc(70% * var(--glow-strength) + 25%), transparent); }
+.me-lit[data-lit~="r"] { --lit-r: var(--sig); --lit-sh-r: inset -6px 0 8px -6px color-mix(in srgb, var(--sig) calc(70% * var(--glow-strength) + 25%), transparent); }
+.me-lit[data-lit~="b"] { --lit-b: var(--sig); --lit-sh-b: inset 0 -6px 8px -6px color-mix(in srgb, var(--sig) calc(70% * var(--glow-strength) + 25%), transparent); }
+.me-lit[data-lit~="l"] { --lit-l: var(--sig); --lit-sh-l: inset 6px 0 8px -6px color-mix(in srgb, var(--sig) calc(70% * var(--glow-strength) + 25%), transparent); }
+/* a button that opts into edge light swaps its top-bar pseudo for the full edge-light frame */
+.me-btn.me-lit::before { left: auto; top: auto; height: auto; inset: -1px; background: none; opacity: 1; border-radius: inherit; }
+.me-btn.me-lit:hover { --lit-brighten: 1; }
+[data-depth="frame"]  { box-shadow: none !important; border-color: var(--stroke-divider-hover) !important; }
+[data-depth="none"]   { box-shadow: none !important; }
+[data-depth="shadow"] { box-shadow: var(--elev-2); }
+dialog[data-scrim="blur"]::backdrop { backdrop-filter: blur(6px) saturate(.8); }
+dialog[data-scrim="none"]::backdrop { background: transparent; }
+dialog[data-scrim="dim"]::backdrop  { backdrop-filter: none; }
 
 /* ---------- 11. DISCLOSURE ----------------------------------------------- */
 .me-accordion > details { border-bottom: 1px solid var(--stroke-divider); }
