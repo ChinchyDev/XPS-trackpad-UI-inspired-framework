@@ -7,6 +7,7 @@ const { url } = require('./helpers');
 const states = [
   ['login', '', '#light'], ['login error', '#err', '#err-light'], ['overview', '#app', '#app-light'],
   ['beds', '#app-beds', '#app-light-beds'], ['beds modal', '#app-beds-modal', '#app-light-beds-modal'],
+  ['telemetry', '#app-telemetry', '#app-light-telemetry'],
   ['irrigation', '#app-irrigation', '#app-light-irrigation'], ['tasks', '#app-tasks', '#app-light-tasks'],
   ['users', '#app-users', '#app-light-users'], ['delete dialog', '#app-users-del', '#app-light-users-del'],
   ['collapsed rail', '#app-min', '#app-light-min'],

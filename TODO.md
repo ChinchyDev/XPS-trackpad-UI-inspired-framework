@@ -12,13 +12,17 @@ Workflow: **garden.html is the deployment.** Every component is exercised there,
 
 ### 1A. Missing components, built in garden first
 Each one must pass the Design Rules below, appear in garden, and come with a Playwright test + axe pass in both themes.
-1. [ ] **Line / area chart** (Overview and a new Telemetry view). Hairline axes, light-bar series, sparkline variant. Replaces the placeholder in dashboard.html
+1. [x] **Line / area chart** (Overview and a new Telemetry view). Hairline axes, light-bar series, sparkline variant. Done in garden (Telemetry view, `.me-chart` + `.me-spark`, `chart()` helper). Still to do: replace the placeholder in dashboard.html
 2. [ ] **Date and time picker** (e.g. harvest date on a bed, task due date)
 3. [ ] **Combobox / autocomplete** (zone or crop on the bed form, global search suggestions)
 4. [ ] **Command palette** (opened with Ctrl+K, jump to view or bed)
 5. [ ] **File upload** (bed photo)
 6. [ ] **Tabs overflow hint** (scrolled tab strip hides tabs on phones)
 7. [ ] Tree view, multi-select, tag input, toolbar, stepper / wizard (lower priority)
+8. questions asked earlier Decisions 
+
+Should collapsed-rail counts become a tiny beacon? D.....YES
+Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 
 ### 1B. Gaps in what already exists
 - [ ] Collapsed side rail hides count badges; show a tiny beacon instead (D)
@@ -78,7 +82,7 @@ Each one must pass the Design Rules below, appear in garden, and come with a Pla
 
 ## 4. DECISIONS LOG
 - [x] Accent = cyan (`#22d3ee` dark / `#0e7490` light), overridable via `--accent`
-- [x] Radius policy approved; radio = square; all-mono typography for now (revisit before release)
+- [x] Radius policy approved; radio = square; typography changed from all-mono to Jost (UI) + Cormorant Garamond (titles, big figures, brand): premium, less dashboard-like
 - [x] Delivery: CSS first, then Web Components; React wrapper only where it fits
 - [x] Opposing pair: safe action lit at rest. Radio stays square-dotted.
 - [x] Badge design: typographic; status filled, everything else plain

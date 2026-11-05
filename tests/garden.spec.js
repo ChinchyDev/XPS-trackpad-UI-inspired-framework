@@ -34,10 +34,28 @@ test.describe('login flow', () => {
   });
 });
 
+test.describe('line / area chart', () => {
+  test('telemetry draws lit line, area wash, hairline axis and one hit target per point', async ({ page }) => {
+    await app(page, '#app-telemetry');
+    const c = page.locator('#ch-water');
+    await expect(c.locator('path.line')).toHaveCount(1);
+    await expect(c.locator('path.area')).toHaveCount(1);
+    await expect(c.locator('line.axis')).toHaveCount(1);
+    await expect(c.locator('rect.hit')).toHaveCount(7);
+    await expect(c.locator('path.line')).toHaveCSS('stroke-width', '2px');
+    await expect(page.locator('#spark-water path.line')).toHaveCount(1);
+  });
+  test('chart has no circles (rule: nothing is round) and a text alternative', async ({ page }) => {
+    await app(page, '#app-telemetry');
+    await expect(page.locator('.me-chart circle')).toHaveCount(0);
+    await expect(page.locator('#ch-moist')).toHaveAttribute('aria-labelledby', 'ch-l1');
+  });
+});
+
 test.describe('app behaviour', () => {
   test('side rail switches views and keeps exactly one aria-current', async ({ page }) => {
     await app(page);
-    for (const v of ['beds', 'irrigation', 'tasks', 'users', 'overview']) {
+    for (const v of ['beds', 'telemetry', 'irrigation', 'tasks', 'users', 'overview']) {
       await page.click(`.me-side [data-view=${v}]`);
       await expect(page.locator(`.me-side [data-view=${v}]`)).toHaveAttribute('aria-current', 'page');
       await expect(page.locator(`#views > [data-v=${v}]`)).toBeVisible();
@@ -260,7 +278,7 @@ test.describe('design rules', () => {
   test('keyboard: rail items are reachable in order with a visible focus ring', async ({ page }) => {
     await app(page);
     await page.locator('.me-side [data-view=overview]').focus();
-    for (const v of ['beds', 'irrigation']) {
+    for (const v of ['beds', 'telemetry', 'irrigation']) {
       await page.keyboard.press('Tab');
       await expect(page.locator(`.me-side [data-view=${v}]`)).toBeFocused();
       const o = await page.locator(`.me-side [data-view=${v}]`).evaluate(e => getComputedStyle(e).outlineStyle);

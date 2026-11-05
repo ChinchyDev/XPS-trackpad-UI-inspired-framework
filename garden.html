@@ -16,7 +16,7 @@
   .login-shell { width: 100%; max-width: 960px; display: grid; grid-template-columns: 1.05fr 1fr; background: var(--color-panel); border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); overflow: hidden; }
   .login-hero { padding: 40px; display: flex; flex-direction: column; gap: 24px; border-right: 1px solid var(--stroke-divider); background: var(--color-surface); }
   .login-form { padding: 40px; display: flex; flex-direction: column; gap: 16px; }
-  .brand { font-size: 20px; line-height: 24px; letter-spacing: .3em; text-transform: uppercase; font-weight: 700; }
+  .brand { font: 600 26px/28px var(--font-display); letter-spacing: .3em; text-transform: uppercase; }
   .brand i { font-style: normal; color: var(--accent-text); }
   @media (max-width: 760px) { .login-shell { grid-template-columns: 1fr; } .login-hero { display: none; } .login-form { padding: 24px; } }
 
@@ -106,6 +106,7 @@
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
     <symbol id="i-overview" viewBox="0 0 16 16"><path d="M9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/><path d="M2 2h5v5H2z" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-beds" viewBox="0 0 16 16"><path d="M2 3h12v10H2zM8 3v10"/><path d="M2 8h12" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-telemetry" viewBox="0 0 16 16"><path d="M2 2v12h12"/><path d="M5 10l3-3 2 2 4-5" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-irrigation" viewBox="0 0 16 16"><path d="M12 8v4l-2 2H6l-2-2V8"/><path d="M8 2l4 6M8 2L4 8" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-tasks" viewBox="0 0 16 16"><path d="M2 4h2M2 8h2M2 12h2M6 4h8M6 12h8"/><path d="M6 8h8" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-users" viewBox="0 0 16 16"><path d="M2 14v-3h12v3M5 2v5h6V2"/><path d="M5 2h6" style="stroke:var(--ico-l,currentColor)"/></symbol>
@@ -120,6 +121,7 @@
       <div class="me-rail" role="group" aria-labelledby="sg-garden">
         <button data-view="overview" aria-current="page"><svg class="me-ico" aria-hidden="true"><use href="#i-overview"/></svg><span class="me-side-txt">Overview</span></button>
         <button data-view="beds"><svg class="me-ico" aria-hidden="true"><use href="#i-beds"/></svg><span class="me-side-txt">Beds &amp; plots</span><span class="me-badge" id="bed-count">0</span></button>
+        <button data-view="telemetry"><svg class="me-ico" aria-hidden="true"><use href="#i-telemetry"/></svg><span class="me-side-txt">Telemetry</span></button>
         <button data-view="irrigation"><svg class="me-ico" aria-hidden="true"><use href="#i-irrigation"/></svg><span class="me-side-txt">Irrigation</span></button>
         <button data-view="tasks"><svg class="me-ico" aria-hidden="true"><use href="#i-tasks"/></svg><span class="me-side-txt">Tasks</span><span class="me-badge" data-signal="warn" id="task-count">0</span></button>
       </div></div>
@@ -217,6 +219,16 @@
         <div class="me-panel" style="padding:8px 24px" id="task-list"></div>
       </section>
 
+      <!-- TELEMETRY -->
+      <section data-v="telemetry" class="me-stack" hidden style="gap:24px">
+        <div class="page-head"><div><div class="me-title">Telemetry</div><span class="me-dim">Soil moisture and water use from the field sensors.</span></div></div>
+        <div class="me-panel" style="padding:24px"><div class="me-row" style="justify-content:space-between;margin-bottom:16px"><span class="me-label" id="ch-l1">Soil moisture · last 7 days (%)</span><span class="me-badge">Avg 41%</span></div>
+          <div class="me-chart" id="ch-moist" role="img" aria-labelledby="ch-l1"></div></div>
+        <div class="me-panel" style="padding:24px"><div class="me-row" style="justify-content:space-between;margin-bottom:16px"><span class="me-label" id="ch-l2">Water used · last 7 days (L)</span><span class="me-badge">Total 2,140</span></div>
+          <div class="me-chart" id="ch-water" data-signal="info" role="img" aria-labelledby="ch-l2"></div>
+          <p class="me-dim" style="margin-top:12px">Trend: <span class="me-spark" id="spark-water" data-signal="info" role="img" aria-label="Water use trend, rising"></span></p></div>
+      </section>
+
       <!-- USERS -->
       <section data-v="users" class="me-stack" hidden style="gap:24px">
         <div class="page-head"><div><div class="me-title">Users &amp; roles</div><span class="me-dim">Admins can change zones and manage people.</span></div><button class="me-btn me-btn--primary" id="invite">Invite user</button></div>
@@ -299,6 +311,13 @@ $('[data-collapse]').addEventListener('click',e=>{const app=$('#app'),on=!app.ha
 function fieldErr(id,bad){const f=document.getElementById(id);bad?f.dataset.signal='err':f.removeAttribute('data-signal');const i=$('input,select',f);if(i){i.setAttribute('aria-invalid',bad);}return bad;}
 function bars(el,vals){const mx=Math.max(...vals);el.innerHTML=vals.map((v,i)=>'<i style="--h:'+Math.round(v/mx*100)+'%" data-tip="'+'MTWTFSS'[i]+': '+v+' L"></i>').join('');}
 const WEEK=[280,310,260,340,295,355,300];
+/* line / area chart: builds an inline SVG (hairline grid, lit line, fading wash). opts.spark drops axes and labels. */
+function chart(el,vals,o={}){const W=600,H=160,n=vals.length,mn=o.min??Math.min(...vals),mx=o.max??Math.max(...vals),pad=o.spark?2:8,sx=i=>pad+i*(W-2*pad)/(n-1),sy=v=>H-pad-(v-mn)/((mx-mn)||1)*(H-2*pad);
+  const pts=vals.map((v,i)=>sx(i).toFixed(1)+','+sy(v).toFixed(1)),d='M'+pts.join(' L'),grid=[0,.25,.5,.75,1].map(t=>'<line class="grid" x1="0" x2="'+W+'" y1="'+(pad+t*(H-2*pad)).toFixed(1)+'" y2="'+(pad+t*(H-2*pad)).toFixed(1)+'"/>').join('');
+  const dots=vals.map((v,i)=>'<g><rect class="hit" x="'+(sx(i)-W/n/2).toFixed(1)+'" y="0" width="'+(W/n).toFixed(1)+'" height="'+H+'"><title>'+(o.labels?o.labels[i]+': ':'')+v+(o.unit||'')+'</title></rect><rect class="pt" x="'+(sx(i)-3).toFixed(1)+'" y="'+(sy(v)-3).toFixed(1)+'" width="6" height="6"/></g>').join('');
+  el.innerHTML='<svg class="me-chart-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" focusable="false" aria-hidden="true"'+(o.spark?' style="height:100%"':'')+'><defs><linearGradient id="me-area-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sig)" stop-opacity=".35"/><stop offset="1" stop-color="var(--sig)" stop-opacity="0"/></linearGradient></defs>'+grid+'<line class="axis" x1="0" x2="'+W+'" y1="'+(H-pad)+'" y2="'+(H-pad)+'"/><path class="area" d="'+d+' L'+sx(n-1).toFixed(1)+','+(H-pad)+' L'+sx(0)+','+(H-pad)+' Z"/><path class="line" d="'+d+'"/>'+(o.spark?'':dots)+'</svg>'+(o.labels&&!o.spark?'<div class="me-chart-x">'+o.labels.map(l=>'<span>'+l+'</span>').join('')+'</div>':'');}
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function drawCharts(){chart($('#ch-moist'),[48,46,44,43,40,38,36],{labels:DAYS,unit:'%',min:30,max:55});chart($('#ch-water'),WEEK,{labels:DAYS,unit:' L'});chart($('#spark-water'),WEEK,{spark:true});}
 bars($('#hero-bars'),WEEK);bars($('#bars'),WEEK);
 
 /* theme */
@@ -323,10 +342,10 @@ function enter(){$('#login').hidden=true;$('#app').hidden=false;go('overview');t
 function leave(){$('#app').hidden=true;$('#login').hidden=false;$('#pw').value='';$('#email').focus();}
 
 /* ------------------------------ nav ------------------------------ */
-const NAMES={overview:'Overview',beds:'Beds & plots',irrigation:'Irrigation',tasks:'Tasks',users:'Users'};
+const NAMES={overview:'Overview',telemetry:'Telemetry',beds:'Beds & plots',irrigation:'Irrigation',tasks:'Tasks',users:'Users'};
 function go(v){$$('#views > [data-v]').forEach(s=>s.hidden=s.dataset.v!==v);
   queueMicrotask(()=>$('.me-side [aria-current]')?.scrollIntoView({inline:'center',block:'nearest'}));
-  $$('.me-side button[data-view]').forEach(b=>b.dataset.view===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));$('#crumb').textContent=NAMES[v];if(v==='beds')renderBeds();}
+  $$('.me-side button[data-view]').forEach(b=>b.dataset.view===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));$('#crumb').textContent=NAMES[v];if(v==='beds')renderBeds();if(v==='telemetry')drawCharts();}
 $('.me-side').addEventListener('click',e=>{const b=e.target.closest('button[data-view]');if(b)go(b.dataset.view);});
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go],a[data-view]');if(g){e.preventDefault();go(g.dataset.go||g.dataset.view);if(g.dataset.go==='beds')openBed();}});
 document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!$('#app').hidden){e.preventDefault();$('#search').focus();}});
@@ -423,7 +442,7 @@ bindSplit('#sp-del','#dlg-del',()=>{const u=users.splice(delIdx,1)[0];renderUser
 overview();renderBeds();renderZones();renderUsers();
 const h=location.hash.slice(1);
 if(h.startsWith('app')){setTheme(h.includes('light')?'light':'dark');$('#login').hidden=true;$('#app').hidden=false;
-  const v=(h.match(/-(overview|beds|irrigation|tasks|users)/)||[,'overview'])[1];go(v);
+  const v=(h.match(/-(overview|telemetry|beds|irrigation|tasks|users)/)||[,'overview'])[1];go(v);
   if(h.includes('modal'))openBed();if(h.includes('bad')){$('#nb-area').value=0;$('#sp-bed [data-c=l]').click();}if(h.includes('del')){$('[data-del="2"]').click();}if(h.includes('menu'))menu(true);if(h.includes('susp'))$('#ut-sus').click();if(h.includes('pg2'))$('#bed-pager [data-p="1"]').click();if(h.includes('min'))$('[data-collapse]').click();}
 else{if(h.includes('light'))setTheme('light');
   if(h.includes('err')){$('#email').value='admin@plotline.io';$('#pw').value='wrong';$('#login-f').requestSubmit();}
