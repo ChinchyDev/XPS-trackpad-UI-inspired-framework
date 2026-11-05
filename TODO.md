@@ -101,6 +101,7 @@ Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 - [ ] Name and logo
 - [ ] Docs site generated from garden (one page per component, do / don't)
 - [ ] Package (npm), semver, changelog, licence
+- [ ] **Font licences:** Jost and Cormorant Garamond are SIL OFL 1.1. When packaging, ship the OFL text + copyright notices alongside `fonts/` (e.g. `fonts/OFL-Jost.txt`, `fonts/OFL-Cormorant.txt`), list them in the package licence/NOTICE file, and don't sell the fonts on their own. Decide whether the shipped CSS keeps the Google Fonts `@import` (privacy / GDPR: it sends visitors' IPs to Google) or only the self-hosted copy
 - [ ] Regenerate the spec document from the tokens (no hand-maintained duplicates)
 
 ---

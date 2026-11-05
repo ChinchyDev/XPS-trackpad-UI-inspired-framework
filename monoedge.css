@@ -3,7 +3,8 @@
    Rule zero: nothing is round. Max radius 2px. Light is structure.
    ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap");
+@import url("fonts/fonts.css");   /* self-hosted: works offline */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap");   /* online mode: declared last so it takes priority; if it cannot load, the local faces above are used */
 
 /* ---------- 1. TOKENS --------------------------------------------------- */
 :root, [data-theme="dark"] {
