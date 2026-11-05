@@ -1,6 +1,6 @@
 // garden.html is the deployment of the framework: every behaviour and every design RULE is checked here.
 // Rule numbers refer to TODO.md "Round 4: DESIGN RULES".
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures');
 const { url } = require('./helpers');
 
 const app = (page, hash = '#app') => page.goto(url('garden.html', hash));

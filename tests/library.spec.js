@@ -1,6 +1,6 @@
 // monoedge.js components exercised in garden.html: chart variants, date picker, combobox / multi-select / tag input,
 // command palette, file upload, tabs overflow, tree, toolbar, wizard. (axe for these states lives in a11y.spec.js)
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures');
 const { url } = require('./helpers');
 
 const app = (page, hash = '#app') => page.goto(url('garden.html', hash));

@@ -1,6 +1,6 @@
 // 1B: gaps in what already exists. Collapsed-rail beacon, field focus cues (WCAG 2.4.13), idle boundary contrast (1.4.11),
 // split-footer neutral state, illumination levels, CSS-only rail axis.
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures');
 const { url, read } = require('./helpers');
 const app = (page, hash = '#app') => page.goto(url('garden.html', hash));
 

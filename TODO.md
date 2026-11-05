@@ -39,6 +39,8 @@ Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 - [ ] Draw the full ~40-icon set (9 exist in garden.html: overview, beds, irrigation, tasks, users, collapse, settings, docs, help). Spec: 16px grid, 1.25 stroke, square caps, mitre joins, no circles, one segment lit via `--ico-l`
 - [ ] Move the sprite out of garden.html into its own file
 - [ ] Icon-button sizing and hit-area rules
+- [ ] scroll bar needs a redesign, suggest ways of changing it
+
 
 ### 1D. Delivery (do after 1A so the API is settled)
 - [ ] Tokens as W3C DTCG JSON, built with Style Dictionary to CSS / Tailwind / JS (one source of truth)

@@ -1,5 +1,5 @@
 // axe-core on every garden view, both themes. Contrast is the check that matters most for this framework.
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures');
 const AxeBuilder = require('@axe-core/playwright').default;
 const { url } = require('./helpers');
 

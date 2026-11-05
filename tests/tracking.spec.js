@@ -2,7 +2,7 @@
 //  1. COMPONENT COVERAGE: every .me-* component in monoedge.css must appear in garden.html or be listed in
 //     tests/coverage-baseline.json (known gaps). A NEW untested component fails; a newly covered one asks you to shrink the baseline.
 //  2. ANIMATION REGISTRY: every @keyframes in monoedge.css must be listed in tests/animations.json.
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('../fixtures');
 const fs = require('fs'); const path = require('path');
 const { url, read } = require('./helpers');
 
@@ -28,15 +28,15 @@ test('every @keyframes is registered, nothing stale is registered', () => {
   expect(reg.filter(k => !kf.includes(k)), 'registered but missing from css').toEqual([]);
 });
 
-test('notch entrance is slow enough to enjoy; reduced motion removes it', async ({ page, browser }) => {
-  const fire = async pg => { await pg.goto(url('garden.html', '#app-tasks')); await pg.fill('#new-task', 'x'); await pg.keyboard.press('Enter'); };
-  await fire(page);
+test('notch entrance is slow enough to enjoy; reduced motion removes it', async ({ page }) => {
+  const fire = async () => { await page.goto('about:blank'); await page.goto(url('garden.html', '#app-tasks')); await page.fill('#new-task', 'x'); await page.keyboard.press('Enter'); };
+  await fire();
   const dur = await page.locator('#toasts .me-alert').evaluate(e => getComputedStyle(e).animationDuration);
   expect(parseFloat(dur)).toBeGreaterThanOrEqual(1.4);
-  const ctx = await browser.newContext({ reducedMotion: 'reduce' }); const p = await ctx.newPage();
-  await fire(p);
-  const d2 = await p.locator('#toasts .me-alert').evaluate(e => getComputedStyle(e).animationDuration);
-  expect(parseFloat(d2)).toBeLessThan(0.01); await ctx.close();
+  await page.emulateMedia({ reducedMotion: 'reduce' });   // same persistent page; no throwaway browser context
+  await fire();
+  const d2 = await page.locator('#toasts .me-alert').evaluate(e => getComputedStyle(e).animationDuration);
+  expect(parseFloat(d2)).toBeLessThan(0.01);
 });
 
 test('loading orbit travels anticlockwise (angle decreases)', async ({ page }) => {
