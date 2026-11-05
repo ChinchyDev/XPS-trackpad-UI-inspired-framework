@@ -134,7 +134,7 @@
       <div class="me-rail" role="group" aria-labelledby="sg-admin">
         <button data-view="users"><svg class="me-ico" aria-hidden="true"><use href="#i-users"/></svg><span class="me-side-txt">Users</span></button>
       </div></div>
-    <div class="side-foot">
+    <div class="side-foot me-side-foot">
       <div class="me-row side-status" data-signal="ok"><span class="me-dot me-dot--pulse"></span><span class="me-label side-status-t">12 sensors online</span></div>
       <div class="me-rail" data-h role="group" aria-label="Help and settings">
         <button aria-label="Settings" data-act="settings"><svg class="me-ico" aria-hidden="true"><use href="#i-settings"/></svg></button><button aria-label="Docs" data-act="docs"><svg class="me-ico" aria-hidden="true"><use href="#i-docs"/></svg></button><button aria-label="Support" data-act="help"><svg class="me-ico" aria-hidden="true"><use href="#i-help"/></svg></button></div>
@@ -403,11 +403,8 @@ const status=b=>b.moisture<35?{k:'warn',t:'Needs water'}:(b.harvest!==null&&b.ha
 /* ------------------------------ helpers ------------------------------ */
 /* notch notification: hangs from the top edge, one at a time */
 function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,850);},4800);}
-/* side rails lie on their side on narrow screens (horizontal group-panel rules apply) */
-const railMQ=matchMedia('(max-width:900px)');
-function rails(){const min=$('#app').hasAttribute('data-min');$$('.me-rail').forEach(r=>{const x=railMQ.matches||(r.hasAttribute('data-h')&&!min);if(x)r.dataset.axis='x';else delete r.dataset.axis;});}
-railMQ.addEventListener('change',rails);rails();
-$('[data-collapse]').addEventListener('click',e=>{const app=$('#app'),on=!app.hasAttribute('data-min');app.toggleAttribute('data-min',on);$('#side').toggleAttribute('data-min',on);e.currentTarget.setAttribute('aria-expanded',String(!on));rails();});
+/* side rails lie on their side by CSS container query (monoedge.css), no JS */
+$('[data-collapse]').addEventListener('click',e=>{const app=$('#app'),on=!app.hasAttribute('data-min');app.toggleAttribute('data-min',on);$('#side').toggleAttribute('data-min',on);e.currentTarget.setAttribute('aria-expanded',String(!on));});
 function fieldErr(id,bad){const f=document.getElementById(id);bad?f.dataset.signal='err':f.removeAttribute('data-signal');const i=$('input,select',f);if(i){i.setAttribute('aria-invalid',bad);}return bad;}
 function bars(el,vals){const mx=Math.max(...vals);el.innerHTML=vals.map((v,i)=>'<i style="--h:'+Math.round(v/mx*100)+'%" data-tip="'+'MTWTFSS'[i]+': '+v+' L"></i>').join('');}
 const WEEK=[280,310,260,340,295,355,300];
@@ -472,11 +469,11 @@ um.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)ret
 function overview(){
   $('#today').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
   $('#s-beds').textContent=beds.length;$('#s-moist').textContent=Math.round(beds.reduce((a,b)=>a+b.moisture,0)/beds.length)+'%';$('#s-harv').textContent=beds.filter(b=>b.harvest!==null&&b.harvest<=14).length;
-  $('#bed-count').textContent=beds.length;
+  $('#bed-count').textContent=beds.length;$('#bed-count').toggleAttribute('data-zero',!beds.length);
   $('#zone-m').innerHTML=zones.map(z=>'<div class="me-field" '+(z.m<z.t?'data-signal="warn"':'')+'><div class="me-row" style="justify-content:space-between"><span class="me-label">'+z.n+'</span><span class="me-num">'+z.m+'%</span></div><div class="me-meter" style="--v:'+z.m+'%" role="progressbar" aria-valuenow="'+z.m+'" aria-valuemin="0" aria-valuemax="100" aria-label="'+z.n+' moisture"><i></i></div></div>').join('');
   renderTasks();}
 function renderTasks(){
-  const open=tasks.filter(t=>!t.d).length;$('#task-count').textContent=open;
+  const open=tasks.filter(t=>!t.d).length;$('#task-count').textContent=open;$('#task-count').toggleAttribute('data-zero',!open);
   const html=tasks.map((t,i)=>({t,i})).filter(x=>tf==='all'||(tf==='open'?!x.t.d:x.t.d)).map(({t,i})=>'<div class="task'+(t.d?' done':'')+'"><label class="me-choice"><input type="checkbox" class="me-check" data-i="'+i+'" '+(t.d?'checked':'')+'><span class="t-text">'+esc(t.t)+'</span></label><span class="me-badge" '+(t.due==='Today'&&!t.d?'data-signal="warn"':'')+'>'+t.due+'</span></div>').join('');
   $('#task-list').innerHTML=html;$('#due').innerHTML=tasks.map((t,i)=>({t,i})).filter(x=>x.t.due==='Today').map(x=>'<div class="task'+(x.t.d?' done':'')+'"><label class="me-choice"><input type="checkbox" class="me-check" data-i="'+x.i+'" '+(x.t.d?'checked':'')+'><span class="t-text">'+esc(x.t.t)+'</span></label></div>').join('')||'<div class="me-dim" style="padding:12px 0">Nothing due.</div>';
   const pct=Math.round(100*(tasks.length-open)/tasks.length);$('#task-m').style.setProperty('--v',pct+'%');$('#task-m').setAttribute('aria-valuenow',pct);$('#task-sum').textContent=(tasks.length-open)+' of '+tasks.length+' done · '+open+' open';}

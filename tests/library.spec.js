@@ -53,6 +53,11 @@ test.describe('chart variants', () => {
     await expect(page.locator('#ch-flat path.line')).toHaveCount(1);
     await expect(page.locator('#ch-empty .me-empty')).toContainText('No readings yet');
   });
+  test('axis ticks sit on round numbers even when min and max are given', async ({ page }) => {
+    const txt = await page.locator('#ch-moist .me-chart-y').innerText();
+    expect(txt).not.toMatch(/\.\d/);
+    expect(txt.split(/\s+/).filter(Boolean).map(Number).every(n => n % 5 === 0)).toBe(true);
+  });
   test('hovering a column reveals a square marker', async ({ page }) => {
     const c = page.locator('#ch-water');
     await c.locator('rect.hit').nth(3).hover();

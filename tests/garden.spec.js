@@ -5,6 +5,9 @@ const { url } = require('./helpers');
 
 const app = (page, hash = '#app') => page.goto(url('garden.html', hash));
 
+// The Google Fonts @import is render-blocking when the network is slow or absent; tests use the self-hosted copy so timings stay deterministic.
+test.beforeEach(async ({ page }) => { await page.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort()); });
+
 test.describe('login flow', () => {
   test('wrong password shows an error alert', async ({ page }) => {
     await page.goto(url('garden.html'));
@@ -291,7 +294,7 @@ test.describe('responsive @responsive', () => {
   test('no horizontal page scroll; rails lie on their side', async ({ page }) => {
     await app(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    await expect(page.locator('.me-rail').first()).toHaveAttribute('data-axis', 'x');
+    await expect(page.locator('.me-rail').first()).toHaveCSS('flex-direction', 'row');   // by container query, no JS
     await page.click('.me-side [data-view=beds]');
     await expect(page.locator('.me-side [data-view=beds]')).toBeInViewport();
   });

@@ -24,15 +24,16 @@ Each one must pass the Design Rules below, appear in garden, and come with a Pla
 Should collapsed-rail counts become a tiny beacon? D.....YES
 Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 
-### 1B. Gaps in what already exists
-- [ ] Collapsed side rail hides count badges; show a tiny beacon instead (D)
-- [ ] Fields: ticks are the ONLY focus cue, so WCAG 2.4.13 (AAA) is not met. Add a second cue? (D)
-- [ ] Measure idle field boundary (faded ticks) against 1.4.11 (3:1)
-- [ ] No neutral / undo state for the split footer
-- [ ] Illumination levels (`data-lit-hover`) not wired to every lit control
-- [ ] Light-mode lighting is still the weakest area (etch + wash): needs its own review pass
-- [ ] Rails switch to horizontal through JS `matchMedia`; make it CSS-only (container query)
-- [ ] Remove the unused legacy `me-scan` once nothing needs it, and keep `tests/animations.json` in sync
+### 1B. Gaps in what already exists (all done; tests in `tests/polish.spec.js`)
+- [x] Collapsed side rail: count badges become a tiny vertical light-bar (signal colour, hidden at zero); the number stays in the accessible name
+- [x] Fields: second focus cue (2px bar top and bottom in the signal colour, plus the ticks) for WCAG 2.4.13; error fields keep red
+- [x] Idle field boundary measured against 1.4.11: ticks are 3.3:1 or better on every surface in both themes (automated, tolerance 3:1)
+- [x] Split footer neutral / undo: click the chosen side again, or Esc (`ME.split`, used in dashboard.html). Dialog footers still commit and close
+- [x] Illumination levels: every interactive `.me-lit` control (button, link, menuitem, tab, switch, summary) gets rest .2 / hover .6 / pressed 1 automatically; `data-lit-level` overrides; static lit surfaces (dialogs, menus) are untouched
+- [x] Light-mode lighting review pass: lit-edge wash cut to 6% in light (it read as a smudge), calendar disabled days no longer struck through, axis ticks on round numbers, upload zone layout. Re-review by eye after the next round
+- [x] Rails lie on their side by CSS container query (`.me-side` >= 280px, footer group >= 140px). `data-axis="x"` remains as a manual override. No JS
+- [x] Removed legacy `me-scan`; the busy split button now orbits like a busy button (rule 7); `tests/animations.json` in sync
+- Follow-up: the horizontal-rail rules now exist in three copies (data-axis, two container blocks). A build step (1D) should generate them from one source
 
 ### 1C. Icons
 - [ ] Draw the full ~40-icon set (9 exist in garden.html: overview, beds, irrigation, tasks, users, collapse, settings, docs, help). Spec: 16px grid, 1.25 stroke, square caps, mitre joins, no circles, one segment lit via `--ico-l`

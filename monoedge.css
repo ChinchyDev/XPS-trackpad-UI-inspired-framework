@@ -164,7 +164,6 @@
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
   filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); animation: me-orbit 1.5s linear infinite; }
 @keyframes me-orbit { from { --me-a: -40deg } to { --me-a: -400deg } }
-@keyframes me-scan { from { background-position: -100% 0 } to { background-position: 200% 0 } }
 /* opposing actions: only the HOT one wears the full perimeter. Click moves the heat to the clicked one.
    <div class="me-pair"><button class="me-btn" data-hot>..</button><button class="me-btn">..</button></div> */
 .me-pair { display: inline-flex; gap: var(--space-3); flex-wrap: wrap; }
@@ -196,6 +195,8 @@
 [data-signal="err"] .me-anchor::before, [data-signal="err"] .me-anchor::after,
 .me-anchor[data-signal]::before, .me-anchor[data-signal]::after { top: 0; bottom: 0; background: linear-gradient(180deg, transparent, var(--sig) 30%, var(--sig) 70%, transparent);
   filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); }
+/* second cue (WCAG 2.4.13): the side ticks AND a 2px bar on the top and bottom edge, in the signal colour, so the lit area is at least the 2px perimeter */
+.me-anchor:focus-within { box-shadow: inset 0 2px 0 var(--sig), inset 0 -2px 0 var(--sig); }
 .me-anchor:has(:disabled)::before, .me-anchor:has(:disabled)::after { background: var(--stroke-divider); box-shadow: none; }
 /* error bottom hint-line so error also reads w/o colour */
 [data-signal="err"] .me-anchor { box-shadow: inset 0 -1px 0 var(--sig); }
@@ -275,6 +276,8 @@
 .me-tabs, .me-rail { --gi-frame: var(--stroke-divider-hover); display: flex; background: var(--color-surface); border-radius: var(--radius-soft); box-shadow: inset 0 0 0 1px var(--gi-frame); }
 .me-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 .me-rail { flex-direction: column; }
+.me-side { container: me-side / inline-size; }          /* rails lie on their side when the side bar is wide (a top strip on phones)... */
+.me-side-foot { container: me-foot / inline-size; }      /* ...and the footer icon group lies on its side whenever it has room (expanded, not the 64px rail) */
 .me-rail[data-axis="x"] { flex-direction: row; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 
 /* -- horizontal items (tabs, or a rail laid on its side) -- */
@@ -313,6 +316,37 @@
 .me-rail > button { min-height: var(--control-h); padding: 0 var(--space-4); font-size: 11px; text-align: left; width: 100%; }
 .me-rail[data-axis="x"] > button { width: auto; min-height: 0; }
 .me-tab .me-badge { margin-left: var(--space-2); }
+/* -- rails laid on their side by CONTAINER QUERY (no JS). Same rules as the [data-axis="x"] block above, repeated under a container condition because
+      a media/container condition cannot sit inside :is(). Keep the three copies in sync (tests/garden.spec.js checks the computed result). -- */
+@container me-side (min-width: 280px) {
+  .me-side .me-rail:not([data-h]) { flex-direction: row; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .me-side .me-rail:not([data-h]) > button { --gi-l: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) 0 50% / 2px 58% no-repeat;
+    --gi-r: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) 100% 50% / 2px 58% no-repeat;
+    --gi-src: linear-gradient(90deg, transparent, var(--sig) 16%, var(--sig) 84%, transparent) 0 0 / 100% 2px no-repeat; --gi-t: none; --gi-b: none;
+    padding: var(--space-4) var(--space-6); font-size: 13px; width: auto; min-height: 0; }
+  .me-side .me-rail:not([data-h]) > button:first-child { --gi-l: linear-gradient(180deg, var(--sig), transparent 88%) 0 0 / 2px 100% no-repeat; }
+  .me-side .me-rail:not([data-h]) > button:last-child  { --gi-r: linear-gradient(180deg, var(--sig), transparent 88%) 100% 0 / 2px 100% no-repeat; }
+  .me-side .me-rail:not([data-h]) > button::after { top: 24%; bottom: 24%; right: 0; left: auto; width: 1px; height: auto; background: linear-gradient(180deg, transparent, var(--gi-frame) 30%, var(--gi-frame) 70%, transparent); }
+  .me-side .me-rail:not([data-h]) > button:is([aria-selected="true"], [aria-current="page"]) { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent 80%); }
+  .me-side .me-rail:not([data-h])[data-more~="end"] { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+  .me-side .me-rail:not([data-h])[data-more~="start"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px); mask-image: linear-gradient(90deg, transparent, #000 36px); }
+  .me-side .me-rail:not([data-h])[data-more~="start"][data-more~="end"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+}
+@container me-foot (min-width: 140px) {
+  .me-side .me-rail[data-h] { flex-direction: row; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .me-side .me-rail[data-h] > button { --gi-l: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) 0 50% / 2px 58% no-repeat;
+    --gi-r: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) 100% 50% / 2px 58% no-repeat;
+    --gi-src: linear-gradient(90deg, transparent, var(--sig) 16%, var(--sig) 84%, transparent) 0 0 / 100% 2px no-repeat; --gi-t: none; --gi-b: none;
+    padding: var(--space-4) var(--space-6); font-size: 13px; width: auto; min-height: 0; }
+  .me-side .me-rail[data-h] > button:first-child { --gi-l: linear-gradient(180deg, var(--sig), transparent 88%) 0 0 / 2px 100% no-repeat; }
+  .me-side .me-rail[data-h] > button:last-child  { --gi-r: linear-gradient(180deg, var(--sig), transparent 88%) 100% 0 / 2px 100% no-repeat; }
+  .me-side .me-rail[data-h] > button::after { top: 24%; bottom: 24%; right: 0; left: auto; width: 1px; height: auto; background: linear-gradient(180deg, transparent, var(--gi-frame) 30%, var(--gi-frame) 70%, transparent); }
+  .me-side .me-rail[data-h] > button:is([aria-selected="true"], [aria-current="page"]) { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent 80%); }
+  .me-side .me-rail[data-h][data-more~="end"] { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
+  .me-side .me-rail[data-h][data-more~="start"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px); mask-image: linear-gradient(90deg, transparent, #000 36px); }
+  .me-side .me-rail[data-h][data-more~="start"][data-more~="end"] { -webkit-mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+}
+
 
 /* header strip: groups sit on bare canvas; nothing draws a panel where there is no group */
 .me-nav { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--stroke-divider); }
@@ -470,9 +504,13 @@ dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: var(--scr
 .me-split[data-chosen="l"]::after { box-shadow: 0 0 calc(10px * var(--glow-strength)) var(--l), calc(-4px * var(--glow-strength)) 0 12px color-mix(in srgb, var(--l) calc(100% * var(--glow-strength)), transparent); }
 .me-split[data-chosen="r"]::after { box-shadow: 0 0 calc(10px * var(--glow-strength)) var(--r), calc(4px * var(--glow-strength)) 0 12px color-mix(in srgb, var(--r) calc(100% * var(--glow-strength)), transparent); }
 .me-split > button[aria-busy="true"] { pointer-events: none; color: var(--color-text-dim); }
-.me-split > button[aria-busy="true"]::before { content: ""; position: absolute; left: 20%; right: 20%; bottom: 9px; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--l), transparent) -100% 0 / 50% 100% no-repeat; animation: me-scan 1s linear infinite; }
-.me-split > button:last-of-type[aria-busy="true"]::before { background-image: linear-gradient(90deg, transparent, var(--r), transparent); }
+/* busy split button: the same orbiting edge light as .me-btn (rule 7), in that side's colour */
+.me-split > button:first-of-type[aria-busy="true"] { --sig: var(--l); }
+.me-split > button:last-of-type[aria-busy="true"]  { --sig: var(--r); }
+.me-split > button[aria-busy="true"]::before { content: ""; position: absolute; inset: 0; pointer-events: none; padding: 2px; border-radius: var(--radius-float);
+  background: conic-gradient(from var(--me-a), var(--sig) 0deg, color-mix(in srgb, var(--sig) 35%, transparent) 40deg, transparent 95deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); animation: me-orbit 1.5s linear infinite; }
 @keyframes me-edge-reveal { from { opacity: 0; transform: scale(.98) } to { opacity: 1; transform: scale(1) } }
 
 /* ---------- 10b. EDGE LIGHT TOOLKIT --------------------------------------
@@ -506,9 +544,10 @@ dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: var(--scr
 .me-lit[data-lit~="r"] { --lit-r: var(--lit-v); }
 .me-lit[data-lit-level="rest"]  { --lit-level: .15; }
 .me-lit[data-lit-level="hover"] { --lit-level: .55; }
-.me-lit[data-lit-hover]         { --lit-level: .2; }
-.me-lit[data-lit-hover]:is(:hover, :focus-visible) { --lit-level: .6; }
-.me-lit[data-lit-hover]:is(:active, [aria-pressed="true"], [aria-selected="true"]) { --lit-level: 1; }
+/* Interactive lit controls get the three levels (rest .2 / hover .6 / pressed 1) automatically; data-lit-hover opts any other element in; data-lit-level overrides. */
+:is(.me-lit[data-lit-hover], :is(button, a[href], summary, [role="button"], [role="menuitem"], [role="tab"], [role="switch"]).me-lit:not([data-lit-level])) { --lit-level: .2; }
+:is(.me-lit[data-lit-hover], :is(button, a[href], summary, [role="button"], [role="menuitem"], [role="tab"], [role="switch"]).me-lit:not([data-lit-level])):is(:hover, :focus-visible) { --lit-level: .6; }
+:is(.me-lit[data-lit-hover], :is(button, a[href], summary, [role="button"], [role="menuitem"], [role="tab"], [role="switch"]).me-lit:not([data-lit-level])):is(:active, [aria-pressed="true"], [aria-selected="true"]) { --lit-level: 1; }
 /* a button's built-in top bar is replaced by the edge-light layer when it opts in */
 .me-btn.me-lit::before { inset: -1px; height: auto; background: var(--lit-bg); box-shadow: none; opacity: var(--lit-level, 1); border-radius: inherit; }
 [data-depth="frame"]  { box-shadow: none; border-color: var(--stroke-divider-hover); }
@@ -517,6 +556,9 @@ dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: var(--scr
 dialog[data-scrim="dim"]::backdrop   { backdrop-filter: none; }
 dialog[data-scrim="blur"]::backdrop  { background: transparent; }
 dialog[data-scrim="none"]::backdrop  { background: transparent; backdrop-filter: none; }
+
+/* light mode: a lit edge is an etch, so its ambient wash stays faint (the full wash reads as a smudge on near-white) */
+[data-theme="light"] :is(.me-lit, .me-alert) { --lit-wash-c: color-mix(in srgb, var(--sig) 6%, transparent); }
 
 /* ---------- 10c. SELECTION PANEL (one panel, light shows the selection) ---
    Outer frame is dim and always visible. Selecting a row lights ONLY the dividers touching it,
@@ -550,7 +592,13 @@ dialog[data-scrim="none"]::backdrop  { background: transparent; backdrop-filter:
 .me-side .me-rail > button > .me-side-txt { flex: 1; min-width: 0; text-align: left; }
 /* collapsed: icon-only rail; the label becomes a floating tag on hover / focus */
 .me-side[data-min] { align-items: stretch; padding-inline: var(--space-3); }
-.me-side[data-min] .me-side-set > .me-label, .me-side[data-min] .me-rail > button > .me-badge { display: none; }
+.me-side[data-min] .me-side-set > .me-label { display: none; }
+/* a count becomes a tiny vertical light-bar on the button's outer edge; the number stays in the accessible name (text is clipped, not removed) */
+.me-side[data-min] .me-rail > button > .me-badge { position: absolute; right: 4px; top: 26%; bottom: 26%; width: 2px; height: auto; padding: 0; overflow: hidden; font-size: 0; letter-spacing: 0; color: transparent;
+  background: var(--color-text-muted); }
+.me-side[data-min] .me-rail > button > .me-badge[data-signal] { background: var(--sig); filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); }
+.me-side[data-min] .me-rail > button > .me-badge[data-zero] { display: none; }
+.me-side[data-min] .me-rail > button:is(:hover, :focus-visible) > .me-badge { display: none; }
 .me-side[data-min] .me-rail > button { justify-content: center; padding: 0; }
 .me-side[data-min] .me-rail > button > .me-side-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* visually hidden, still the accessible name */
 .me-side[data-min] .me-rail > button:is(:hover, :focus-visible) > .me-side-txt { width: auto; height: auto; overflow: visible; clip-path: none; position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%); flex: none; z-index: var(--z-tip);
@@ -641,7 +689,7 @@ dialog[data-scrim="none"]::backdrop  { background: transparent; backdrop-filter:
 .me-cal-day[aria-current="date"] { box-shadow: inset 0 -2px 0 var(--stroke-divider-active); color: var(--color-text-primary); }
 .me-cal-grid td[aria-selected="true"] .me-cal-day { color: var(--color-text-primary); border-top-color: var(--sig);
   background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent); }
-.me-cal-day:disabled { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+.me-cal-day:disabled { opacity: .3; cursor: not-allowed; }
 .me-cal-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--stroke-divider); }
 .me-cal-act { min-height: 28px; padding: 0 var(--space-2); background: transparent; border: 0; cursor: pointer; text-transform: uppercase; font-size: 10px; letter-spacing: .12em; color: var(--color-text-muted); }
 .me-cal-act:hover { color: var(--color-text-primary); }
@@ -662,6 +710,7 @@ dialog.me-palette { width: min(560px, calc(100vw - 32px)); margin: 12vh auto aut
 .me-drop:hover { border-color: var(--color-text-muted); color: var(--color-text-primary); }
 .me-drop::before { content: ""; position: absolute; left: 15%; right: 15%; top: -1px; height: 2px; opacity: 0; transition: opacity var(--dur);
   background: linear-gradient(90deg, transparent, var(--sig) 30%, var(--sig) 70%, transparent); }
+.me-field > .me-drop { justify-content: center; }   /* beats the .me-field > label row layout */
 .me-drop u { text-decoration: underline; text-underline-offset: 3px; color: var(--sig-text); }
 .me-drop[data-over], .me-drop:has(input:focus-visible) { border-style: solid; border-color: var(--stroke-divider-hover); background: var(--sig-fill); color: var(--color-text-primary); }
 .me-drop[data-over]::before, .me-drop:has(input:focus-visible)::before { opacity: 1; }

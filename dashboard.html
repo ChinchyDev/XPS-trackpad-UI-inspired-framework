@@ -140,9 +140,10 @@ batch.addEventListener('input',check);
 $$('.me-stepper button').forEach(b=>b.addEventListener('click',()=>{batch.value=Math.round(b.dataset.d>0?batch.value*2:batch.value/2);check();}));
 /* split */
 const split=$('#split'),status=$('#status');
-split.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('button',split).forEach(x=>x.setAttribute('aria-pressed',x===b));split.dataset.chosen=b.dataset.c;
-  const load=b.dataset.c==='l';status.textContent=load?'STATUS: ALLOCATING VRAM…':'STATUS: OPERATION ABORTED.';status.style.color=load?'var(--accent-text)':'var(--warn-text)';
-  toast(load?'ok':'warn',load?'Mounting weights…':'Operation aborted.');});
+ME.split(split,{onChange:c=>{
+  if(c===null){status.textContent='Awaiting user action…';status.style.color='';toast('info','Selection cleared.');return;}
+  const load=c==='l';status.textContent=load?'STATUS: ALLOCATING VRAM…':'STATUS: OPERATION ABORTED.';status.style.color=load?'var(--accent-text)':'var(--warn-text)';
+  toast(load?'ok':'warn',load?'Mounting weights…':'Operation aborted.');}});
 /* toast + run */
 /* notch notification: one at a time; the previous one is replaced */
 function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,850);},4600);}

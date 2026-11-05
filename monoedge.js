@@ -10,6 +10,7 @@
      ME.tree(root, nodes, opts)       tree view
      ME.toolbar(el)                   roving-tabindex toolbar
      ME.wizard(root, opts)            stepper / wizard
+     ME.split(el, opts)               split footer with a neutral state (click the chosen side again, or Esc, to undo)
    ========================================================================== */
 (() => {
 'use strict';
@@ -54,11 +55,12 @@ function chart(host, input, o = {}) {
   let mn = o.min ?? Math.min(...all), mx = o.max ?? Math.max(...all), step = null;
   if (o.axis && o.min == null && o.max == null && o.nice !== false) ({ min: mn, max: mx, step } = niceScale(mn, mx));
   if (mn === mx) { mn -= 1; mx += 1; }
+  if (o.axis && step === null) step = niceScale(mn, mx).step;   /* explicit min/max: keep the range, but put ticks on round numbers */
   const sx = i => n === 1 ? W / 2 : pad + i * (W - 2 * pad) / (n - 1);
   const sy = v => H - pad - (v - mn) / (mx - mn) * (H - 2 * pad);
   const base = sy(Math.min(Math.max(0, mn), mx));
   const f = x => +x.toFixed(1);
-  const ticks = []; if (step) for (let v = mn; v <= mx + 1e-9; v += step) ticks.push(+v.toFixed(6)); else for (let k = 0; k <= 4; k++) ticks.push(mn + (mx - mn) * k / 4);
+  const ticks = []; if (step) for (let v = Math.ceil(mn / step - 1e-9) * step; v <= mx + 1e-9; v += step) ticks.push(+v.toFixed(6)); else for (let k = 0; k <= 4; k++) ticks.push(mn + (mx - mn) * k / 4);
 
   let svg = `<svg class="me-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" focusable="false" aria-hidden="true">`;
   svg += ticks.map(v => `<line class="grid" x1="0" x2="${W}" y1="${f(sy(v))}" y2="${f(sy(v))}"/>`).join('');
@@ -483,10 +485,19 @@ function wizard(root, o = {}) {
   go(0); return { go, get step() { return cur; } };
 }
 
+/* ------------------------------------------------------------------- split */
+function split(el, o = {}) {
+  const btns = $$('button', el);
+  const set = c => { btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === c))); c ? el.dataset.chosen = c : el.removeAttribute('data-chosen'); fire(el, 'me-split', c); o.onChange?.(c); };
+  el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.getAttribute('aria-busy') === 'true') return; set(b.getAttribute('aria-pressed') === 'true' && !o.sticky ? null : b.dataset.c); });
+  el.addEventListener('keydown', e => { if (e.key === 'Escape' && el.dataset.chosen) { e.stopPropagation(); set(null); } });
+  return { set, get chosen() { return el.dataset.chosen || null; } };
+}
+
 function init() {
   $$('.me-tabs, .me-rail').forEach(tabsOverflow);
   $$('.me-toolbar').forEach(toolbar);
 }
-window.ME = { chart, fmt, combobox, datepicker, palette, upload, tabsOverflow, tree, toolbar, wizard, init };
+window.ME = { chart, fmt, combobox, datepicker, palette, upload, tabsOverflow, tree, toolbar, wizard, split, init };
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

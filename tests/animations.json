@@ -1,5 +1,4 @@
 {
-  "me-scan":        { "where": "busy split button (Run)", "trigger": "aria-busy=true", "duration": "1s loop", "purpose": "progress without a number" },
   "me-orbit":       { "where": ".me-btn[aria-busy]", "trigger": "aria-busy=true", "duration": "1.5s loop", "purpose": "edge light travels the perimeter top-left, anticlockwise (loading)" },
   "me-pulse":       { "where": ".me-dot--pulse", "trigger": "always", "duration": "2s loop", "purpose": "live status beacon breathes" },
   "me-slide":       { "where": ".me-meter[data-indeterminate]", "trigger": "always", "duration": "1.4s loop", "purpose": "indeterminate progress" },
