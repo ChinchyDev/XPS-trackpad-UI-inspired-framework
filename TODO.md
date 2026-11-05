@@ -54,13 +54,18 @@ Decision: a combination. **Lit thumb (B)** is the default for most content and t
 - [x] In use: garden table wraps, modal bodies, dashboard table; demos in the Components view
 - Follow-ups: apply to the combobox / palette listboxes and the tree; thresholds (320 / 480) are a first guess, tune on real content; wrapper copies no flex/grid placement from the scroller (wrap a flex child in your own container); a `scroll-padding` / sticky-header check on long tables
 
-### 1D. Delivery (do after 1A so the API is settled)
-- [ ] Tokens as W3C DTCG JSON, built with Style Dictionary to CSS / Tailwind / JS (one source of truth)
-- [ ] OKLCH colours so a new accent is derived and auto-checked for 4.5:1 / 3:1
-- [ ] CSS cascade layers (`reset, tokens, base, components, utilities`)
-- [ ] Logical properties everywhere (RTL); container queries for components
-- [ ] Web Components wrappers; React wrapper only where it earns its place
-- [ ] `color-mix` fallback for older Safari / Firefox
+### 1D. Delivery (done; tests in `tests/delivery.spec.js`, `rtl.spec.js`, `elements.spec.js`, `visual.spec.js`)
+- [x] **Tokens as W3C DTCG JSON** in `tokens/` (core, dark, light), built with **Style Dictionary 5** into `dist/tokens.css`, `tokens.js`, `tokens.json` and `tailwind.preset.js`. monoedge.css imports the generated CSS into its `tokens` layer. `npm run build:tokens`
+- [x] **OKLCH**: signal colours are authored in OKLCH. A build **gate** checks every pair (text 4.5:1, light-bars and control edges 3:1) in both themes and fails the build. `node scripts/derive-accent.js "<any colour>" [--write]` derives a whole accent (fill + text, both themes) from one seed, moving only lightness and only as far as needed
+- [x] **Cascade layers**: `reset < tokens < base < components < utilities`, every rule is in one; a page's own un-layered CSS beats the framework with no specificity tricks
+- [x] **Logical properties** everywhere (`scripts/logicalize.js` did the conversion), plus a `--dir` (1 / -1) multiplier for the things that cannot be logical (shadow offsets, translations, gradient angles). **RTL** works: `dir="rtl"` mirrors layout, lit leading edges, switch travel, scroller thumbs and edge lights, directional icons (`data-flip`), calendar and tree and toolbar and tabs arrow keys; charts keep a left-to-right time axis. Try it: palette > "Switch to right-to-left", or `garden.html#app-rtl`
+- [x] **Container queries**: no viewport width media queries are left; grids, navs and dialogs answer to their own width (rails already did)
+- [x] **Web Components** (`monoedge-elements.js`): `<me-icon> <me-chart> <me-scroll> <me-date> <me-combobox> <me-switch>`. Light DOM, attribute and property driven, form-friendly (real inputs, hidden inputs for multi values), events bubble
+- [x] **React**: no wrapper (decided). React 19 passes props to custom elements as properties and wires events; older React sets properties through a ref. A wrapper would only be worth it for typings; revisit if a React app needs them
+- [x] **color-mix() fallback**: `dist/fallback.css` (generated) re-emits every alpha `color-mix` as `rgb(var(--x-rgb) / P)` under `@supports not`, including custom properties. A test forces it on and checks it looks identical to color-mix
+- [x] **Visual regression** (was on the "still to add" list): 50+ baselines (dark, light, RTL, phone, fallback forced on); the safety net for all of the above
+- Real findings the gate and tests produced: light **OK** and **warning** light-bar colours were 2.79:1 and 2.36:1 (below 3:1), now darkened just enough; the scroller corner piece drew a dark square in every modal; the phone nav strip scroll depended on font load timing
+- Follow-ups: prefers-contrast stroke overrides are still hand-written (move into a `contrast` token set); RTL leftovers: `.me-lit` left/right edges, split-footer corner radii and gradient positions, non-inset shadow offsets, radial-gradient anchors; the horizontal-rail rules exist in three copies (generate them in the build); typography scale (sizes, tracking) is not tokenised yet; a single `dist/monoedge.css` bundle (inline the imports) belongs to Release packaging
 
 ---
 
@@ -78,7 +83,7 @@ Decision: a combination. **Lit thumb (B)** is the default for most content and t
   - **animation registry**: every `@keyframes` must be listed in `tests/animations.json`
   - runtime checks: notch duration and reduced motion, loading orbit direction
 - Bugs these tests found: collapsed rail had no accessible name; touch 44px floor was invalid CSS (self-referencing var); amber fill with light text failed contrast; select options black-on-dark
-- Still to add: visual regression screenshots (dark, light, compact, roomy), Firefox + WebKit projects, automated contrast test over every token pair, screen reader pass (NVDA + VoiceOver)
+- Still to add: visual regression for compact / roomy density, Firefox + WebKit projects, automated contrast test over every token pair, screen reader pass (NVDA + VoiceOver)
 
 ---
 

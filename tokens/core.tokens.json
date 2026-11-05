@@ -1,0 +1,105 @@
+{
+  "$description": "Theme-independent tokens. CSS names: path joined with \"-\" (a trailing \"base\" is dropped).",
+  "radius": {
+    "$description": "Radius is a signal, not decoration. Hard cap 4px.",
+    "none": {
+      "$type": "dimension",
+      "$value": "0"
+    },
+    "micro": {
+      "$type": "dimension",
+      "$value": "2px"
+    },
+    "soft": {
+      "$type": "dimension",
+      "$value": "3px"
+    },
+    "float": {
+      "$type": "dimension",
+      "$value": "4px"
+    }
+  },
+  "stroke": {
+    "hairline": {
+      "$type": "dimension",
+      "$value": "1px"
+    },
+    "bar": {
+      "$type": "dimension",
+      "$value": "2px"
+    }
+  },
+  "space": {
+    "1": {
+      "$type": "dimension",
+      "$value": "4px"
+    },
+    "2": {
+      "$type": "dimension",
+      "$value": "8px"
+    },
+    "3": {
+      "$type": "dimension",
+      "$value": "12px"
+    },
+    "4": {
+      "$type": "dimension",
+      "$value": "16px"
+    },
+    "6": {
+      "$type": "dimension",
+      "$value": "24px"
+    },
+    "8": {
+      "$type": "dimension",
+      "$value": "32px"
+    }
+  },
+  "control-h": {
+    "$type": "dimension",
+    "$value": "36px",
+    "$description": "Default control height. Density and touch overrides stay in monoedge.css."
+  },
+  "ease": {
+    "$type": "other",
+    "$value": "cubic-bezier(.16,1,.3,1)"
+  },
+  "dur": {
+    "$type": "duration",
+    "$value": ".25s"
+  },
+  "font": {
+    "ui": {
+      "$type": "fontFamily",
+      "$value": "\"Jost\", \"Futura\", \"Century Gothic\", \"Avenir Next\", \"Segoe UI\", sans-serif",
+      "$description": "geometric, luxe, quiet"
+    },
+    "display": {
+      "$type": "fontFamily",
+      "$value": "\"Cormorant Garamond\", \"Cormorant\", \"Iowan Old Style\", \"Palatino Linotype\", Georgia, serif",
+      "$description": "titles and big figures"
+    }
+  },
+  "z": {
+    "sticky": {
+      "$type": "number",
+      "$value": 10
+    },
+    "dropdown": {
+      "$type": "number",
+      "$value": 100
+    },
+    "modal": {
+      "$type": "number",
+      "$value": 200
+    },
+    "toast": {
+      "$type": "number",
+      "$value": 300
+    },
+    "tip": {
+      "$type": "number",
+      "$value": 400
+    }
+  }
+}

@@ -12,9 +12,9 @@
 
   /* ---- login ---- */
   #login { min-height: 100vh; display: grid; place-items: center; padding: 24px; position: relative; }
-  .login-theme { position: absolute; top: 16px; right: 16px; }
+  .login-theme { position: absolute; top: 16px; inset-inline-end: 16px; }
   .login-shell { width: 100%; max-width: 960px; display: grid; grid-template-columns: 1.05fr 1fr; background: var(--color-panel); border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); overflow: hidden; }
-  .login-hero { padding: 40px; display: flex; flex-direction: column; gap: 24px; border-right: 1px solid var(--stroke-divider); background: var(--color-surface); }
+  .login-hero { padding: 40px; display: flex; flex-direction: column; gap: 24px; border-inline-end: 1px solid var(--stroke-divider); background: var(--color-surface); }
   .login-form { padding: 40px; display: flex; flex-direction: column; gap: 16px; }
   .brand { font: 600 26px/28px var(--font-display); letter-spacing: .3em; text-transform: uppercase; }
   .brand i { font-style: normal; color: var(--accent-text); }
@@ -29,8 +29,8 @@
   #app[data-min] { grid-template-columns: 64px 1fr; }
   .side-brand { display: flex; align-items: center; gap: 12px; padding: 4px 2px 8px; }
   .brand-mark { position: relative; flex: none; width: 24px; height: 24px; box-shadow: inset 0 0 0 1px var(--stroke-divider-hover); }
-  .brand-mark::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent) 25%, var(--accent) 75%, transparent); filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--accent)); }
-  .brand-mark::after { content: ""; position: absolute; left: 7px; right: 7px; top: 7px; bottom: 7px; border-left: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); }
+  .brand-mark::before { content: ""; position: absolute; inset-inline-start: 0; inset-inline-end: 0; top: 0; height: 2px; background: linear-gradient(calc(90deg * var(--dir)), transparent, var(--accent) 25%, var(--accent) 75%, transparent); filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--accent)); }
+  .brand-mark::after { content: ""; position: absolute; inset-inline-start: 7px; inset-inline-end: 7px; top: 7px; bottom: 7px; border-inline-start: 2px solid var(--accent-text); border-bottom: 2px solid var(--accent-text); }
   .side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding: 4px 0; }
   .side-status { padding: 0 2px; }
   .me-side .me-rail[data-h] > button { flex: 1; justify-content: center; padding: 9px 0; font-size: 11px; }
@@ -49,8 +49,8 @@
   .task.done .t-text { text-decoration: line-through; color: var(--color-text-dim); }
   /* icon gallery (page layout only) */
   .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 0; border-top: 1px solid var(--stroke-divider); border-left: 1px solid var(--stroke-divider); }
-  .icon-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 4px 12px; background: var(--color-panel); box-shadow: inset -1px -1px 0 var(--stroke-divider); color: var(--color-text-muted); --ico-l: var(--color-text-muted); }
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 0; border-top: 1px solid var(--stroke-divider); border-inline-start: 1px solid var(--stroke-divider); }
+  .icon-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 4px 12px; background: var(--color-panel); box-shadow: inset calc(-1px * var(--dir)) -1px 0 var(--stroke-divider); color: var(--color-text-muted); --ico-l: var(--color-text-muted); }
   .icon-cell:hover { color: var(--color-text-primary); --ico-l: var(--sig); background: var(--sig-fill); }
   .icon-cell > span { font-size: 10px; letter-spacing: .06em; color: var(--color-text-dim); }
   .zone-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -305,6 +305,20 @@
             <div class="me-stack"><span class="me-label" id="sc-l3">Wide table · both axes</span><div id="sc-wide" class="me-table-wrap" data-me-scroll style="height:220px" aria-labelledby="sc-l3"></div></div>
           </div></div>
 
+        <div class="me-panel" style="padding:24px"><div class="me-label" id="wc-l" style="margin-bottom:6px">Web components</div>
+          <p class="me-dim" style="margin:0 0 16px">The same components as custom elements for any framework (<code>monoedge-elements.js</code>). Light DOM, so forms and screen readers see ordinary inputs.</p>
+          <form id="wc-form" class="me-stack" aria-labelledby="wc-l">
+            <div class="me-row"><me-icon name="leaf" size="lg"></me-icon><me-icon name="warning" size="lg" label="Warning: low moisture" data-signal="warn" style="color:var(--warn-text)"></me-icon><me-icon name="chevron-right" flip></me-icon><span class="me-hint">&lt;me-icon&gt;</span></div>
+            <me-chart id="wc-chart" values="[3,5,4,7,6,9]" labels='["Mon","Tue","Wed","Thu","Fri","Sat"]' unit=" visits" axis table caption="Visits per day" data-signal="info"></me-chart>
+            <div class="cols">
+              <me-date id="wc-date" name="due" label="Due date" hint="Type it or open the calendar"></me-date>
+              <me-combobox id="wc-combo" name="crops" label="Crops" multi custom options='["Tomato","Kale","Beans","Garlic"]' value='["Kale"]'></me-combobox>
+            </div>
+            <me-switch id="wc-sw" name="auto" label="Auto mode" checked></me-switch>
+            <me-scroll id="wc-scroll" style="height:110px;background:var(--color-surface);padding:0 16px" aria-label="Notes"><div class="task"><span>Mulch before the frost</span></div><div class="task"><span>Check the drip line</span></div><div class="task"><span>Order seed potatoes</span></div><div class="task"><span>Sharpen secateurs</span></div><div class="task"><span>Turn compost bay 2</span></div><div class="task"><span>Harvest the salad table</span></div></me-scroll>
+            <div class="row"><button class="me-btn" type="submit" id="wc-submit"><svg class="me-ico" aria-hidden="true"><use href="#i-check"/></svg> Read the form</button><output id="wc-out" class="me-hint" role="status"></output></div>
+          </form></div>
+
         <div class="me-panel" style="padding:24px"><div class="me-label" id="ic-l" style="margin-bottom:16px">Icons · 16px grid, hover lights the one lit segment</div>
           <div class="me-row" style="margin-bottom:16px;align-items:center">
             <button class="me-btn me-btn--ghost me-btn--icon" aria-label="Add (small)"><svg class="me-ico me-ico--sm" aria-hidden="true"><use href="#i-plus"/></svg></button>
@@ -389,6 +403,7 @@
 <div class="me-toasts" id="toasts" aria-live="polite"></div>
 
 <script src="monoedge.js"></script>
+<script src="monoedge-elements.js"></script>
 <script>
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -463,7 +478,7 @@ function leave(){$('#app').hidden=true;$('#login').hidden=false;$('#pw').value='
 /* ------------------------------ nav ------------------------------ */
 const NAMES={overview:'Overview',telemetry:'Telemetry',components:'Components',beds:'Beds & plots',irrigation:'Irrigation',tasks:'Tasks',users:'Users'};
 function go(v){$$('#views > [data-v]').forEach(s=>s.hidden=s.dataset.v!==v);
-  queueMicrotask(()=>$('.me-side [aria-current]')?.scrollIntoView({inline:'center',block:'nearest'}));
+  document.fonts.ready.then(()=>$('.me-side [aria-current]')?.scrollIntoView({inline:'center',block:'nearest'}));   /* after the fonts: item widths change when they load, which used to leave the strip half-scrolled */
   $$('.me-side button[data-view]').forEach(b=>b.dataset.view===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));$('#crumb').textContent=NAMES[v];if(v==='beds')renderBeds();if(v==='telemetry')drawCharts();if(v==='components')initComponents();}
 $('.me-side').addEventListener('click',e=>{const b=e.target.closest('button[data-view]');if(b)go(b.dataset.view);});
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go],a[data-view]');if(g){e.preventDefault();go(g.dataset.go||g.dataset.view);if(g.dataset.go==='beds')openBed();}});
@@ -505,7 +520,7 @@ function renderBeds(){
   let rows=beds.filter(b=>(filter==='all'||(filter==='water'&&status(b).k==='warn')||(filter==='harvest'&&b.harvest!==null&&b.harvest<=14))&&(!q||(b.name+b.zone+b.crop).toLowerCase().includes(q)));
   rows.sort((a,b)=>{const x=a[sortK],y=b[sortK];return (typeof x==='number'?x-y:String(x).localeCompare(y))*(sortAsc?1:-1);});
   const all=rows.length,pages=Math.max(1,Math.ceil(all/PAGE));bedPage=Math.min(bedPage,pages-1);rows=rows.slice(bedPage*PAGE,bedPage*PAGE+PAGE);
-  $('#bed-pager').hidden=pages<2;$('#bed-pager').innerHTML='<button aria-label="Previous page" data-p="'+(bedPage-1)+'" '+(bedPage===0?'disabled':'')+'><svg class="me-ico" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>'+Array.from({length:pages},(_,i)=>'<button data-p="'+i+'" '+(i===bedPage?'aria-current="page"':'')+' aria-label="Page '+(i+1)+'">'+(i+1)+'</button>').join('')+'<button aria-label="Next page" data-p="'+(bedPage+1)+'" '+(bedPage===pages-1?'disabled':'')+'><svg class="me-ico" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>';
+  $('#bed-pager').hidden=pages<2;$('#bed-pager').innerHTML='<button aria-label="Previous page" data-p="'+(bedPage-1)+'" '+(bedPage===0?'disabled':'')+'><svg class="me-ico" aria-hidden="true" data-flip><use href="#i-chevron-left"/></svg></button>'+Array.from({length:pages},(_,i)=>'<button data-p="'+i+'" '+(i===bedPage?'aria-current="page"':'')+' aria-label="Page '+(i+1)+'">'+(i+1)+'</button>').join('')+'<button aria-label="Next page" data-p="'+(bedPage+1)+'" '+(bedPage===pages-1?'disabled':'')+'><svg class="me-ico" aria-hidden="true" data-flip><use href="#i-chevron-right"/></svg></button>';
   $('#bed-t tbody').innerHTML=rows.map(b=>{const s=status(b);return '<tr tabindex="0" data-n="'+esc(b.name)+'"'+(sel===b.name?' aria-selected="true"':'')+'><td>'+esc(b.name)+'</td><td>'+b.zone+'</td><td>'+esc(b.crop)+'</td><td class="num">'+b.area+'</td><td class="num">'+b.moisture+'%</td><td><span class="me-badge me-badge--fill" data-signal="'+s.k+'">'+s.t+'</span></td></tr>';}).join('');
   $('#bed-n').textContent=all+' of '+beds.length;$('#bed-empty').hidden=all>0;$('#bed-t').parentElement.hidden=all===0;}
 $('#bed-pager').addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(!b)return;bedPage=+b.dataset.p;renderBeds();});
@@ -534,7 +549,7 @@ $('#zones').addEventListener('input',e=>{if(e.target.matches('[data-rm]')){const
 let delIdx=null;
 const inGroup=u=>userGroup==='all'||(userGroup==='admin'&&u.r==='Admin')||(userGroup==='invited'&&u.s==='Invited')||(userGroup==='suspended'&&u.s==='Suspended');
 $('#user-tabs').addEventListener('click',e=>{const b=e.target.closest('[role=tab]');if(b)selUserTab(b);});
-$('#user-tabs').addEventListener('keydown',e=>{const t=$$('[role=tab]',$('#user-tabs')),i=t.indexOf(document.activeElement),k={ArrowRight:i+1,ArrowLeft:i-1,Home:0,End:t.length-1}[e.key];if(k===undefined)return;e.preventDefault();const n=t[(k+t.length)%t.length];n.focus();selUserTab(n);});
+$('#user-tabs').addEventListener('keydown',e=>{const t=$$('[role=tab]',$('#user-tabs')),i=t.indexOf(document.activeElement),k={[ME.nextKey(e)]:i+1,[ME.prevKey(e)]:i-1,Home:0,End:t.length-1}[e.key];if(k===undefined)return;e.preventDefault();const n=t[(k+t.length)%t.length];n.focus();selUserTab(n);});
 function selUserTab(b){userGroup=b.dataset.g;$$('[role=tab]',$('#user-tabs')).forEach(x=>{x.setAttribute('aria-selected',x===b);x.tabIndex=x===b?0:-1;});$('#user-pane').setAttribute('aria-labelledby',b.id);renderUsers();}
 function renderUsers(){const vis=users.map((u,i)=>({u,i})).filter(x=>inGroup(x.u));$('#user-n').textContent=vis.length+' of '+users.length;
   if(!vis.length){$('#user-t tbody').innerHTML='<tr><td colspan="4" class="me-table-empty"><span class="me-title">No '+userGroup+' users</span><br><span class="me-dim">Nothing here yet.</span></td></tr>';return;}
@@ -575,6 +590,8 @@ const palItems=()=>[
   {group:'Actions',label:'Invite a user',hint:'Form',keywords:'people',run:()=>{go('users');$('#invite').click();}},
   {group:'Actions',label:'Switch to light theme',hint:'Theme',keywords:'appearance',run:()=>setTheme('light')},
   {group:'Actions',label:'Switch to dark theme',hint:'Theme',keywords:'appearance',run:()=>setTheme('dark')},
+  {group:'Actions',label:'Switch to right-to-left',hint:'Direction',keywords:'rtl arabic hebrew mirror',run:()=>document.documentElement.dir='rtl'},
+  {group:'Actions',label:'Switch to left-to-right',hint:'Direction',keywords:'ltr',run:()=>document.documentElement.dir='ltr'},
   {group:'Actions',label:'Sign out',hint:'Account',run:leave},
   ...beds.map(b=>({group:'Beds',label:b.name,hint:b.zone,keywords:b.crop,run:()=>{go('beds');$('#search').value=b.name;renderBeds();}}))];
 ME_D.pal=ME.palette($('#dlg-pal'),{items:palItems,hotkey:false});
@@ -594,6 +611,7 @@ function initComponents(){if(compsReady)return;compsReady=true;
     $('#sc-small').innerHTML='<table class="me-table"><thead><tr><th class="me-label" scope="col">Bed</th><th class="me-label num" scope="col">Moisture</th></tr></thead><tbody>'+Array.from({length:12},(_,i)=>'<tr><td>'+W[i%10]+' row '+(i+1)+'</td><td class="num">'+(20+(i*13)%60)+'%</td></tr>').join('')+'</tbody></table>';
     $('#sc-wide').innerHTML='<table class="me-table" style="min-width:760px"><thead><tr>'+['Bed','Zone','Crop','Area','Moisture','Planted','Harvest','Water L/wk'].map(t=>'<th class="me-label" scope="col">'+t+'</th>').join('')+'</tr></thead><tbody>'+Array.from({length:14},(_,i)=>'<tr><td>'+W[i%10]+' row '+(i+1)+'</td><td>'+['North','South','Tunnel','Orchard'][i%4]+'</td><td>'+W[(i*3)%10]+'</td><td>'+(4+i%9)+' m²</td><td>'+(28+(i*7)%40)+'%</td><td>2026-0'+(1+i%9)+'-1'+(i%9)+'</td><td>2026-1'+(i%3)+'-0'+(1+i%9)+'</td><td>'+(40+i*3)+'</td></tr>').join('')+'</tbody></table>';
     ME.scroll($('#sc-big'));ME.scroll($('#sc-small'));ME.scroll($('#sc-wide'));})();
+  $('#wc-form').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target),o={};for(const [k,v] of f.entries())(o[k]=o[k]?[].concat(o[k],v):v);$('#wc-out').textContent=JSON.stringify(o);});
   $('#icon-grid').innerHTML=$$('#me-icons symbol').map(s=>'<div class="icon-cell" role="listitem"><svg class="me-ico me-ico--lg" aria-hidden="true"><use href="#'+s.id+'"/></svg><span>'+s.id.slice(2)+'</span></div>').join('');
   ME.toolbar($('#c-tb'));
   $('#c-tb').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const n=$('#c-note');
@@ -604,12 +622,13 @@ function initComponents(){if(compsReady)return;compsReady=true;
   $('#wiz').addEventListener('me-finish',()=>{toast('ok','Bed created: '+$('#w-crop').value+' ('+$('#w-zone').value+').');w.go(0);});
   const tabs=$$('#c-tabs [role=tab]');
   const pick=t=>{tabs.forEach(x=>{x.setAttribute('aria-selected',x===t);x.tabIndex=x===t?0:-1;});$('#c-tab-pane').setAttribute('aria-labelledby',t.id);$('#c-tab-pane').textContent=t.textContent+': a family of related crops.';};
-  tabs.forEach((t,i)=>{t.addEventListener('click',()=>pick(t));t.addEventListener('keydown',e=>{const k={ArrowRight:i+1,ArrowLeft:i-1,Home:0,End:tabs.length-1}[e.key];if(k===undefined)return;e.preventDefault();const n=tabs[(k+tabs.length)%tabs.length];n.focus();pick(n);});});
+  tabs.forEach((t,i)=>{t.addEventListener('click',()=>pick(t));t.addEventListener('keydown',e=>{const k={[ME.nextKey(e)]:i+1,[ME.prevKey(e)]:i-1,Home:0,End:tabs.length-1}[e.key];if(k===undefined)return;e.preventDefault();const n=tabs[(k+tabs.length)%tabs.length];n.focus();pick(n);});});
 }
 
 /* ------------------------------ boot ------------------------------ */
 overview();renderBeds();renderZones();renderUsers();
 const h=location.hash.slice(1);
+if(h.includes('rtl'))document.documentElement.dir='rtl';
 if(h.startsWith('app')){setTheme(h.includes('light')?'light':'dark');$('#login').hidden=true;$('#app').hidden=false;
   const v=(h.match(/-(overview|telemetry|components|beds|irrigation|tasks|users)/)||[,'overview'])[1];go(v);
   if(h.includes('modal'))openBed();if(h.includes('date'))ME_D.nbHarv.open();if(h.includes('combo')){$('#search').focus();$('#search').click();}if(h.includes('pal'))ME_D.pal.open();if(h.includes('bad')){$('#nb-area').value=0;$('#sp-bed [data-c=l]').click();}if(h.includes('del')){$('[data-del="2"]').click();}if(h.includes('menu'))menu(true);if(h.includes('susp'))$('#ut-sus').click();if(h.includes('pg2'))$('#bed-pager [data-p="1"]').click();if(h.includes('min'))$('[data-collapse]').click();}

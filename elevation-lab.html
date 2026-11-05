@@ -13,7 +13,7 @@
   .stage { position:relative; padding: 32px 24px; min-height: 250px; overflow:hidden; border:1px solid var(--stroke-divider);
     background:
       repeating-linear-gradient(0deg, var(--stroke-divider) 0 1px, transparent 1px 24px),
-      repeating-linear-gradient(90deg, var(--stroke-divider) 0 1px, transparent 1px 24px), var(--color-canvas); }
+      repeating-linear-gradient(calc(90deg * var(--dir)), var(--stroke-divider) 0 1px, transparent 1px 24px), var(--color-canvas); }
   .stage::after { content:""; position:absolute; inset:0; pointer-events:none; backdrop-filter: var(--stage-blur, none); }
   .stage > * { position:relative; z-index:2; }
   .overlay { background: var(--color-overlay); border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); }

@@ -4,10 +4,17 @@
   "scripts": {
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "build:icons": "node scripts/build-icons.js"
+    "build:icons": "node scripts/build-icons.js",
+    "build:tokens": "node scripts/build-tokens.js",
+    "build:fallback": "node scripts/build-fallback.js",
+    "build": "npm run build:icons && npm run build:tokens && npm run build:fallback",
+    "check:build": "node scripts/build-tokens.js --check && node scripts/build-fallback.js --check"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "^1.49.0",
-    "@axe-core/playwright": "^4.10.0"
+    "culori": "^4.0.2",
+    "postcss": "^8.5.32",
+    "style-dictionary": "^5.8.0"
   }
 }

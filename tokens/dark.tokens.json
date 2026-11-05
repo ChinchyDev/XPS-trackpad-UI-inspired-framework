@@ -1,0 +1,142 @@
+{
+  "$description": "Dark theme. Neutrals are hand-picked sRGB; signal colours are OKLCH. `npm run build:tokens` gates every pair (4.5:1 text, 3:1 graphics).",
+  "color": {
+    "canvas": {
+      "$type": "color",
+      "$value": "#14171d",
+      "$description": "soft charcoal: near-black strains the eye next to bright light-bars"
+    },
+    "panel": {
+      "$type": "color",
+      "$value": "#1b1f27"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "#222731"
+    },
+    "overlay": {
+      "$type": "color",
+      "$value": "#2a303c",
+      "$description": "raised surface: floating layers are visibly lighter than panels"
+    },
+    "text": {
+      "primary": {
+        "$type": "color",
+        "$value": "#f1f5f9"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "#94a3b8"
+      },
+      "dim": {
+        "$type": "color",
+        "$value": "#8f9db2"
+      }
+    }
+  },
+  "stroke": {
+    "divider": {
+      "$type": "color",
+      "$value": "rgba(255,255,255,.08)"
+    },
+    "divider-hover": {
+      "$type": "color",
+      "$value": "rgba(255,255,255,.20)"
+    },
+    "divider-active": {
+      "$type": "color",
+      "$value": "rgba(255,255,255,.20)"
+    },
+    "control": {
+      "$type": "color",
+      "$value": "rgba(255,255,255,.42)"
+    }
+  },
+  "tick-idle": {
+    "$type": "color",
+    "$value": "rgba(255,255,255,.42)"
+  },
+  "wash": {
+    "$type": "number",
+    "$value": 6,
+    "$description": "ambient wash strength (%): dark relies on glow instead"
+  },
+  "glow-strength": {
+    "$type": "number",
+    "$value": 1,
+    "$description": "dark = halos on, light = etches"
+  },
+  "accent": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.79712 0.13389 211.53)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.79712 0.13389 211.53)"
+    }
+  },
+  "ok": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.69587 0.14907 162.48)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.77294 0.15349 163.22)"
+    }
+  },
+  "warn": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.76859 0.16466 70.08)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.76859 0.16466 70.08)"
+    }
+  },
+  "err": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.64503 0.21540 16.44)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.71919 0.16898 13.43)"
+    }
+  },
+  "info": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.71374 0.14338 254.62)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.76021 0.11806 255.24)"
+    }
+  },
+  "on-signal": {
+    "$type": "color",
+    "$value": "#04141a",
+    "$description": "text on a filled status badge"
+  },
+  "scrim": {
+    "$type": "color",
+    "$value": "rgba(0,0,0,.35)"
+  },
+  "scrim-filter": {
+    "$type": "other",
+    "$value": "blur(5px) brightness(.55)"
+  },
+  "elev": {
+    "1": {
+      "$type": "shadow",
+      "$value": "0 8px 24px rgba(0,0,0,.45)"
+    },
+    "2": {
+      "$type": "shadow",
+      "$value": "0 30px 60px rgba(0,0,0,.6)"
+    }
+  }
+}

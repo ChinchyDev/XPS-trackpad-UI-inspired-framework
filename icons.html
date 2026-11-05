@@ -21,20 +21,20 @@
   .pg { display: grid; grid-template-columns: 300px 1fr; gap: 24px; }
   @media (max-width: 800px) { .pg { grid-template-columns: 1fr; } }
   .zoom { position: relative; width: 256px; height: 256px; display: grid; place-items: center; background: var(--color-surface); border: 1px solid var(--stroke-divider-hover); flex: none;
-    background-image: linear-gradient(var(--stroke-divider) 1px, transparent 1px), linear-gradient(90deg, var(--stroke-divider) 1px, transparent 1px); background-size: 16px 16px; }
+    background-image: linear-gradient(var(--stroke-divider) 1px, transparent 1px), linear-gradient(calc(90deg * var(--dir)), var(--stroke-divider) 1px, transparent 1px); background-size: 16px 16px; }
   .zoom::after { content: ""; position: absolute; inset: 32px; border: 1px dashed var(--warn); pointer-events: none; opacity: .7; }   /* the 2px safe margin, at 16x */
   .zoom > svg { width: 256px; height: 256px; }
-  pre.snip { margin: 0; padding: 12px 16px; overflow: auto; background: var(--color-surface); border-left: 2px solid var(--sig); font: 12px/18px var(--font-ui); white-space: pre-wrap; word-break: break-all; }
+  pre.snip { margin: 0; padding: 12px 16px; overflow: auto; background: var(--color-surface); border-inline-start: 2px solid var(--sig); font: 12px/18px var(--font-ui); white-space: pre-wrap; word-break: break-all; }
   .states { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0; border: 1px solid var(--stroke-divider); }
-  .states > div { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 4px 10px; box-shadow: inset -1px 0 0 var(--stroke-divider); }
+  .states > div { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 4px 10px; box-shadow: inset calc(-1px * var(--dir)) 0 0 var(--stroke-divider); }
   .states span.me-hint { text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
 
   /* gallery */
-  .ic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); border-top: 1px solid var(--stroke-divider); border-left: 1px solid var(--stroke-divider); }
-  .ic-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 4px 10px; background: transparent; border: 0; box-shadow: inset -1px -1px 0 var(--stroke-divider); color: var(--color-text-muted); cursor: pointer; --ico-l: var(--color-text-muted); }
+  .ic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); border-top: 1px solid var(--stroke-divider); border-inline-start: 1px solid var(--stroke-divider); }
+  .ic-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 4px 10px; background: transparent; border: 0; box-shadow: inset calc(-1px * var(--dir)) -1px 0 var(--stroke-divider); color: var(--color-text-muted); cursor: pointer; --ico-l: var(--color-text-muted); }
   .ic-cell > span { font-size: 10px; letter-spacing: .04em; color: var(--color-text-dim); }
   .ic-cell:hover, .ic-cell[aria-pressed="true"] { color: var(--color-text-primary); --ico-l: var(--sig); background: var(--sig-fill); }
-  .ic-cell[aria-pressed="true"] { box-shadow: inset -1px -1px 0 var(--stroke-divider), inset 0 2px 0 var(--sig); }
+  .ic-cell[aria-pressed="true"] { box-shadow: inset calc(-1px * var(--dir)) -1px 0 var(--stroke-divider), inset 0 2px 0 var(--sig); }
   .ic-cell[hidden] { display: none; }
 
   /* size ladder */
@@ -53,9 +53,9 @@
   details[open] .acc-ico { transform: rotate(180deg); }
   .hit-label { display: none; }
   .show-hits button:has(> .me-ico:only-child), .show-hits a:has(> .me-ico:only-child) { outline: 1px dashed var(--warn); outline-offset: 0; position: relative; }
-  .show-hits button:has(> .me-ico:only-child)::after, .show-hits a:has(> .me-ico:only-child)::after { content: attr(data-size); position: absolute; left: 0; top: 100%; font-size: 9px; line-height: 12px; color: var(--warn-text); white-space: nowrap; pointer-events: none; z-index: 5; }
+  .show-hits button:has(> .me-ico:only-child)::after, .show-hits a:has(> .me-ico:only-child)::after { content: attr(data-size); position: absolute; inset-inline-start: 0; top: 100%; font-size: 9px; line-height: 12px; color: var(--warn-text); white-space: nowrap; pointer-events: none; z-index: 5; }
   table.mx { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
-  table.mx th, table.mx td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--stroke-divider); font-size: 12px; }
+  table.mx th, table.mx td { padding: 6px 10px; text-align: start; border-bottom: 1px solid var(--stroke-divider); font-size: 12px; }
   table.mx td.bad { color: var(--err-text); font-weight: 600; } table.mx td.ok { color: var(--ok-text); }
   .swatch { display: inline-grid; place-items: center; width: 36px; height: 28px; }
 </style>
@@ -275,7 +275,7 @@ $('#add-tb').addEventListener('click', () => { const n = tbIcons[tbN++ % tbIcons
 $('#f1x').addEventListener('click', () => { $('#f1').value = ''; $('#f1').focus(); });
 $('#f2e').addEventListener('click', e => { const b = e.currentTarget, on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); b.setAttribute('aria-label', on ? 'Hide password' : 'Show password'); b.firstElementChild.firstElementChild.setAttribute('href', on ? '#i-eye' : '#i-eye'); $('#f2').type = on ? 'text' : 'password'; });
 ME.split($('#sp'));
-(function tabs() { const t = $$('#tabs [role=tab]'); t.forEach((b, i) => { b.addEventListener('click', () => t.forEach(x => { x.setAttribute('aria-selected', x === b); x.tabIndex = x === b ? 0 : -1; })); b.addEventListener('keydown', e => { const k = { ArrowRight: i + 1, ArrowLeft: i - 1 }[e.key]; if (k === undefined) return; e.preventDefault(); const n = t[(k + t.length) % t.length]; n.focus(); n.click(); }); }); })();
+(function tabs() { const t = $$('#tabs [role=tab]'); t.forEach((b, i) => { b.addEventListener('click', () => t.forEach(x => { x.setAttribute('aria-selected', x === b); x.tabIndex = x === b ? 0 : -1; })); b.addEventListener('keydown', e => { const k = { [ME.nextKey(e)]: i + 1, [ME.prevKey(e)]: i - 1 }[e.key]; if (k === undefined) return; e.preventDefault(); const n = t[(k + t.length) % t.length]; n.focus(); n.click(); }); }); })();
 
 /* ---- hit-area inspector ---- */
 const iconOnly = () => $$('button, a[href]').filter(e => e.children.length === 1 && e.firstElementChild.classList.contains('me-ico') && !e.textContent.trim() && e.offsetParent);

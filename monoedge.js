@@ -24,8 +24,12 @@ function el(tag, attrs = {}, ...kids) {
   for (const [k, v] of Object.entries(attrs)) { if (v === false || v == null) continue; if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else e.setAttribute(k, v === true ? '' : v); }
   e.append(...kids); return e;
 }
-/* icon markup from the sprite (load monoedge-icons.js first). size: 'sm' | 'lg' | 'xl' */
-const icon = (name, size) => `<svg class="me-ico${size ? ' me-ico--' + size : ''}" aria-hidden="true" focusable="false"><use href="#i-${name}"/></svg>`;
+/* icon markup from the sprite (load monoedge-icons.js first). size: 'sm' | 'lg' | 'xl'; flip: mirror in RTL (for direction-bearing glyphs such as chevrons) */
+const icon = (name, size, flip) => `<svg class="me-ico${size ? ' me-ico--' + size : ''}" aria-hidden="true" focusable="false"${flip ? ' data-flip' : ''}><use href="#i-${name}"/></svg>`;
+/* Horizontal arrow keys follow the reading direction: in RTL, ArrowLeft means "next". */
+const isRtl = t => getComputedStyle(t).direction === 'rtl';
+const nextKey = e => isRtl(e.currentTarget || e.target) ? 'ArrowLeft' : 'ArrowRight';
+const prevKey = e => isRtl(e.currentTarget || e.target) ? 'ArrowRight' : 'ArrowLeft';
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fire = (t, name, detail) => t.dispatchEvent(new CustomEvent(name, { bubbles: true, detail }));
 const fireNative = (t, name) => t.dispatchEvent(new Event(name, { bubbles: true }));
@@ -295,8 +299,8 @@ function datepicker(input, o = {}) {
   const tid = nid('me-cal');
   const pop = el('div', { class: 'me-pop me-cal', popover: 'manual', role: 'dialog', 'aria-label': 'Choose date' });
   const title = el('span', { class: 'me-cal-title', id: tid, 'aria-live': 'polite' });
-  const prev = el('button', { type: 'button', class: 'me-cal-nav', 'aria-label': 'Previous month' }); prev.innerHTML = icon('chevron-left');
-  const next = el('button', { type: 'button', class: 'me-cal-nav', 'aria-label': 'Next month' }); next.innerHTML = icon('chevron-right');
+  const prev = el('button', { type: 'button', class: 'me-cal-nav', 'aria-label': 'Previous month' }); prev.innerHTML = icon('chevron-left', '', true);
+  const next = el('button', { type: 'button', class: 'me-cal-nav', 'aria-label': 'Next month' }); next.innerHTML = icon('chevron-right', '', true);
   const grid = el('table', { class: 'me-cal-grid', role: 'grid', 'aria-labelledby': tid });
   const todayB = el('button', { type: 'button', class: 'me-cal-act', text: 'Today' }), clearB = el('button', { type: 'button', class: 'me-cal-act', text: 'Clear' });
   const foot = el('div', { class: 'me-cal-foot' }, todayB, clearB);
@@ -365,7 +369,7 @@ function datepicker(input, o = {}) {
     if (e.key === 'Tab') { const f = $$('button:not([disabled]):not([tabindex="-1"]), select', pop); if (!f.length) return; const i = f.indexOf(document.activeElement); const n = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1); e.preventDefault(); f[n].focus(); return; }
     if (!e.target.classList.contains('me-cal-day')) return;
     const y = act.getFullYear(), m = act.getMonth(), d = act.getDate();
-    const mv = { ArrowLeft: [y, m, d - 1], ArrowRight: [y, m, d + 1], ArrowUp: [y, m, d - 7], ArrowDown: [y, m, d + 7],
+    const mv = { [prevKey(e)]: [y, m, d - 1], [nextKey(e)]: [y, m, d + 1], ArrowUp: [y, m, d - 7], ArrowDown: [y, m, d + 7],
       Home: [y, m, d - ((act.getDay() - ws + 7) % 7)], End: [y, m, d + 6 - ((act.getDay() - ws + 7) % 7)],
       PageUp: e.shiftKey ? [y - 1, m, d] : [y, m - 1, d], PageDown: e.shiftKey ? [y + 1, m, d] : [y, m + 1, d] }[e.key];
     if (!mv) return; e.preventDefault();
@@ -446,8 +450,8 @@ function tree(root, nodes, o = {}) {
     const v = visible(), i = v.indexOf(li), open = li.getAttribute('aria-expanded');
     const k = {
       ArrowDown: () => v[i + 1] && focusItem(v[i + 1]), ArrowUp: () => v[i - 1] && focusItem(v[i - 1]), Home: () => focusItem(v[0]), End: () => focusItem(v[v.length - 1]),
-      ArrowRight: () => open === 'false' ? toggle(li, true) : open === 'true' && focusItem($('[role=treeitem]', li)),
-      ArrowLeft: () => open === 'true' ? toggle(li, false) : (li.parentElement.closest('[role=treeitem]') && focusItem(li.parentElement.closest('[role=treeitem]'))),
+      [nextKey(e)]: () => open === 'false' ? toggle(li, true) : open === 'true' && focusItem($('[role=treeitem]', li)),
+      [prevKey(e)]: () => open === 'true' ? toggle(li, false) : (li.parentElement.closest('[role=treeitem]') && focusItem(li.parentElement.closest('[role=treeitem]'))),
       Enter: () => { select(li); toggle(li); }, ' ': () => { select(li); toggle(li); },
     }[e.key];
     if (k) { e.preventDefault(); k(); }
@@ -463,7 +467,7 @@ function toolbar(t) {
   t.addEventListener('focusin', e => { if (e.target.matches('button')) items().forEach(b => b.tabIndex = b === e.target ? 0 : -1); });
   t.addEventListener('keydown', e => {
     const it = items(), i = it.indexOf(document.activeElement); if (i < 0) return;
-    const n = { ArrowRight: (i + 1) % it.length, ArrowLeft: (i - 1 + it.length) % it.length, Home: 0, End: it.length - 1 }[e.key];
+    const n = { [nextKey(e)]: (i + 1) % it.length, [prevKey(e)]: (i - 1 + it.length) % it.length, Home: 0, End: it.length - 1 }[e.key];
     if (n !== undefined) { e.preventDefault(); it[n].focus(); }
   });
 }
@@ -512,8 +516,10 @@ function scroll(view, o = {}) {
     for (const a of ['y', 'x']) {
       const k = K[a]; tr[a].hidden = !over[a]; if (!over[a]) continue;
       const max = view[k.sz] - view[k.cl], len = trackLen(a), tl = Math.max(28, len * view[k.cl] / view[k.sz]);
-      th[a].style[k.len] = tl + 'px'; th[a].style[k.pos] = (6 + (len - tl) * (view[k.st] / max)) + 'px';
-      if (edgesOn(a)) { if (view[k.st] > 2) more.push(a === 'y' ? 'top' : 'left'); if (max - view[k.st] > 2) more.push(a === 'y' ? 'bottom' : 'right'); }
+      // scrollLeft is 0 at the start and NEGATIVE going toward the end in RTL; `before` is the distance hidden to the top / left
+      const rtl = a === 'x' && getComputedStyle(view).direction === 'rtl', before = rtl ? max + view[k.st] : view[k.st];
+      th[a].style[k.len] = tl + 'px'; th[a].style[k.pos] = (6 + (len - tl) * (before / max)) + 'px';
+      if (edgesOn(a)) { if (before > 2) more.push(a === 'y' ? 'top' : 'left'); if (max - before > 2) more.push(a === 'y' ? 'bottom' : 'right'); }
     }
     more.length ? wrap.dataset.more = more.join(' ') : wrap.removeAttribute('data-more');
     const scrolls = over.x || over.y;   // a scroller with nothing focusable inside must itself be reachable by keyboard
@@ -551,6 +557,6 @@ function init() {
   $$('.me-tabs, .me-rail').forEach(tabsOverflow);
   $$('.me-toolbar').forEach(toolbar);
 }
-window.ME = { icon, chart, fmt, combobox, datepicker, palette, upload, tabsOverflow, tree, toolbar, wizard, split, scroll, init };
+window.ME = { nextKey, prevKey, icon, chart, fmt, combobox, datepicker, palette, upload, tabsOverflow, tree, toolbar, wizard, split, scroll, init };
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

@@ -11,7 +11,7 @@
   .app { width: 100%; max-width: 1100px; align-self: flex-start; background: var(--color-panel); border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); overflow: hidden; }
   .section-title { color: var(--accent-text); }
   .pad { padding: var(--space-6); }
-  .stats { --cell-min: 180px; border-left: 0; border-right: 0; border-radius: 0; }
+  .stats { --cell-min: 180px; border-inline-start: 0; border-inline-end: 0; border-radius: 0; }
   .split-wrap { margin-top: auto; border: 1px solid var(--stroke-divider); border-radius: var(--radius-soft); overflow: hidden; }
   .split-wrap .me-split { border-top: 0; }
   .col { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -126,7 +126,7 @@ $('#seg-theme').addEventListener('click',e=>{const b=e.target.closest('button');
 /* tabs */
 const tabs=$$('#tabs [role=tab]');
 function sel(t){tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).hidden=!on;});}
-tabs.forEach((t,i)=>{t.addEventListener('click',()=>sel(t));t.addEventListener('keydown',e=>{const k={ArrowRight:i+1,ArrowLeft:i-1,Home:0,End:tabs.length-1}[e.key];if(k===undefined)return;e.preventDefault();const n=tabs[(k+tabs.length)%tabs.length];n.focus();sel(n);});});
+tabs.forEach((t,i)=>{t.addEventListener('click',()=>sel(t));t.addEventListener('keydown',e=>{const k={[ME.nextKey(e)]:i+1,[ME.prevKey(e)]:i-1,Home:0,End:tabs.length-1}[e.key];if(k===undefined)return;e.preventDefault();const n=tabs[(k+tabs.length)%tabs.length];n.focus();sel(n);});});
 /* switches / lists */
 $$('.me-switch').forEach(s=>s.addEventListener('click',()=>s.setAttribute('aria-checked',s.getAttribute('aria-checked')!=='true')));
 const sampling=$('#sampling');sampling.addEventListener('click',e=>{const b=e.target.closest('button');if(b)$$('button',sampling).forEach(x=>x.setAttribute('aria-pressed',x===b));});

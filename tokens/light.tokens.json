@@ -1,0 +1,135 @@
+{
+  "$description": "Light theme.",
+  "color": {
+    "canvas": {
+      "$type": "color",
+      "$value": "#dadee3",
+      "$description": "paper grey: pure white glares"
+    },
+    "panel": {
+      "$type": "color",
+      "$value": "#e9ecef"
+    },
+    "surface": {
+      "$type": "color",
+      "$value": "#f0f2f4"
+    },
+    "overlay": {
+      "$type": "color",
+      "$value": "#f4f6f7"
+    },
+    "text": {
+      "primary": {
+        "$type": "color",
+        "$value": "#0f172a"
+      },
+      "muted": {
+        "$type": "color",
+        "$value": "#475569"
+      },
+      "dim": {
+        "$type": "color",
+        "$value": "#4f5f73"
+      }
+    }
+  },
+  "stroke": {
+    "divider": {
+      "$type": "color",
+      "$value": "rgba(0,0,0,.10)"
+    },
+    "divider-hover": {
+      "$type": "color",
+      "$value": "rgba(0,0,0,.24)"
+    },
+    "divider-active": {
+      "$type": "color",
+      "$value": "rgba(0,0,0,.30)"
+    },
+    "control": {
+      "$type": "color",
+      "$value": "rgba(0,0,0,.45)"
+    }
+  },
+  "tick-idle": {
+    "$type": "color",
+    "$value": "rgba(0,0,0,.46)"
+  },
+  "wash": {
+    "$type": "number",
+    "$value": 13,
+    "$description": "light physics: ambient wash + etch, no glow"
+  },
+  "glow-strength": {
+    "$type": "number",
+    "$value": 0
+  },
+  "accent": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.51976 0.09357 223.13)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.48652 0.08659 221.35)"
+    }
+  },
+  "ok": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.57219 0.12319 163.27)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.47150 0.09715 165.60)"
+    }
+  },
+  "warn": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.59885 0.14311 58.15)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.48256 0.12264 49.98)"
+    }
+  },
+  "err": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.58584 0.22204 17.58)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.48574 0.18678 17.32)"
+    }
+  },
+  "info": {
+    "base": {
+      "$type": "color",
+      "$value": "oklch(0.48964 0.18714 262.27)"
+    },
+    "text": {
+      "$type": "color",
+      "$value": "oklch(0.48964 0.18714 262.27)"
+    }
+  },
+  "scrim": {
+    "$type": "color",
+    "$value": "rgba(15,23,42,.12)"
+  },
+  "scrim-filter": {
+    "$type": "other",
+    "$value": "blur(5px) brightness(.9)"
+  },
+  "elev": {
+    "1": {
+      "$type": "shadow",
+      "$value": "0 6px 18px rgba(15,23,42,.14)"
+    },
+    "2": {
+      "$type": "shadow",
+      "$value": "0 24px 48px rgba(15,23,42,.22)"
+    }
+  }
+}
