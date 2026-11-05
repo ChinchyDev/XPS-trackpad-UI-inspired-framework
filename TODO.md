@@ -12,13 +12,13 @@ Workflow: **garden.html is the deployment.** Every component is exercised there,
 
 ### 1A. Missing components, built in garden first
 Each one must pass the Design Rules below, appear in garden, and come with a Playwright test + axe pass in both themes.
-1. [x] **Line / area chart** (Overview and a new Telemetry view). Hairline axes, light-bar series, sparkline variant. Done in garden (Telemetry view, `.me-chart` + `.me-spark`, `chart()` helper). Still to do: replace the placeholder in dashboard.html
-2. [ ] **Date and time picker** (e.g. harvest date on a bed, task due date)
-3. [ ] **Combobox / autocomplete** (zone or crop on the bed form, global search suggestions)
-4. [ ] **Command palette** (opened with Ctrl+K, jump to view or bed)
-5. [ ] **File upload** (bed photo)
-6. [ ] **Tabs overflow hint** (scrolled tab strip hides tabs on phones)
-7. [ ] Tree view, multi-select, tag input, toolbar, stepper / wizard (lower priority)
+1. [x] **Line / area chart** (Overview and a new Telemetry view). Hairline axes, light-bar series, sparkline variant. Done in garden (Telemetry view) and in dashboard.html. Variants covered: area, multi-series with legend, stepped, below-zero, gaps, compact large numbers, 90-point dense, single / flat / empty, sparkline in stat cards
+2. [x] **Date and time picker** (e.g. harvest date on a bed, task due date)
+3. [x] **Combobox / autocomplete** (zone or crop on the bed form, global search suggestions)
+4. [x] **Command palette** (opened with Ctrl+K, jump to view or bed)
+5. [x] **File upload** (bed photo)
+6. [x] **Tabs overflow hint** (scrolled tab strip hides tabs on phones)
+7. [x] Tree view, multi-select, tag input, toolbar, stepper / wizard (lower priority)
 8. questions asked earlier Decisions 
 
 Should collapsed-rail counts become a tiny beacon? D.....YES
@@ -49,9 +49,15 @@ Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 
 ---
 
+### 1A notes (all built; behaviour lives in `monoedge.js`, styles in `monoedge.css` sections 10e-10m)
+- Everything is in garden: Telemetry (charts), Components view (date/time, combobox, multi-select, tag input, upload, tree, toolbar, wizard, tabs overflow). Also wired into real flows: bed form (crop combobox, harvest date, photo), task due date, global search suggestions, Ctrl+K palette.
+- Popovers are top-layer and mounted inside an open `<dialog>` (otherwise a modal makes them inert).
+- Follow-ups: mobile pass on the popovers (date picker and listbox on phones), `Intl` locale for the calendar (en-GB hard-coded), upload progress / real network upload, tree multi-select + typeahead, chart legend toggling and keyboard-reachable data points, bar chart variants (stacked, negative).
+
 ## 2. TESTING (done, run `npm test`)
 - `tests/garden.spec.js`: behaviour of every garden view + the design rules, desktop and phone (`@responsive`)
-- `tests/a11y.spec.js`: axe WCAG 2.2 AA on 10 garden states x dark/light
+- `tests/a11y.spec.js`: axe WCAG 2.2 AA on 15 garden states x dark/light (incl. telemetry, components, palette, date picker, search suggestions)
+- `tests/library.spec.js`: chart variants, date/time picker, combobox / multi-select / tag input, palette, upload, tabs overflow, tree, toolbar, wizard
 - `tests/tracking.spec.js`:
   - **component coverage**: every `.me-*` class in monoedge.css must appear in garden.html or be listed in `tests/coverage-baseline.json` (currently empty: all 69 covered)
   - **animation registry**: every `@keyframes` must be listed in `tests/animations.json`

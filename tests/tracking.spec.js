@@ -6,7 +6,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs'); const path = require('path');
 const { url, read } = require('./helpers');
 
-const css = read('monoedge.css'), garden = read('garden.html');
+const css = read('monoedge.css'), garden = read('garden.html') + read('monoedge.js');   // garden loads monoedge.js, so classes it builds count as exercised
 const classes = [...new Set([...css.matchAll(/\.(me-[a-z0-9-]+)/g)].map(m => m[1]))];
 const comps = classes.filter(c => !/^me-(btn--|dot--|meter-ticks)/.test(c));
 

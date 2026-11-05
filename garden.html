@@ -107,6 +107,7 @@
     <symbol id="i-overview" viewBox="0 0 16 16"><path d="M9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/><path d="M2 2h5v5H2z" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-beds" viewBox="0 0 16 16"><path d="M2 3h12v10H2zM8 3v10"/><path d="M2 8h12" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-telemetry" viewBox="0 0 16 16"><path d="M2 2v12h12"/><path d="M5 10l3-3 2 2 4-5" style="stroke:var(--ico-l,currentColor)"/></symbol>
+    <symbol id="i-components" viewBox="0 0 16 16"><path d="M2 2h5v5H2zM9 9h5v5H9zM2 9h5v5H2z"/><path d="M9 2h5v5H9z" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-irrigation" viewBox="0 0 16 16"><path d="M12 8v4l-2 2H6l-2-2V8"/><path d="M8 2l4 6M8 2L4 8" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-tasks" viewBox="0 0 16 16"><path d="M2 4h2M2 8h2M2 12h2M6 4h8M6 12h8"/><path d="M6 8h8" style="stroke:var(--ico-l,currentColor)"/></symbol>
     <symbol id="i-users" viewBox="0 0 16 16"><path d="M2 14v-3h12v3M5 2v5h6V2"/><path d="M5 2h6" style="stroke:var(--ico-l,currentColor)"/></symbol>
@@ -125,6 +126,10 @@
         <button data-view="irrigation"><svg class="me-ico" aria-hidden="true"><use href="#i-irrigation"/></svg><span class="me-side-txt">Irrigation</span></button>
         <button data-view="tasks"><svg class="me-ico" aria-hidden="true"><use href="#i-tasks"/></svg><span class="me-side-txt">Tasks</span><span class="me-badge" data-signal="warn" id="task-count">0</span></button>
       </div></div>
+    <div class="me-side-set"><span class="me-label" id="sg-lib">Library</span>
+      <div class="me-rail" role="group" aria-labelledby="sg-lib">
+        <button data-view="components"><svg class="me-ico" aria-hidden="true"><use href="#i-components"/></svg><span class="me-side-txt">Components</span></button>
+      </div></div>
     <div class="me-side-set"><span class="me-label" id="sg-admin">Admin</span>
       <div class="me-rail" role="group" aria-labelledby="sg-admin">
         <button data-view="users"><svg class="me-ico" aria-hidden="true"><use href="#i-users"/></svg><span class="me-side-txt">Users</span></button>
@@ -141,6 +146,7 @@
     <header class="topbar">
       <ol class="me-crumbs" aria-label="Breadcrumb"><li><a href="#" data-view="overview">Plotline</a></li><li aria-current="page" id="crumb">Overview</li></ol>
       <div class="me-row">
+        <button class="me-btn me-btn--ghost" id="pal-btn" aria-haspopup="dialog">Jump to <span class="me-kbd" aria-hidden="true">Ctrl K</span></button>
         <div class="me-anchor search"><input id="search" placeholder="Search beds, people…" aria-label="Search"><span class="me-kbd">/</span></div>
         <div class="me-segmented theme-seg" id="seg-theme" role="group" aria-label="Theme"><button aria-pressed="true" data-v="dark">Dark</button><button aria-pressed="false" data-v="light">Light</button></div>
         <div class="menu-wrap">
@@ -164,8 +170,8 @@
           <div class="me-pair" id="frost-pair" role="group" aria-label="Frost response"><button class="me-btn me-btn--danger" data-f="ignore">Ignore warning</button><button class="me-btn" data-f="cover" data-hot>Cover beds</button></div></div>
         <div class="me-grid" style="--cell-min:200px">
           <div class="me-stat"><span class="me-label">Active beds</span><span class="me-stat-value" id="s-beds">0</span><span class="me-delta me-dim">across 4 zones</span></div>
-          <div class="me-stat" data-signal="warn"><span class="me-label">Avg soil moisture</span><span class="me-stat-value me-sig" id="s-moist">0%</span><span class="me-delta">▼ 6 pts since Mon</span></div>
-          <div class="me-stat"><span class="me-label">Water today</span><span class="me-stat-value">312<span class="me-dim" style="font-size:14px"> L</span></span><span class="me-delta">▲ 8% vs avg</span></div>
+          <div class="me-stat" data-signal="warn"><span class="me-label">Avg soil moisture</span><span class="me-stat-value me-sig" id="s-moist">0%</span><span class="me-delta">▼ 6 pts since Mon</span><span class="me-spark" id="sp-moist" role="img" aria-label="Soil moisture trend, falling"></span></div>
+          <div class="me-stat"><span class="me-label">Water today</span><span class="me-stat-value">312<span class="me-dim" style="font-size:14px"> L</span></span><span class="me-delta">▲ 8% vs avg</span><span class="me-spark" id="sp-water" data-signal="info" role="img" aria-label="Water use trend, rising"></span></div>
           <div class="me-stat" data-signal="ok"><span class="me-label">Ready to harvest</span><span class="me-stat-value me-sig" id="s-harv">0</span><span class="me-delta me-dim">within 14 days</span></div>
         </div>
         <div class="two">
@@ -215,7 +221,10 @@
         <div class="page-head"><div><div class="me-title">Tasks</div><span class="me-dim" id="task-sum"></span></div>
           <div class="me-btn-group" id="task-filter" role="group" aria-label="Show tasks"><button class="me-btn" aria-pressed="true" data-f="all">All</button><button class="me-btn" aria-pressed="false" data-f="open">Open</button><button class="me-btn" aria-pressed="false" data-f="done">Done</button></div></div>
         <div class="me-meter" id="task-m" style="--v:0%" role="progressbar" aria-label="Completed" aria-valuemin="0" aria-valuemax="100"><i></i></div>
-        <div class="me-field"><label class="me-label" for="new-task">New task</label><div class="me-anchor"><input id="new-task" placeholder="e.g. Mulch the squash bed, then press Enter"></div></div>
+        <div class="me-row" style="align-items:flex-start;flex-wrap:nowrap">
+          <div class="me-field" style="flex:1"><label class="me-label" for="new-task">New task</label><div class="me-anchor"><input id="new-task" placeholder="e.g. Mulch the squash bed, then press Enter"></div></div>
+          <div class="me-field" style="width:210px"><label class="me-label" for="new-due">Due date</label><div class="me-anchor"><input id="new-due" placeholder="YYYY-MM-DD" inputmode="numeric"></div></div>
+        </div>
         <div class="me-panel" style="padding:8px 24px" id="task-list"></div>
       </section>
 
@@ -227,6 +236,86 @@
         <div class="me-panel" style="padding:24px"><div class="me-row" style="justify-content:space-between;margin-bottom:16px"><span class="me-label" id="ch-l2">Water used · last 7 days (L)</span><span class="me-badge">Total 2,140</span></div>
           <div class="me-chart" id="ch-water" data-signal="info" role="img" aria-labelledby="ch-l2"></div>
           <p class="me-dim" style="margin-top:12px">Trend: <span class="me-spark" id="spark-water" data-signal="info" role="img" aria-label="Water use trend, rising"></span></p></div>
+
+        <div class="page-head"><div><div class="me-title">Chart variants</div><span class="me-dim">Comparison, stepped, below-zero, gaps, large numbers and dense series.</span></div></div>
+        <div class="me-panel" style="padding:24px"><div class="me-label" id="ch-l3" style="margin-bottom:16px">Comparison · this week vs last week (L)</div>
+          <div class="me-chart" id="ch-cmp" role="group" aria-labelledby="ch-l3"></div></div>
+        <div class="me-grid" style="--cell-min:340px">
+          <div class="me-stack"><div class="me-label" id="ch-l4">Stepped · valve flow, North zone (L/min)</div><div class="me-chart" id="ch-step" data-signal="info" role="img" aria-labelledby="ch-l4"></div></div>
+          <div class="me-stack"><div class="me-label" id="ch-l5">Below zero · overnight temperature (°C)</div><div class="me-chart" id="ch-temp" data-signal="info" role="img" aria-labelledby="ch-l5"></div></div>
+          <div class="me-stack"><div class="me-label" id="ch-l6">Gaps · sensor B2 went offline (%)</div><div class="me-chart" id="ch-gap" data-signal="warn" role="img" aria-labelledby="ch-l6"></div></div>
+          <div class="me-stack"><div class="me-label" id="ch-l7">Large numbers · litres used this season</div><div class="me-chart" id="ch-big" data-signal="ok" role="img" aria-labelledby="ch-l7"></div></div>
+        </div>
+        <div class="me-panel" style="padding:24px"><div class="me-label" id="ch-l8" style="margin-bottom:16px">Dense · soil moisture, last 90 days (%)</div>
+          <div class="me-chart" id="ch-dense" role="img" aria-labelledby="ch-l8"></div></div>
+        <div class="me-grid" style="--cell-min:240px">
+          <div class="me-stack"><div class="me-label" id="ch-l9">Edge case · a single reading</div><div class="me-chart" id="ch-one" role="img" aria-labelledby="ch-l9"></div></div>
+          <div class="me-stack"><div class="me-label" id="ch-l10">Edge case · flat line</div><div class="me-chart" id="ch-flat" role="img" aria-labelledby="ch-l10"></div></div>
+          <div class="me-stack"><div class="me-label" id="ch-l11">Edge case · no data</div><div class="me-chart" id="ch-empty" role="img" aria-labelledby="ch-l11"></div></div>
+        </div>
+      </section>
+
+      <!-- COMPONENTS -->
+      <section data-v="components" class="me-stack" hidden style="gap:24px">
+        <div class="page-head"><div><div class="me-title">Components</div><span class="me-dim">Pickers, inputs and navigation patterns from the library.</span></div></div>
+
+        <div class="me-panel" style="padding:24px"><div class="me-label" style="margin-bottom:16px">Date and time picker</div>
+          <div class="me-row" style="align-items:flex-start">
+            <div class="me-field" style="width:250px"><label class="me-label" for="c-date">Harvest date</label><div class="me-anchor"><input id="c-date" placeholder="YYYY-MM-DD" inputmode="numeric"></div><span class="me-hint">Arrows move, PageUp / PageDown change month.</span></div>
+            <div class="me-field" style="width:250px"><label class="me-label" for="c-dt">Watering starts</label><div class="me-anchor"><input id="c-dt" data-time placeholder="YYYY-MM-DD HH:MM" inputmode="numeric"></div><span class="me-hint">Date and time.</span></div>
+          </div></div>
+
+        <div class="me-panel" style="padding:24px"><div class="me-label" style="margin-bottom:16px">Combobox, multi-select and tag input</div>
+          <div class="me-stack">
+            <div class="me-field" style="max-width:340px"><label class="me-label" for="c-zone">Zone (choose from the list)</label><div class="me-anchor"><input id="c-zone" placeholder="Start typing…"></div></div>
+            <div class="me-field"><label class="me-label" for="c-crops">Crops in rotation (multi-select)</label><div class="me-anchor"><input id="c-crops" placeholder="Add a crop…"></div></div>
+            <div class="me-field"><label class="me-label" for="c-tags">Bed tags (type, then Enter or comma)</label><div class="me-anchor"><input id="c-tags" placeholder="e.g. raised, organic"></div></div>
+          </div></div>
+
+        <div class="me-panel" style="padding:24px"><div class="me-label" style="margin-bottom:16px">File upload</div>
+          <div class="me-field me-upload" id="c-up" style="max-width:480px"><span class="me-label" id="c-up-l">Bed photos and documents</span>
+            <label class="me-drop"><input type="file" class="me-sr" multiple accept="image/*,.pdf" data-max-size="2097152" aria-labelledby="c-up-l"><span>Drop files here or <u>browse</u></span><span class="me-hint">Images or PDF, up to 2 MB each</span></label>
+            <ul class="me-files" aria-live="polite"></ul><span class="me-error-msg" role="alert"></span></div></div>
+
+        <div class="two">
+          <div class="me-panel" style="padding:24px"><div class="me-label" id="c-tree-l" style="margin-bottom:16px">Tree view · zones and beds</div>
+            <div id="c-tree" aria-labelledby="c-tree-l"></div><p class="me-dim" id="c-tree-out" style="margin-top:12px" aria-live="polite">Nothing selected.</p></div>
+          <div class="me-panel" style="padding:24px"><div class="me-label" id="c-tb-l" style="margin-bottom:16px">Toolbar · bed notes</div>
+            <div class="me-stack">
+              <div class="me-toolbar" id="c-tb" role="toolbar" aria-label="Note formatting" aria-controls="c-note">
+                <button type="button" aria-pressed="false" data-fmt="bold"><b>B</b><span class="me-sr"> Bold</span></button>
+                <button type="button" aria-pressed="false" data-fmt="italic"><i>I</i><span class="me-sr"> Italic</span></button>
+                <span class="me-toolbar-sep" role="separator"></span>
+                <button type="button" aria-pressed="true" data-al="left">Left</button>
+                <button type="button" aria-pressed="false" data-al="center">Centre</button>
+                <button type="button" aria-pressed="false" data-al="right">Right</button>
+              </div>
+              <div class="me-anchor"><textarea id="c-note" aria-label="Bed notes">Mulch heavily before the first frost.</textarea></div>
+            </div></div>
+        </div>
+
+        <div class="me-panel" style="padding:24px" id="wiz"><div class="me-label" style="margin-bottom:16px">Stepper / wizard · new bed</div>
+          <ol class="me-steps" aria-label="New bed steps"><li><span>Location</span></li><li><span>Crop</span></li><li><span>Review</span></li></ol>
+          <div class="me-stack" style="margin-top:16px">
+            <div data-step-panel><div class="me-field" style="max-width:280px"><label class="me-label" for="w-zone">Zone</label><div class="me-anchor"><select id="w-zone"><option>North</option><option>South</option><option>Tunnel</option><option>Orchard</option></select><span class="me-select-caret"></span></div></div></div>
+            <div data-step-panel hidden><div class="me-field" id="w-crop-f" style="max-width:280px"><label class="me-label" for="w-crop">Crop</label><div class="me-anchor"><input id="w-crop" placeholder="Tomato"></div><span class="me-error-msg">Choose a crop to continue.</span></div></div>
+            <div data-step-panel hidden><p id="w-sum" aria-live="polite"></p></div>
+            <div class="me-row" style="justify-content:flex-end"><button class="me-btn" data-back>Back</button><button class="me-btn me-btn--primary" data-next>Next</button></div>
+          </div></div>
+
+        <div class="me-panel" style="padding:24px"><div class="me-label" style="margin-bottom:16px">Tabs overflow hint · narrow screen</div>
+          <div style="max-width:340px">
+            <div class="me-tabs" id="c-tabs" role="tablist" aria-label="Crop families">
+              <button class="me-tab" role="tab" aria-selected="true" aria-controls="c-tab-pane" id="ct-0" tabindex="0">Brassicas</button>
+              <button class="me-tab" role="tab" aria-selected="false" aria-controls="c-tab-pane" id="ct-1" tabindex="-1">Alliums</button>
+              <button class="me-tab" role="tab" aria-selected="false" aria-controls="c-tab-pane" id="ct-2" tabindex="-1">Legumes</button>
+              <button class="me-tab" role="tab" aria-selected="false" aria-controls="c-tab-pane" id="ct-3" tabindex="-1">Roots</button>
+              <button class="me-tab" role="tab" aria-selected="false" aria-controls="c-tab-pane" id="ct-4" tabindex="-1">Nightshades</button>
+              <button class="me-tab" role="tab" aria-selected="false" aria-controls="c-tab-pane" id="ct-5" tabindex="-1">Cucurbits</button>
+              <button class="me-tab" role="tab" aria-selected="false" aria-controls="c-tab-pane" id="ct-6" tabindex="-1">Herbs</button>
+            </div>
+            <p class="me-dim" role="tabpanel" id="c-tab-pane" aria-labelledby="ct-0" style="margin-top:12px">Brassicas: kale, cabbage, broccoli.</p>
+          </div></div>
       </section>
 
       <!-- USERS -->
@@ -257,6 +346,10 @@
       <div class="me-field" id="nb-area-f" style="flex:1"><label class="me-label" for="nb-area">Area (m²)</label><div class="me-anchor"><input id="nb-area" type="number" class="me-num" min="0" step="0.5" value="4"></div><span class="me-error-msg">Must be above 0.</span></div></div>
     <div class="me-field"><span class="me-label">Sun</span><div class="me-row"><label class="me-choice"><input type="radio" class="me-radio" name="sun" checked> Full</label><label class="me-choice"><input type="radio" class="me-radio" name="sun"> Partial</label><label class="me-choice"><input type="radio" class="me-radio" name="sun"> Shade</label></div></div>
     <div class="me-field"><label class="me-label" for="nb-crop">Crop</label><div class="me-anchor"><input id="nb-crop" placeholder="Tomato"></div></div>
+    <div class="me-field"><label class="me-label" for="nb-harv">Expected harvest</label><div class="me-anchor"><input id="nb-harv" placeholder="YYYY-MM-DD" inputmode="numeric"></div><span class="me-hint">Optional.</span></div>
+    <div class="me-field me-upload" id="nb-photo"><span class="me-label" id="nb-photo-l">Photo</span>
+      <label class="me-drop"><input type="file" class="me-sr" accept="image/*" data-max-size="5242880" aria-labelledby="nb-photo-l"><span>Drop a photo or <u>browse</u></span><span class="me-hint">PNG or JPG, up to 5 MB</span></label>
+      <ul class="me-files" aria-live="polite"></ul><span class="me-error-msg" role="alert"></span></div>
   </div>
   <div class="me-split" id="sp-bed"><button data-c="l" aria-pressed="false">Save bed</button><button data-c="r" aria-pressed="false">Cancel</button></div>
 </dialog>
@@ -276,8 +369,15 @@
   <div class="me-split" id="sp-del" style="--l:var(--err);--r:var(--warn)"><button data-c="l" aria-pressed="false">Remove</button><button data-c="r" aria-pressed="false" autofocus>Keep</button></div>
 </dialog>
 
+<dialog class="me-modal me-palette me-lit" id="dlg-pal" data-lit="t" style="--lit-span:70%" aria-label="Command palette">
+  <div class="me-anchor"><input id="pal-q" placeholder="Jump to a view, bed or action…" aria-label="Command palette search"></div>
+  <ul class="me-listbox" id="pal-list" role="listbox" aria-label="Commands"></ul>
+  <div class="me-palette-foot"><span><span class="me-kbd">↑</span> <span class="me-kbd">↓</span> move</span><span><span class="me-kbd">Enter</span> open</span><span><span class="me-kbd">Esc</span> close</span></div>
+</dialog>
+
 <div class="me-toasts" id="toasts" aria-live="polite"></div>
 
+<script src="monoedge.js"></script>
 <script>
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -311,14 +411,25 @@ $('[data-collapse]').addEventListener('click',e=>{const app=$('#app'),on=!app.ha
 function fieldErr(id,bad){const f=document.getElementById(id);bad?f.dataset.signal='err':f.removeAttribute('data-signal');const i=$('input,select',f);if(i){i.setAttribute('aria-invalid',bad);}return bad;}
 function bars(el,vals){const mx=Math.max(...vals);el.innerHTML=vals.map((v,i)=>'<i style="--h:'+Math.round(v/mx*100)+'%" data-tip="'+'MTWTFSS'[i]+': '+v+' L"></i>').join('');}
 const WEEK=[280,310,260,340,295,355,300];
-/* line / area chart: builds an inline SVG (hairline grid, lit line, fading wash). opts.spark drops axes and labels. */
-function chart(el,vals,o={}){const W=600,H=160,n=vals.length,mn=o.min??Math.min(...vals),mx=o.max??Math.max(...vals),pad=o.spark?2:8,sx=i=>pad+i*(W-2*pad)/(n-1),sy=v=>H-pad-(v-mn)/((mx-mn)||1)*(H-2*pad);
-  const pts=vals.map((v,i)=>sx(i).toFixed(1)+','+sy(v).toFixed(1)),d='M'+pts.join(' L'),grid=[0,.25,.5,.75,1].map(t=>'<line class="grid" x1="0" x2="'+W+'" y1="'+(pad+t*(H-2*pad)).toFixed(1)+'" y2="'+(pad+t*(H-2*pad)).toFixed(1)+'"/>').join('');
-  const dots=vals.map((v,i)=>'<g><rect class="hit" x="'+(sx(i)-W/n/2).toFixed(1)+'" y="0" width="'+(W/n).toFixed(1)+'" height="'+H+'"><title>'+(o.labels?o.labels[i]+': ':'')+v+(o.unit||'')+'</title></rect><rect class="pt" x="'+(sx(i)-3).toFixed(1)+'" y="'+(sy(v)-3).toFixed(1)+'" width="6" height="6"/></g>').join('');
-  el.innerHTML='<svg class="me-chart-svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" focusable="false" aria-hidden="true"'+(o.spark?' style="height:100%"':'')+'><defs><linearGradient id="me-area-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sig)" stop-opacity=".35"/><stop offset="1" stop-color="var(--sig)" stop-opacity="0"/></linearGradient></defs>'+grid+'<line class="axis" x1="0" x2="'+W+'" y1="'+(H-pad)+'" y2="'+(H-pad)+'"/><path class="area" d="'+d+' L'+sx(n-1).toFixed(1)+','+(H-pad)+' L'+sx(0)+','+(H-pad)+' Z"/><path class="line" d="'+d+'"/>'+(o.spark?'':dots)+'</svg>'+(o.labels&&!o.spark?'<div class="me-chart-x">'+o.labels.map(l=>'<span>'+l+'</span>').join('')+'</div>':'');}
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-function drawCharts(){chart($('#ch-moist'),[48,46,44,43,40,38,36],{labels:DAYS,unit:'%',min:30,max:55});chart($('#ch-water'),WEEK,{labels:DAYS,unit:' L'});chart($('#spark-water'),WEEK,{spark:true});}
-bars($('#hero-bars'),WEEK);bars($('#bars'),WEEK);
+const HOURS=Array.from({length:24},(_,i)=>String(i).padStart(2,'0')+':00');
+let chartsDrawn=false;
+function drawCharts(){
+  ME.chart($('#ch-moist'),[48,46,44,43,40,38,36],{labels:DAYS,unit:'%',min:30,max:55,axis:true});
+  ME.chart($('#ch-water'),WEEK,{labels:DAYS,unit:' L',axis:true});
+  ME.chart($('#spark-water'),WEEK,{spark:true});
+  ME.chart($('#ch-cmp'),[{name:'This week',data:WEEK},{name:'Last week',data:[250,270,300,280,260,310,290],alt:true}],{labels:DAYS,unit:' L',axis:true,table:true,caption:'Water used, this week and last week'});
+  ME.chart($('#ch-step'),[0,0,0,12,12,12,12,8,8,0,0,0,0,0,0,0,10,10,10,0,0,0,0,0].slice(0,24),{labels:HOURS,unit:' L/min',step:true,axis:true});
+  ME.chart($('#ch-temp'),[3.5,2.8,2,1.1,0.2,-0.8,-1.6,-2.1,-1.4,-0.3,1.2,3.4],{labels:['18h','20h','22h','00h','02h','04h','06h','08h','10h','12h','14h','16h'],unit:' °C',axis:true,nice:true});
+  ME.chart($('#ch-gap'),[44,43,45,null,null,null,39,38,40,41],{labels:['1','2','3','4','5','6','7','8','9','10'],unit:'%',min:30,max:50,axis:true});
+  ME.chart($('#ch-big'),[18000,95000,210000,380000,610000,820000,1010000,1240000,1450000,1620000,1760000,1840000],{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],unit:' L',axis:true});
+  ME.chart($('#ch-dense'),Array.from({length:90},(_,i)=>Math.round(42+8*Math.sin(i/6)+(i%7)*0.8-i*0.05)),{labels:Array.from({length:90},(_,i)=>'D'+(i+1)),unit:'%',axis:true});
+  ME.chart($('#ch-one'),[37],{labels:['Today'],unit:'%',min:0,max:100});
+  ME.chart($('#ch-flat'),[50,50,50,50,50,50],{labels:['a','b','c','d','e','f'],unit:'%'});
+  ME.chart($('#ch-empty'),[],{empty:'No readings yet'});
+  chartsDrawn=true;}
+function drawSparks(){ME.chart($('#sp-moist'),[48,46,44,43,40,38,36],{spark:true});ME.chart($('#sp-water'),WEEK,{spark:true});}
+bars($('#hero-bars'),WEEK);bars($('#bars'),WEEK);drawSparks();
 
 /* theme */
 function setTheme(v){document.documentElement.dataset.theme=v;$$('.theme-seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v));}
@@ -342,10 +453,10 @@ function enter(){$('#login').hidden=true;$('#app').hidden=false;go('overview');t
 function leave(){$('#app').hidden=true;$('#login').hidden=false;$('#pw').value='';$('#email').focus();}
 
 /* ------------------------------ nav ------------------------------ */
-const NAMES={overview:'Overview',telemetry:'Telemetry',beds:'Beds & plots',irrigation:'Irrigation',tasks:'Tasks',users:'Users'};
+const NAMES={overview:'Overview',telemetry:'Telemetry',components:'Components',beds:'Beds & plots',irrigation:'Irrigation',tasks:'Tasks',users:'Users'};
 function go(v){$$('#views > [data-v]').forEach(s=>s.hidden=s.dataset.v!==v);
   queueMicrotask(()=>$('.me-side [aria-current]')?.scrollIntoView({inline:'center',block:'nearest'}));
-  $$('.me-side button[data-view]').forEach(b=>b.dataset.view===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));$('#crumb').textContent=NAMES[v];if(v==='beds')renderBeds();if(v==='telemetry')drawCharts();}
+  $$('.me-side button[data-view]').forEach(b=>b.dataset.view===v?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));$('#crumb').textContent=NAMES[v];if(v==='beds')renderBeds();if(v==='telemetry')drawCharts();if(v==='components')initComponents();}
 $('.me-side').addEventListener('click',e=>{const b=e.target.closest('button[data-view]');if(b)go(b.dataset.view);});
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go],a[data-view]');if(g){e.preventDefault();go(g.dataset.go||g.dataset.view);if(g.dataset.go==='beds')openBed();}});
 document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!$('#app').hidden){e.preventDefault();$('#search').focus();}});
@@ -377,7 +488,7 @@ $('#frost-pair').addEventListener('click',e=>{const b=e.target.closest('button')
 const ACT=[['Sam watered the Tunnel zone','12 min ago'],['Priya viewed the beds report','1 h ago'],['Auto mode ran South for 5 min','3 h ago']];
 setTimeout(()=>{$('#activity').innerHTML=ACT.map(a=>'<div class="task"><span>'+esc(a[0])+'</span><span class="me-dim">'+a[1]+'</span></div>').join('');},1200);
 document.addEventListener('change',e=>{if(e.target.matches('.me-check[data-i]')){tasks[e.target.dataset.i].d=e.target.checked;renderTasks();}});
-$('#new-task').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim()){tasks.unshift({t:e.target.value.trim(),d:false,due:'Today'});e.target.value='';renderTasks();toast('ok','Task added.');}});
+$('#new-task').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim()){tasks.unshift({t:e.target.value.trim(),d:false,due:dueLabel($('#new-due').value)});e.target.value='';$('#new-due').value='';renderTasks();toast('ok','Task added.');}});
 
 /* ------------------------------ beds ------------------------------ */
 let filter='all',sortK='name',sortAsc=true,sel=null;
@@ -428,22 +539,66 @@ function bindSplit(sp,dlg,onSave){const el=$(sp),d=$(dlg);el.addEventListener('c
   if(b.dataset.c==='l'&&onSave()===false){return;}
   $$('button',el).forEach(x=>x.setAttribute('aria-pressed',x===b));el.dataset.chosen=b.dataset.c;setTimeout(()=>d.close(),380);});}
 $$('dialog [data-close]').forEach(b=>b.addEventListener('click',()=>b.closest('dialog').close()));
-function openBed(){resetSplit('#sp-bed');['nb-name-f','nb-area-f'].forEach(id=>fieldErr(id,false));$('#nb-name').value='';$('#dlg-bed').showModal();$('#nb-name').focus();}
+function openBed(){resetSplit('#sp-bed');['nb-name-f','nb-area-f'].forEach(id=>fieldErr(id,false));$('#nb-name').value='';$('#nb-crop').value='';$('#nb-harv').value='';ME_D.photo.clear();$('#dlg-bed').showModal();$('#nb-name').focus();}
 $('#add-bed').addEventListener('click',openBed);
 bindSplit('#sp-bed','#dlg-bed',()=>{const n=$('#nb-name').value.trim(),a=+$('#nb-area').value;const e1=fieldErr('nb-name-f',!n),e2=fieldErr('nb-area-f',!(a>0));if(e1||e2)return false;
-  beds.unshift({name:n,zone:$('#nb-zone').value,crop:$('#nb-crop').value||'—',area:a,moisture:50,harvest:null});filter='all';$$('button',$('#bed-filter')).forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='all'));$('#search').value='';sel=n;
+  {const hd=ME_D.nbHarv.date;beds.unshift({name:n,zone:$('#nb-zone').value,crop:$('#nb-crop').value||'—',area:a,moisture:50,harvest:hd?Math.round((hd-new Date().setHours(0,0,0,0))/864e5):null,photo:ME_D.photo.files[0]?.name});}filter='all';$$('button',$('#bed-filter')).forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='all'));$('#search').value='';sel=n;
   /* jump to the page that holds the new bed, in the current sort order */
   {const ord=beds.slice().sort((x,y)=>{const p=x[sortK],q=y[sortK];return (typeof p==='number'?p-q:String(p).localeCompare(q))*(sortAsc?1:-1);});bedPage=Math.floor(ord.findIndex(b=>b.name===n)/PAGE);}renderBeds();overview();toast('ok','Bed “'+n+'” added.');});
 $('#invite').addEventListener('click',()=>{resetSplit('#sp-inv');fieldErr('iv-f',false);$('#iv-email').value='';$('#dlg-inv').showModal();$('#iv-email').focus();});
 bindSplit('#sp-inv','#dlg-inv',()=>{const em=$('#iv-email').value.trim();if(fieldErr('iv-f',!/^\S+@\S+\.\S+$/.test(em)))return false;users.push({n:em,e:em,r:$('#iv-role').value,s:'Invited'});renderUsers();toast('ok','Invite sent to '+em+'.');});
 bindSplit('#sp-del','#dlg-del',()=>{const u=users.splice(delIdx,1)[0];renderUsers();toast('warn',u.n+' removed.');});
 
+/* ------------------------------ library wiring (monoedge.js) ------------------------------ */
+const isoDay=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+function dueLabel(v){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec((v||'').trim());if(!m)return 'Today';const d=new Date(+m[1],+m[2]-1,+m[3]);return isoDay(d)===isoDay(new Date())?'Today':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});}
+const CROPS=['Tomato','Squash','Carrot','Lettuce','Beans','Apple','Strawberry','Mixed herbs','Seedlings','Kale','Garlic','Leek','Beetroot','Courgette','Pea'];
+const ME_D={};
+ME_D.nbHarv=ME.datepicker($('#nb-harv'),{min:isoDay(new Date())});
+ME_D.crop=ME.combobox($('#nb-crop'),{options:CROPS,custom:true,label:'Crops'});
+ME_D.photo=ME.upload($('#nb-photo'));
+ME.datepicker($('#new-due'),{});
+ME_D.search=ME.combobox($('#search'),{custom:true,label:'Search suggestions',limit:8,
+  options:()=>[...beds.map(b=>({value:b.name,label:b.name,group:'Beds',hint:b.zone})),...[...new Set(beds.map(b=>b.crop))].filter(c=>c!=='—').map(c=>({value:c,label:c,group:'Crops'})),...users.map(u=>({value:u.n,label:u.n,group:'People',hint:u.r}))]});
+/* command palette */
+const palItems=()=>[
+  ...Object.entries(NAMES).map(([k,v])=>({group:'Go to',label:v,hint:'View',run:()=>go(k)})),
+  {group:'Actions',label:'Add a bed',hint:'Form',keywords:'new create',run:()=>{go('beds');openBed();}},
+  {group:'Actions',label:'Invite a user',hint:'Form',keywords:'people',run:()=>{go('users');$('#invite').click();}},
+  {group:'Actions',label:'Switch to light theme',hint:'Theme',keywords:'appearance',run:()=>setTheme('light')},
+  {group:'Actions',label:'Switch to dark theme',hint:'Theme',keywords:'appearance',run:()=>setTheme('dark')},
+  {group:'Actions',label:'Sign out',hint:'Account',run:leave},
+  ...beds.map(b=>({group:'Beds',label:b.name,hint:b.zone,keywords:b.crop,run:()=>{go('beds');$('#search').value=b.name;renderBeds();}}))];
+ME_D.pal=ME.palette($('#dlg-pal'),{items:palItems,hotkey:false});
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&!$('#app').hidden){e.preventDefault();const d=$('#dlg-pal');d.open?d.close():ME_D.pal.open();}});
+$('#pal-btn').addEventListener('click',()=>ME_D.pal.open());
+/* components view (wired once, the first time it is shown) */
+let compsReady=false;
+function initComponents(){if(compsReady)return;compsReady=true;
+  ME.datepicker($('#c-date'),{min:isoDay(new Date())});ME.datepicker($('#c-dt'),{time:true});
+  ME.combobox($('#c-zone'),{options:zones.map(z=>({value:z.n,label:z.n,hint:z.m+'%'})),label:'Zones'});
+  ME.combobox($('#c-crops'),{options:CROPS,multi:true,value:['Tomato','Beans'],label:'Crops in rotation'});
+  ME.combobox($('#c-tags'),{multi:true,custom:true,value:['raised'],label:'Bed tags'});
+  ME.upload($('#c-up'));
+  ME.tree($('#c-tree'),[...['North','South','Tunnel','Orchard'].map((z,i)=>({id:z,label:z,open:i===0,children:beds.filter(b=>b.zone===z).map(b=>({id:b.name,label:b.name}))}))],{onSelect:n=>$('#c-tree-out').textContent='Selected: '+n.label+'.'});
+  ME.toolbar($('#c-tb'));
+  $('#c-tb').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const n=$('#c-note');
+    if(b.dataset.fmt){const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);n.style[b.dataset.fmt==='bold'?'fontWeight':'fontStyle']=on?(b.dataset.fmt==='bold'?'700':'italic'):'';}
+    if(b.dataset.al){$$('[data-al]',$('#c-tb')).forEach(x=>x.setAttribute('aria-pressed',x===b));n.style.textAlign=b.dataset.al;}});
+  const w=ME.wizard($('#wiz'),{finishLabel:'Create bed',validate:i=>{if(i===1){const bad=!$('#w-crop').value.trim();fieldErr('w-crop-f',bad);return !bad;}return true;}});
+  $('#wiz').addEventListener('me-step',e=>{if(e.detail===2)$('#w-sum').textContent=$('#w-crop').value+' in the '+$('#w-zone').value+' zone.';});
+  $('#wiz').addEventListener('me-finish',()=>{toast('ok','Bed created: '+$('#w-crop').value+' ('+$('#w-zone').value+').');w.go(0);});
+  const tabs=$$('#c-tabs [role=tab]');
+  const pick=t=>{tabs.forEach(x=>{x.setAttribute('aria-selected',x===t);x.tabIndex=x===t?0:-1;});$('#c-tab-pane').setAttribute('aria-labelledby',t.id);$('#c-tab-pane').textContent=t.textContent+': a family of related crops.';};
+  tabs.forEach((t,i)=>{t.addEventListener('click',()=>pick(t));t.addEventListener('keydown',e=>{const k={ArrowRight:i+1,ArrowLeft:i-1,Home:0,End:tabs.length-1}[e.key];if(k===undefined)return;e.preventDefault();const n=tabs[(k+tabs.length)%tabs.length];n.focus();pick(n);});});
+}
+
 /* ------------------------------ boot ------------------------------ */
 overview();renderBeds();renderZones();renderUsers();
 const h=location.hash.slice(1);
 if(h.startsWith('app')){setTheme(h.includes('light')?'light':'dark');$('#login').hidden=true;$('#app').hidden=false;
-  const v=(h.match(/-(overview|telemetry|beds|irrigation|tasks|users)/)||[,'overview'])[1];go(v);
-  if(h.includes('modal'))openBed();if(h.includes('bad')){$('#nb-area').value=0;$('#sp-bed [data-c=l]').click();}if(h.includes('del')){$('[data-del="2"]').click();}if(h.includes('menu'))menu(true);if(h.includes('susp'))$('#ut-sus').click();if(h.includes('pg2'))$('#bed-pager [data-p="1"]').click();if(h.includes('min'))$('[data-collapse]').click();}
+  const v=(h.match(/-(overview|telemetry|components|beds|irrigation|tasks|users)/)||[,'overview'])[1];go(v);
+  if(h.includes('modal'))openBed();if(h.includes('date'))ME_D.nbHarv.open();if(h.includes('combo')){$('#search').focus();$('#search').click();}if(h.includes('pal'))ME_D.pal.open();if(h.includes('bad')){$('#nb-area').value=0;$('#sp-bed [data-c=l]').click();}if(h.includes('del')){$('[data-del="2"]').click();}if(h.includes('menu'))menu(true);if(h.includes('susp'))$('#ut-sus').click();if(h.includes('pg2'))$('#bed-pager [data-p="1"]').click();if(h.includes('min'))$('[data-collapse]').click();}
 else{if(h.includes('light'))setTheme('light');
   if(h.includes('err')){$('#email').value='admin@plotline.io';$('#pw').value='wrong';$('#login-f').requestSubmit();}
   if(h.includes('sso'))$('#sso').children[1].click();}

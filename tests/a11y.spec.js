@@ -11,6 +11,10 @@ const states = [
   ['irrigation', '#app-irrigation', '#app-light-irrigation'], ['tasks', '#app-tasks', '#app-light-tasks'],
   ['users', '#app-users', '#app-light-users'], ['delete dialog', '#app-users-del', '#app-light-users-del'],
   ['collapsed rail', '#app-min', '#app-light-min'],
+  ['components', '#app-components', '#app-light-components'],
+  ['command palette', '#app-pal', '#app-light-pal'],
+  ['date picker', '#app-beds-modal-date', '#app-light-beds-modal-date'],
+  ['search suggestions', '#app-combo', '#app-light-combo'],
 ];
 for (const [name, dark, light] of states) for (const [theme, hash] of [['dark', dark], ['light', light]]) {
   test(`axe: ${name} (${theme})`, async ({ page }) => {

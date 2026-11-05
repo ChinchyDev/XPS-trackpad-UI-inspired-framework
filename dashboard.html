@@ -100,7 +100,8 @@
       <div class="me-alert" data-signal="warn" role="alert"><span class="me-glyph">!</span><div><div class="me-alert-title">Cache pressure rising</div>KV cache at 71% of budget.</div></div>
       <div class="me-field"><div class="me-row" style="justify-content:space-between"><span class="me-label">KV cache</span><span class="me-num">71%</span></div><div class="me-meter me-meter-ticks" style="--v:71%" data-signal="warn"><i></i></div></div>
       <div class="me-field"><div class="me-row" style="justify-content:space-between"><span class="me-label">GPU</span><span class="me-num">38%</span></div><div class="me-meter" style="--v:38%"><i></i></div></div>
-      <div class="me-empty"><span class="me-title">No chart component yet</span><span class="me-dim">Gap found by building this page: charts are not in the framework.</span></div>
+      <div class="me-field"><span class="me-label" id="tps-l">Tokens per second · last 12 runs</span>
+        <div class="me-chart" id="tps" role="group" aria-labelledby="tps-l"></div></div>
     </div>
   </section>
 
@@ -115,8 +116,11 @@
 </main>
 <div class="me-toasts" id="toasts" aria-live="polite"></div>
 
+<script src="monoedge.js"></script>
 <script>
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+/* telemetry chart: this run vs the previous baseline */
+ME.chart(document.getElementById('tps'),[{name:'Current model',data:[41,43,42,47,52,51,55,54,58,57,61,60]},{name:'Baseline',data:[40,40,41,41,42,42,43,43,44,44,45,45],alt:true}],{labels:Array.from({length:12},(_,i)=>'#'+(i+1)),unit:' tok/s',axis:true,table:true,caption:'Tokens per second, current model and baseline'});
 /* theme */
 $('#seg-theme').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('button',e.currentTarget).forEach(x=>x.setAttribute('aria-pressed',x===b));document.documentElement.dataset.theme=b.dataset.v;});
 /* tabs */
