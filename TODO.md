@@ -41,7 +41,18 @@ Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 - [x] Icon-button sizing: `.me-ico--sm / --lg / --xl` (12 / 20 / 24); any icon-only button is at least 24px (WCAG 2.5.8), 44px on touch, and must have an `aria-label` (tests sweep the whole garden)
 - [x] `ME.icon(name, size)` for JS-built UI; calendar trigger, month arrows, upload remove, dialog close and pager now use the sprite
 - [x] Icon gallery in the Components view (hover lights the segment)
+- Lab: `icons.html` exercises all of it (playground with a 16x zoom and safe margin, the full set, size ladder, buttons in 12 contexts, a live hit-area inspector, a contrast matrix, the JS helper). It found two real gaps that are now fixed: toolbar and pager targets were 40-42px on touch
 - Follow-ups: hand-check the 1.25 stroke on a 16px grid for blur on a 1x display; more icons as components need them (home, image, star, logout, map); `link` and `refresh` could be revisited; the lit segment has no static (non-hover) use yet, e.g. an "active" tint
+
+### 1E. Scrollbar (decided and built: B + C; tests in `tests/scroll.spec.js`; lab deleted)
+Decision: a combination. **Lit thumb (B)** is the default for most content and the drag handle when the wheel is not available; **edge lights (C)** are added on small scrollers and lead on touch. Always accent, hidden at rest.
+- [x] `ME.scroll(el)` / `data-me-scroll`; styles in monoedge.css 10n. Native scrolling, keyboard and find-in-page untouched; the browser bar is hidden, and comes back in forced-colors
+- [x] Thumb: 2px accent light-bar, shows on hover / focus / while scrolling, fades after ~1s, swells and glows when grabbed, drag + click-track paging, both axes with a corner piece, hidden when content fits
+- [x] Edge lights: lit edge + content fade toward more content. Auto: on when the scroller is small (height <= 320px, width <= 480px) and always on touch; `data-me-scroll="on|off"` overrides
+- [x] Touch: thumb only while scrolling (never on hover), 24px track
+- [x] A scroller with nothing focusable inside gets `tabindex=0` so the keyboard can reach it
+- [x] In use: garden table wraps, modal bodies, dashboard table; demos in the Components view
+- Follow-ups: apply to the combobox / palette listboxes and the tree; thresholds (320 / 480) are a first guess, tune on real content; wrapper copies no flex/grid placement from the scroller (wrap a flex child in your own container); a `scroll-padding` / sticky-header check on long tables
 
 ### 1D. Delivery (do after 1A so the API is settled)
 - [ ] Tokens as W3C DTCG JSON, built with Style Dictionary to CSS / Tailwind / JS (one source of truth)

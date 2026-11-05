@@ -48,6 +48,7 @@
   .task:last-child { border-bottom: 0; }
   .task.done .t-text { text-decoration: line-through; color: var(--color-text-dim); }
   /* icon gallery (page layout only) */
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
   .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 0; border-top: 1px solid var(--stroke-divider); border-left: 1px solid var(--stroke-divider); }
   .icon-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 4px 12px; background: var(--color-panel); box-shadow: inset -1px -1px 0 var(--stroke-divider); color: var(--color-text-muted); --ico-l: var(--color-text-muted); }
   .icon-cell:hover { color: var(--color-text-primary); --ico-l: var(--sig); background: var(--sig-fill); }
@@ -184,7 +185,7 @@
         <div class="me-row" style="justify-content:space-between">
           <div class="me-segmented" id="bed-filter" role="group" aria-label="Filter"><button aria-pressed="true" data-f="all">All</button><button aria-pressed="false" data-f="water">Needs water</button><button aria-pressed="false" data-f="harvest">Harvest soon</button></div>
           <span class="me-label" id="bed-n"></span></div>
-        <div class="me-table-wrap"><table class="me-table" id="bed-t">
+        <div class="me-table-wrap" data-me-scroll><table class="me-table" id="bed-t">
           <thead><tr>
             <th class="me-label" scope="col" aria-sort="ascending"><button data-k="name">Bed</button></th>
             <th class="me-label" scope="col" aria-sort="none"><button data-k="zone">Zone</button></th>
@@ -296,6 +297,14 @@
             <div class="me-row" style="justify-content:flex-end"><button class="me-btn" data-back>Back</button><button class="me-btn me-btn--primary" data-next>Next</button></div>
           </div></div>
 
+        <div class="me-panel" style="padding:24px"><div class="me-label" id="sc-l" style="margin-bottom:6px">Scrolling · lit thumb + edge lights</div>
+          <p class="me-dim" style="margin:0 0 16px">The thumb is an accent light-bar to drag; it appears on hover or while scrolling and fades. Small scrollers (and anything on touch) also light the edge that has more content.</p>
+          <div class="cols">
+            <div class="me-stack"><span class="me-label" id="sc-l1">Long list · thumb</span><div id="sc-big" data-me-scroll style="height:340px;overflow:auto;padding:0 16px;background:var(--color-surface);border:1px solid var(--stroke-divider)" aria-labelledby="sc-l1"></div></div>
+            <div class="me-stack"><span class="me-label" id="sc-l2">Small table · thumb + edge lights</span><div id="sc-small" class="me-table-wrap" data-me-scroll style="height:170px" aria-labelledby="sc-l2"></div></div>
+            <div class="me-stack"><span class="me-label" id="sc-l3">Wide table · both axes</span><div id="sc-wide" class="me-table-wrap" data-me-scroll style="height:220px" aria-labelledby="sc-l3"></div></div>
+          </div></div>
+
         <div class="me-panel" style="padding:24px"><div class="me-label" id="ic-l" style="margin-bottom:16px">Icons · 16px grid, hover lights the one lit segment</div>
           <div class="me-row" style="margin-bottom:16px;align-items:center">
             <button class="me-btn me-btn--ghost me-btn--icon" aria-label="Add (small)"><svg class="me-ico me-ico--sm" aria-hidden="true"><use href="#i-plus"/></svg></button>
@@ -332,7 +341,7 @@
           </div>
           <div class="me-nav-end"><span class="me-label" id="user-n"></span></div>
         </header>
-        <div class="me-table-wrap" role="tabpanel" id="user-pane" aria-labelledby="ut-all"><table class="me-table" id="user-t"><thead><tr><th class="me-label" scope="col">Name</th><th class="me-label" scope="col">Role</th><th class="me-label" scope="col">Status</th><th class="me-label" scope="col"><span class="me-sr">Actions</span></th></tr></thead><tbody></tbody></table></div>
+        <div class="me-table-wrap" data-me-scroll role="tabpanel" id="user-pane" aria-labelledby="ut-all"><table class="me-table" id="user-t"><thead><tr><th class="me-label" scope="col">Name</th><th class="me-label" scope="col">Role</th><th class="me-label" scope="col">Status</th><th class="me-label" scope="col"><span class="me-sr">Actions</span></th></tr></thead><tbody></tbody></table></div>
       </section>
     </main>
   </div>
@@ -341,7 +350,7 @@
 <!-- ============================== DIALOGS ============================== -->
 <dialog class="me-modal me-lit" id="dlg-bed" data-lit="t" style="--lit-span:70%" aria-labelledby="bed-h">
   <div class="me-modal-head"><span class="me-title" id="bed-h">Add bed</span><button class="me-btn me-btn--ghost me-btn--icon" aria-label="Close" data-close><svg class="me-ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
-  <div class="me-modal-body me-stack">
+  <div class="me-modal-body me-stack" data-me-scroll>
     <div class="me-field" id="nb-name-f"><label class="me-label" for="nb-name">Bed name</label><div class="me-anchor"><input id="nb-name" placeholder="e.g. Tomato row 3"></div><span class="me-error-msg">Give the bed a name.</span></div>
     <div class="me-row" style="align-items:flex-start;flex-wrap:nowrap">
       <div class="me-field" style="flex:1"><label class="me-label" for="nb-zone">Zone</label><div class="me-anchor"><select id="nb-zone"><option>North</option><option>South</option><option>Tunnel</option><option>Orchard</option></select><span class="me-select-caret"></span></div></div>
@@ -358,7 +367,7 @@
 
 <dialog class="me-modal me-lit" id="dlg-inv" data-lit="t" style="--lit-span:70%" aria-labelledby="inv-h">
   <div class="me-modal-head"><span class="me-title" id="inv-h">Invite user</span><button class="me-btn me-btn--ghost me-btn--icon" aria-label="Close" data-close><svg class="me-ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
-  <div class="me-modal-body me-stack">
+  <div class="me-modal-body me-stack" data-me-scroll>
     <div class="me-field" id="iv-f"><label class="me-label" for="iv-email">Email</label><div class="me-anchor"><input id="iv-email" type="email" placeholder="name@garden.org"></div><span class="me-error-msg">Enter a valid email.</span></div>
     <div class="me-field"><label class="me-label" for="iv-role">Role</label><div class="me-anchor"><select id="iv-role"><option>Gardener</option><option>Viewer</option><option>Admin</option></select><span class="me-select-caret"></span></div></div>
   </div>
@@ -580,6 +589,11 @@ function initComponents(){if(compsReady)return;compsReady=true;
   ME.combobox($('#c-tags'),{multi:true,custom:true,value:['raised'],label:'Bed tags'});
   ME.upload($('#c-up'));
   ME.tree($('#c-tree'),[...['North','South','Tunnel','Orchard'].map((z,i)=>({id:z,label:z,open:i===0,children:beds.filter(b=>b.zone===z).map(b=>({id:b.name,label:b.name}))}))],{onSelect:n=>$('#c-tree-out').textContent='Selected: '+n.label+'.'});
+  (()=>{const W=['Tomato','Squash','Carrot','Lettuce','Beans','Apple','Strawberry','Kale','Garlic','Leek'];
+    $('#sc-big').innerHTML=Array.from({length:60},(_,i)=>'<div class="task"><span>'+W[i%10]+' bed '+(i+1)+'</span><span class="me-dim">'+(20+(i*13)%60)+'% moisture</span></div>').join('');
+    $('#sc-small').innerHTML='<table class="me-table"><thead><tr><th class="me-label" scope="col">Bed</th><th class="me-label num" scope="col">Moisture</th></tr></thead><tbody>'+Array.from({length:12},(_,i)=>'<tr><td>'+W[i%10]+' row '+(i+1)+'</td><td class="num">'+(20+(i*13)%60)+'%</td></tr>').join('')+'</tbody></table>';
+    $('#sc-wide').innerHTML='<table class="me-table" style="min-width:760px"><thead><tr>'+['Bed','Zone','Crop','Area','Moisture','Planted','Harvest','Water L/wk'].map(t=>'<th class="me-label" scope="col">'+t+'</th>').join('')+'</tr></thead><tbody>'+Array.from({length:14},(_,i)=>'<tr><td>'+W[i%10]+' row '+(i+1)+'</td><td>'+['North','South','Tunnel','Orchard'][i%4]+'</td><td>'+W[(i*3)%10]+'</td><td>'+(4+i%9)+' m²</td><td>'+(28+(i*7)%40)+'%</td><td>2026-0'+(1+i%9)+'-1'+(i%9)+'</td><td>2026-1'+(i%3)+'-0'+(1+i%9)+'</td><td>'+(40+i*3)+'</td></tr>').join('')+'</tbody></table>';
+    ME.scroll($('#sc-big'));ME.scroll($('#sc-small'));ME.scroll($('#sc-wide'));})();
   $('#icon-grid').innerHTML=$$('#me-icons symbol').map(s=>'<div class="icon-cell" role="listitem"><svg class="me-ico me-ico--lg" aria-hidden="true"><use href="#'+s.id+'"/></svg><span>'+s.id.slice(2)+'</span></div>').join('');
   ME.toolbar($('#c-tb'));
   $('#c-tb').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const n=$('#c-note');

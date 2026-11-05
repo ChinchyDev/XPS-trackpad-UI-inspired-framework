@@ -754,6 +754,56 @@ dialog.me-palette { width: min(560px, calc(100vw - 32px)); margin: 12vh auto aut
 .me-toolbar > button[aria-pressed="true"] { color: var(--color-text-primary); border-top-color: var(--sig); background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.4%), transparent), transparent); }
 .me-toolbar-sep { align-self: stretch; width: 1px; margin: 6px var(--space-1); background: linear-gradient(180deg, transparent, var(--stroke-divider-active) 30%, var(--stroke-divider-active) 70%, transparent); }
 
+/* ---------- 10n. SCROLL: lit thumb + edge lights ----------------------------
+   Decision (scrollbar lab): B + C combined. Native scrolling always stays (wheel, touch, keyboard, find-in-page).
+   - THUMB (B): a 2px accent light-bar you can drag. Hidden at rest; appears on hover, focus and while scrolling; fades after ~1s. Swells and glows when grabbed.
+   - EDGE LIGHTS (C): the edge facing more content lights and the content fades. ON for small scrollers (a short table) and always on touch, where it leads.
+   Always accent, whatever the surrounding signal. Built by ME.scroll(el) / data-me-scroll; the native bar returns in forced-colors. */
+.me-scroll { position: relative; display: flow-root; min-width: 0; min-height: 0; --scroll-color: var(--accent); --fy-t: 0px; --fy-b: 0px; --fx-l: 0px; --fx-r: 0px; }
+.me-scroll[data-more~="top"] { --fy-t: 28px; } .me-scroll[data-more~="bottom"] { --fy-b: 28px; } .me-scroll[data-more~="left"] { --fx-l: 28px; } .me-scroll[data-more~="right"] { --fx-r: 28px; }
+.me-scroll > .me-scroll-view { scrollbar-width: none; }
+.me-scroll > .me-scroll-view::-webkit-scrollbar { display: none; }
+.me-scroll[data-more] > .me-scroll-view {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 var(--fy-t), #000 calc(100% - var(--fy-b)), transparent 100%), linear-gradient(90deg, transparent 0, #000 var(--fx-l), #000 calc(100% - var(--fx-r)), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 var(--fy-t), #000 calc(100% - var(--fy-b)), transparent 100%), linear-gradient(90deg, transparent 0, #000 var(--fx-l), #000 calc(100% - var(--fx-r)), transparent 100%);
+  -webkit-mask-composite: source-in; mask-composite: intersect; }
+.me-scroll-view:focus-visible { outline: 1px solid var(--accent); outline-offset: -2px; }
+
+.me-scroll-edge { position: absolute; z-index: 3; pointer-events: none; opacity: 0; transition: opacity var(--dur) var(--ease); background: var(--scroll-color); filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--scroll-color)); }
+.me-scroll-edge[data-edge="top"], .me-scroll-edge[data-edge="bottom"] { left: 12%; right: 12%; height: 2px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent); }
+.me-scroll-edge[data-edge="left"], .me-scroll-edge[data-edge="right"] { top: 12%; bottom: 12%; width: 2px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); }
+.me-scroll-edge[data-edge="top"] { top: 0; } .me-scroll-edge[data-edge="bottom"] { bottom: 0; } .me-scroll-edge[data-edge="left"] { left: 0; } .me-scroll-edge[data-edge="right"] { right: 0; }
+.me-scroll[data-more~="top"] > [data-edge="top"], .me-scroll[data-more~="bottom"] > [data-edge="bottom"], .me-scroll[data-more~="left"] > [data-edge="left"], .me-scroll[data-more~="right"] > [data-edge="right"] { opacity: 1; }
+
+.me-scroll-track { position: absolute; z-index: 4; opacity: 0; transition: opacity .3s; touch-action: none; }
+.me-scroll-track[data-axis="y"] { top: 0; right: 0; bottom: 0; width: 14px; }
+.me-scroll-track[data-axis="x"] { left: 0; bottom: 0; right: 14px; height: 14px; }
+.me-scroll[data-both] > .me-scroll-track[data-axis="y"] { bottom: 14px; } .me-scroll[data-both] > .me-scroll-track[data-axis="x"] { right: 14px; } .me-scroll:not([data-both]) > .me-scroll-track[data-axis="x"] { right: 0; }
+.me-scroll-track::before { content: ""; position: absolute; background: var(--stroke-divider); }
+.me-scroll-track[data-axis="y"]::before { right: 3px; top: 6px; bottom: 6px; width: 1px; } .me-scroll-track[data-axis="x"]::before { bottom: 3px; left: 6px; right: 6px; height: 1px; }
+.me-scroll-thumb { position: absolute; background: var(--scroll-color); opacity: .5; transition: width var(--dur) var(--ease), height var(--dur) var(--ease), opacity var(--dur), box-shadow var(--dur); }
+.me-scroll-track[data-axis="y"] > .me-scroll-thumb { right: 3px; width: 2px; min-height: 28px; } .me-scroll-track[data-axis="x"] > .me-scroll-thumb { bottom: 3px; height: 2px; min-width: 28px; }
+.me-scroll:is(:hover, :focus-within) > .me-scroll-track, .me-scroll[data-active] > .me-scroll-track { opacity: 1; }
+.me-scroll[data-active] .me-scroll-thumb { opacity: .85; }
+.me-scroll-track:hover .me-scroll-thumb, .me-scroll-track[data-drag] .me-scroll-thumb { opacity: 1; box-shadow: 0 0 calc(8px * var(--glow-strength)) var(--scroll-color); }
+.me-scroll-track[data-axis="y"]:is(:hover, [data-drag]) > .me-scroll-thumb { width: 5px; right: 1px; } .me-scroll-track[data-axis="x"]:is(:hover, [data-drag]) > .me-scroll-thumb { height: 5px; bottom: 1px; }
+.me-scroll-corner { position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; z-index: 3; background: var(--color-panel); }
+/* touch: the edge lights lead; the thumb is only an indicator while you scroll (never on hover, which touch does not have) */
+@media (pointer: coarse) {
+  .me-scroll:is(:hover, :focus-within) > .me-scroll-track:not(:is([data-drag])) { opacity: 0; }
+  .me-scroll[data-active] > .me-scroll-track { opacity: 1; }
+  .me-scroll-track[data-axis="y"] { width: 24px; } .me-scroll-track[data-axis="x"] { height: 24px; }
+  .me-scroll-track[data-axis="y"] > .me-scroll-thumb { width: 4px; right: 4px; } .me-scroll-track[data-axis="x"] > .me-scroll-thumb { height: 4px; bottom: 4px; }
+}
+@media (forced-colors: active) {   /* high-contrast mode: give the native scrollbar back */
+  .me-scroll > .me-scroll-view { scrollbar-width: auto; mask-image: none; -webkit-mask-image: none; }
+  .me-scroll > .me-scroll-view::-webkit-scrollbar { display: initial; }
+  .me-scroll > :is(.me-scroll-track, .me-scroll-edge, .me-scroll-corner) { display: none; }
+}
+
+/* touch floor: the toolbar and pager trim 2-4px off --control-h for their frame; on touch each target is the full 44px (found by the icon lab's hit-area inspector) */
+@media (pointer: coarse) { .me-toolbar > button { min-width: var(--control-h); height: var(--control-h); } .me-pager button { min-height: var(--control-h); } }
+
 /* ---------- 10m. STEPPER / WIZARD ------------------------------------------ */
 .me-steps { display: flex; gap: var(--space-2); list-style: none; margin: 0; padding: 0; counter-reset: me-step; }
 .me-steps > li { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: var(--space-3) var(--space-3) var(--space-3) 0; color: var(--color-text-dim); box-shadow: inset 0 1px 0 var(--stroke-divider-hover); }

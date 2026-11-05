@@ -11,6 +11,7 @@
      ME.toolbar(el)                   roving-tabindex toolbar
      ME.wizard(root, opts)            stepper / wizard
      ME.icon(name, size)              <svg> markup for a sprite icon
+     ME.scroll(el, opts)              lit thumb + edge lights on a scroller (or data-me-scroll)
      ME.split(el, opts)               split footer with a neutral state (click the chosen side again, or Esc, to undo)
    ========================================================================== */
 (() => {
@@ -487,6 +488,55 @@ function wizard(root, o = {}) {
   go(0); return { go, get step() { return cur; } };
 }
 
+/* ------------------------------------------------------------------ scroll */
+/* Lit thumb (drag target, shows on hover / scroll) + edge lights (lead on small scrollers and on touch). Native scrolling is never replaced.
+   view: the element that scrolls (overflow:auto). It is wrapped in .me-scroll. opts: edges 'auto' | 'on' | 'off', compact (px height under which edges turn on), compactX */
+const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])';
+function scroll(view, o = {}) {
+  if (view._meScroll) return view._meScroll;
+  const wrap = el('div', { class: 'me-scroll' });
+  view.replaceWith(wrap); view.classList.add('me-scroll-view'); wrap.append(view);
+  const tr = {}, th = {};
+  for (const a of ['y', 'x']) { tr[a] = el('div', { class: 'me-scroll-track', 'data-axis': a, 'aria-hidden': 'true' }); th[a] = el('div', { class: 'me-scroll-thumb' }); tr[a].append(th[a]); wrap.append(tr[a]); }
+  for (const e of ['top', 'bottom', 'left', 'right']) wrap.append(el('i', { class: 'me-scroll-edge', 'data-edge': e, 'aria-hidden': 'true' }));
+  wrap.append(el('div', { class: 'me-scroll-corner', 'aria-hidden': 'true' }));
+  const coarse = matchMedia('(pointer: coarse)');
+  const K = { y: { st: 'scrollTop', sz: 'scrollHeight', cl: 'clientHeight', pos: 'top', len: 'height', ptr: 'clientY' }, x: { st: 'scrollLeft', sz: 'scrollWidth', cl: 'clientWidth', pos: 'left', len: 'width', ptr: 'clientX' } };
+  const edgesOn = a => o.edges === 'on' || (o.edges !== 'off' && (coarse.matches || view[K[a].cl] <= (a === 'y' ? (o.compact ?? 320) : (o.compactX ?? 480))));
+  const trackLen = a => (a === 'y' ? tr.y.clientHeight : tr.x.clientWidth) - 12;
+  function layout() {
+    if (!view.clientHeight && !view.clientWidth) return;   // not rendered
+    const over = { y: view.scrollHeight > view.clientHeight + 1, x: view.scrollWidth > view.clientWidth + 1 };
+    wrap.toggleAttribute('data-both', over.x && over.y);
+    const more = [];
+    for (const a of ['y', 'x']) {
+      const k = K[a]; tr[a].hidden = !over[a]; if (!over[a]) continue;
+      const max = view[k.sz] - view[k.cl], len = trackLen(a), tl = Math.max(28, len * view[k.cl] / view[k.sz]);
+      th[a].style[k.len] = tl + 'px'; th[a].style[k.pos] = (6 + (len - tl) * (view[k.st] / max)) + 'px';
+      if (edgesOn(a)) { if (view[k.st] > 2) more.push(a === 'y' ? 'top' : 'left'); if (max - view[k.st] > 2) more.push(a === 'y' ? 'bottom' : 'right'); }
+    }
+    more.length ? wrap.dataset.more = more.join(' ') : wrap.removeAttribute('data-more');
+    const scrolls = over.x || over.y;   // a scroller with nothing focusable inside must itself be reachable by keyboard
+    if (scrolls && !view.hasAttribute('tabindex') && !view.querySelector(FOCUSABLE)) { view.tabIndex = 0; view.dataset.meTab = ''; }
+    else if (!scrolls && view.hasAttribute('data-me-tab')) { view.removeAttribute('tabindex'); delete view.dataset.meTab; }
+  }
+  let q = 0, idle; const sched = () => { if (!q) q = requestAnimationFrame(() => { q = 0; layout(); }); };
+  view.addEventListener('scroll', () => { sched(); wrap.setAttribute('data-active', ''); clearTimeout(idle); idle = setTimeout(() => wrap.removeAttribute('data-active'), 1100); }, { passive: true });
+  if (window.ResizeObserver) new ResizeObserver(sched).observe(view);
+  new MutationObserver(sched).observe(view, { childList: true, subtree: true, characterData: true });
+  coarse.addEventListener?.('change', sched);
+  for (const a of ['y', 'x']) {
+    const k = K[a]; let start = null;
+    th[a].addEventListener('pointerdown', e => { e.preventDefault(); th[a].setPointerCapture(e.pointerId); tr[a].setAttribute('data-drag', ''); start = { p: e[k.ptr], s: view[k.st] }; });
+    th[a].addEventListener('pointermove', e => { if (!start) return; view[k.st] = start.s + (e[k.ptr] - start.p) * (view[k.sz] - view[k.cl]) / (trackLen(a) - parseFloat(th[a].style[k.len])); });
+    const end = () => { start = null; tr[a].removeAttribute('data-drag'); };
+    th[a].addEventListener('pointerup', end); th[a].addEventListener('pointercancel', end);
+    tr[a].addEventListener('pointerdown', e => { if (e.target !== tr[a]) return; const p = e[k.ptr] - tr[a].getBoundingClientRect()[k.pos]; view[k.st] += (p < parseFloat(th[a].style[k.pos]) ? -1 : 1) * view[k.cl] * .9; });
+  }
+  layout();
+  return (view._meScroll = { wrap, view, layout });
+}
+
 /* ------------------------------------------------------------------- split */
 function split(el, o = {}) {
   const btns = $$('button', el);
@@ -497,9 +547,10 @@ function split(el, o = {}) {
 }
 
 function init() {
+  $$('[data-me-scroll]').forEach(v => scroll(v, { edges: v.dataset.meScroll || 'auto' }));
   $$('.me-tabs, .me-rail').forEach(tabsOverflow);
   $$('.me-toolbar').forEach(toolbar);
 }
-window.ME = { icon, chart, fmt, combobox, datepicker, palette, upload, tabsOverflow, tree, toolbar, wizard, split, init };
+window.ME = { icon, chart, fmt, combobox, datepicker, palette, upload, tabsOverflow, tree, toolbar, wizard, split, scroll, init };
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

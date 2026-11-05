@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icon lab — monoedge</title>
+<link rel="stylesheet" href="monoedge.css">
+<style>
+  /* Lab layout only. Everything interactive comes from monoedge.css / monoedge.js. */
+  body { margin: 0; min-height: 100vh; }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+  .bar nav { display: flex; gap: 16px; }
+  .bar nav a { color: var(--accent-text); }
+  section.me-panel { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  h2 { margin: 0; } .sub { margin: 0; }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+
+  /* playground */
+  .pg { display: grid; grid-template-columns: 300px 1fr; gap: 24px; }
+  @media (max-width: 800px) { .pg { grid-template-columns: 1fr; } }
+  .zoom { position: relative; width: 256px; height: 256px; display: grid; place-items: center; background: var(--color-surface); border: 1px solid var(--stroke-divider-hover); flex: none;
+    background-image: linear-gradient(var(--stroke-divider) 1px, transparent 1px), linear-gradient(90deg, var(--stroke-divider) 1px, transparent 1px); background-size: 16px 16px; }
+  .zoom::after { content: ""; position: absolute; inset: 32px; border: 1px dashed var(--warn); pointer-events: none; opacity: .7; }   /* the 2px safe margin, at 16x */
+  .zoom > svg { width: 256px; height: 256px; }
+  pre.snip { margin: 0; padding: 12px 16px; overflow: auto; background: var(--color-surface); border-left: 2px solid var(--sig); font: 12px/18px var(--font-ui); white-space: pre-wrap; word-break: break-all; }
+  .states { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0; border: 1px solid var(--stroke-divider); }
+  .states > div { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 4px 10px; box-shadow: inset -1px 0 0 var(--stroke-divider); }
+  .states span.me-hint { text-transform: uppercase; letter-spacing: .1em; font-size: 10px; }
+
+  /* gallery */
+  .ic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); border-top: 1px solid var(--stroke-divider); border-left: 1px solid var(--stroke-divider); }
+  .ic-cell { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 4px 10px; background: transparent; border: 0; box-shadow: inset -1px -1px 0 var(--stroke-divider); color: var(--color-text-muted); cursor: pointer; --ico-l: var(--color-text-muted); }
+  .ic-cell > span { font-size: 10px; letter-spacing: .04em; color: var(--color-text-dim); }
+  .ic-cell:hover, .ic-cell[aria-pressed="true"] { color: var(--color-text-primary); --ico-l: var(--sig); background: var(--sig-fill); }
+  .ic-cell[aria-pressed="true"] { box-shadow: inset -1px -1px 0 var(--stroke-divider), inset 0 2px 0 var(--sig); }
+  .ic-cell[hidden] { display: none; }
+
+  /* size ladder */
+  .ladder { display: grid; grid-template-columns: 96px repeat(4, 1fr); align-items: center; }
+  .ladder > * { padding: 8px 4px; min-height: 44px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--stroke-divider); }
+  .ladder > .me-hint { justify-content: flex-start; }
+  .ladder .me-label { text-align: center; }
+
+  /* contexts */
+  .ctx { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--stroke-divider); min-width: 0; }
+  .ctx > .me-label:first-child { color: var(--color-text-dim); }
+  .menu-static { position: static; display: block; width: 220px; }
+  .crumbs-sep { display: inline-flex; vertical-align: middle; color: var(--color-text-dim); }
+  .pager { display: inline-flex; }
+  .acc-ico { transition: transform var(--dur) var(--ease); }
+  details[open] .acc-ico { transform: rotate(180deg); }
+  .hit-label { display: none; }
+  .show-hits button:has(> .me-ico:only-child), .show-hits a:has(> .me-ico:only-child) { outline: 1px dashed var(--warn); outline-offset: 0; position: relative; }
+  .show-hits button:has(> .me-ico:only-child)::after, .show-hits a:has(> .me-ico:only-child)::after { content: attr(data-size); position: absolute; left: 0; top: 100%; font-size: 9px; line-height: 12px; color: var(--warn-text); white-space: nowrap; pointer-events: none; z-index: 5; }
+  table.mx { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  table.mx th, table.mx td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--stroke-divider); font-size: 12px; }
+  table.mx td.bad { color: var(--err-text); font-weight: 600; } table.mx td.ok { color: var(--ok-text); }
+  .swatch { display: inline-grid; place-items: center; width: 36px; height: 28px; }
+</style>
+</head>
+<body class="me">
+<script src="monoedge-icons.js"></script>
+<main>
+
+  <header class="bar">
+    <div><div class="me-title">Icon lab</div><p class="me-dim sub">Everything icon-related in one place: sprite, sizes, states, buttons in context, hit areas, contrast, the JS helper. Sandbox for 1C.</p></div>
+    <div class="row">
+      <nav aria-label="Labs"><a href="garden.html">Garden</a><a href="dashboard.html">Dashboard</a></nav>
+      <div class="me-segmented" id="seg-theme" role="group" aria-label="Theme"><button aria-pressed="true" data-v="dark">Dark</button><button aria-pressed="false" data-v="light">Light</button></div>
+      <div class="me-segmented" id="seg-dens" role="group" aria-label="Density"><button aria-pressed="false" data-v="compact">Compact</button><button aria-pressed="true" data-v="">Default</button><button aria-pressed="false" data-v="roomy">Roomy</button></div>
+    </div>
+  </header>
+
+  <!-- ============ 1. PLAYGROUND ============ -->
+  <section class="me-panel" aria-labelledby="h-pg">
+    <div><h2 class="me-title" id="h-pg">Playground</h2><p class="me-dim sub">Pick an icon (type, or click one in the set below). The dashed box is the 2px safe margin on the 16px grid, shown at 16x.</p></div>
+    <div class="pg">
+      <div class="zoom" id="zoom" aria-hidden="true"><svg class="me-ico" id="zoom-svg"><use href="#i-overview"/></svg></div>
+      <div class="me-stack">
+        <div class="me-field" style="max-width:320px"><label class="me-label" for="pg-icon">Icon</label><div class="me-anchor"><input id="pg-icon" placeholder="Start typing…"></div></div>
+        <div class="row">
+          <div class="me-field"><span class="me-label" id="l-size">Size</span><div class="me-segmented" id="seg-size" role="group" aria-labelledby="l-size"><button aria-pressed="false" data-v="sm">12</button><button aria-pressed="true" data-v="">16</button><button aria-pressed="false" data-v="lg">20</button><button aria-pressed="false" data-v="xl">24</button></div></div>
+          <div class="me-field"><span class="me-label" id="l-state">Colour</span><div class="me-segmented" id="seg-sig" role="group" aria-labelledby="l-state"><button aria-pressed="true" data-v="">Accent</button><button aria-pressed="false" data-v="ok">OK</button><button aria-pressed="false" data-v="warn">Warn</button><button aria-pressed="false" data-v="err">Error</button><button aria-pressed="false" data-v="info">Info</button></div></div>
+          <div class="me-field"><span class="me-label" id="l-lit">Lit segment</span><div class="me-row"><button class="me-switch" role="switch" aria-checked="true" aria-labelledby="l-lit" id="sw-lit"></button></div></div>
+        </div>
+        <div class="me-field" style="max-width:320px"><div class="me-row" style="justify-content:space-between"><label class="me-label" for="stroke">Stroke (preview only)</label><output class="me-num" id="stroke-o">1.25</output></div><input id="stroke" type="range" class="me-slider" min="0.75" max="2.5" step="0.05" value="1.25"><span class="me-hint">The framework fixes the stroke at 1.25. Use this to feel how weight changes the look.</span></div>
+        <div id="states" class="states" aria-label="The same icon in each state"></div>
+        <pre class="snip" id="snip" aria-live="polite"></pre>
+        <div class="row"><button class="me-btn" id="copy-snip"><svg class="me-ico" aria-hidden="true"><use href="#i-copy"/></svg> Copy snippet</button><span class="me-hint" id="copy-note" role="status"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. FULL SET ============ -->
+  <section class="me-panel" aria-labelledby="h-set">
+    <div class="bar"><div><h2 class="me-title" id="h-set">The set</h2><p class="me-dim sub" id="set-n"></p></div>
+      <div class="me-anchor" style="width:240px"><input id="set-q" placeholder="Filter…" aria-label="Filter icons" type="search"><svg class="me-ico" aria-hidden="true" style="color:var(--color-text-dim)"><use href="#i-search"/></svg></div></div>
+    <div class="ic-grid" id="ic-grid" role="group" aria-label="Icons"></div>
+  </section>
+
+  <!-- ============ 3. SIZES ============ -->
+  <section class="me-panel" aria-labelledby="h-sz">
+    <div><h2 class="me-title" id="h-sz">Size ladder</h2><p class="me-dim sub">Every icon at 12 / 16 / 20 / 24. Squint for blur on diagonals: the 1.25 stroke lives in the 16-unit viewBox so it scales with the icon.</p></div>
+    <div class="ladder" id="ladder"></div>
+  </section>
+
+  <!-- ============ 4. IN CONTEXT ============ -->
+  <section class="me-panel" aria-labelledby="h-ctx">
+    <div><h2 class="me-title" id="h-ctx">In context</h2><p class="me-dim sub">The same icons inside the framework's own components.</p></div>
+    <div class="cols">
+
+      <div class="ctx"><span class="me-label">Icon buttons: variants</span>
+        <div class="row">
+          <button class="me-btn me-btn--icon" aria-label="Add"><svg class="me-ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
+          <button class="me-btn me-btn--ghost me-btn--icon" aria-label="Edit"><svg class="me-ico" aria-hidden="true"><use href="#i-edit"/></svg></button>
+          <button class="me-btn me-btn--primary me-btn--icon" aria-label="Save"><svg class="me-ico" aria-hidden="true"><use href="#i-save"/></svg></button>
+          <button class="me-btn me-btn--danger me-btn--icon" aria-label="Delete"><svg class="me-ico" aria-hidden="true"><use href="#i-trash"/></svg></button>
+          <button class="me-btn me-btn--icon" aria-label="Locked (disabled)" disabled><svg class="me-ico" aria-hidden="true"><use href="#i-lock"/></svg></button>
+          <button class="me-btn me-btn--icon" aria-label="Refreshing" aria-busy="true"><svg class="me-ico" aria-hidden="true"><use href="#i-refresh"/></svg></button>
+        </div></div>
+
+      <div class="ctx"><span class="me-label">With a label</span>
+        <div class="row">
+          <button class="me-btn"><svg class="me-ico" aria-hidden="true"><use href="#i-download"/></svg> Export</button>
+          <button class="me-btn me-btn--primary"><svg class="me-ico" aria-hidden="true"><use href="#i-upload"/></svg> Upload</button>
+          <button class="me-btn">Next <svg class="me-ico" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+        </div>
+        <p class="me-dim sub">The glyph is decorative (<code>aria-hidden</code>); the visible text is the name.</p></div>
+
+      <div class="ctx"><span class="me-label">Toggle buttons (aria-pressed)</span>
+        <div class="row" id="toggles">
+          <button class="me-btn me-btn--icon" aria-label="Notifications" aria-pressed="false"><svg class="me-ico" aria-hidden="true"><use href="#i-bell"/></svg></button>
+          <button class="me-btn me-btn--icon" aria-label="Show password" aria-pressed="false"><svg class="me-ico" aria-hidden="true"><use href="#i-eye"/></svg></button>
+          <button class="me-btn me-btn--icon" aria-label="Dark mode" aria-pressed="true"><svg class="me-ico" aria-hidden="true"><use href="#i-moon"/></svg></button>
+        </div></div>
+
+      <div class="ctx"><span class="me-label">Toolbar (roving focus)</span>
+        <div class="me-toolbar" id="tb" role="toolbar" aria-label="Bed actions">
+          <button type="button" aria-label="Add"><svg class="me-ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
+          <button type="button" aria-label="Edit"><svg class="me-ico" aria-hidden="true"><use href="#i-edit"/></svg></button>
+          <button type="button" aria-label="Copy"><svg class="me-ico" aria-hidden="true"><use href="#i-copy"/></svg></button>
+          <span class="me-toolbar-sep" role="separator"></span>
+          <button type="button" aria-label="Filter" aria-pressed="true"><svg class="me-ico" aria-hidden="true"><use href="#i-filter"/></svg></button>
+          <button type="button" aria-label="Delete"><svg class="me-ico" aria-hidden="true"><use href="#i-trash"/></svg></button>
+        </div>
+        <div class="row"><button class="me-btn" id="add-tb"><svg class="me-ico" aria-hidden="true"><use href="#i-plus"/></svg> Add one from JS</button><span class="me-hint">uses <code>ME.icon()</code></span></div></div>
+
+      <div class="ctx"><span class="me-label">Field affixes</span>
+        <div class="me-field"><label class="me-label" for="f1">Search</label><div class="me-anchor"><svg class="me-ico" aria-hidden="true" style="color:var(--color-text-dim);margin-right:8px"><use href="#i-search"/></svg><input id="f1" placeholder="Search beds…"><button class="me-affix" aria-label="Clear search" id="f1x"><svg class="me-ico" aria-hidden="true"><use href="#i-close"/></svg></button></div></div>
+        <div class="me-field"><label class="me-label" for="f2">Password</label><div class="me-anchor"><input id="f2" type="password" value="hunter22"><button class="me-affix" aria-label="Show password" aria-pressed="false" id="f2e"><svg class="me-ico" aria-hidden="true"><use href="#i-eye"/></svg></button></div></div></div>
+
+      <div class="ctx"><span class="me-label">Menu with icons</span>
+        <ul class="me-menu menu-static" role="menu" aria-label="Row actions">
+          <li role="none"><button class="me-menu-item" role="menuitem"><span class="me-row" style="gap:10px"><svg class="me-ico" aria-hidden="true"><use href="#i-edit"/></svg>Edit</span></button></li>
+          <li role="none"><button class="me-menu-item" role="menuitem"><span class="me-row" style="gap:10px"><svg class="me-ico" aria-hidden="true"><use href="#i-copy"/></svg>Duplicate</span></button></li>
+          <li role="none"><button class="me-menu-item" role="menuitem"><span class="me-row" style="gap:10px"><svg class="me-ico" aria-hidden="true"><use href="#i-download"/></svg>Export</span></button></li>
+          <li role="none"><button class="me-menu-item" role="menuitem" data-signal="err"><span class="me-row" style="gap:10px"><svg class="me-ico" aria-hidden="true"><use href="#i-trash"/></svg>Delete</span></button></li>
+        </ul></div>
+
+      <div class="ctx"><span class="me-label">Table row actions + tooltips</span>
+        <div class="me-table-wrap"><table class="me-table">
+          <thead><tr><th class="me-label" scope="col">Bed</th><th class="me-label" scope="col"><span class="me-sr">Actions</span></th></tr></thead>
+          <tbody>
+            <tr><td>Tomato row 1</td><td class="num"><button class="me-btn me-btn--ghost me-btn--icon" aria-label="Edit Tomato row 1" data-tip="Edit"><svg class="me-ico" aria-hidden="true"><use href="#i-edit"/></svg></button><button class="me-btn me-btn--ghost me-btn--icon" aria-label="Delete Tomato row 1" data-tip="Delete"><svg class="me-ico" aria-hidden="true"><use href="#i-trash"/></svg></button></td></tr>
+            <tr><td>Carrot bed</td><td class="num"><button class="me-btn me-btn--ghost me-btn--icon" aria-label="Edit Carrot bed" data-tip="Edit"><svg class="me-ico" aria-hidden="true"><use href="#i-edit"/></svg></button><button class="me-btn me-btn--ghost me-btn--icon" aria-label="Delete Carrot bed" data-tip="Delete"><svg class="me-ico" aria-hidden="true"><use href="#i-trash"/></svg></button></td></tr>
+          </tbody></table></div></div>
+
+      <div class="ctx"><span class="me-label">Navigation: crumbs, pager, tabs</span>
+        <ol class="me-crumbs" aria-label="Breadcrumb"><li><a href="#" onclick="return false">Garden</a></li><li class="crumbs-sep" aria-hidden="true"><svg class="me-ico me-ico--sm"><use href="#i-chevron-right"/></svg></li><li><a href="#" onclick="return false">Beds</a></li><li class="crumbs-sep" aria-hidden="true"><svg class="me-ico me-ico--sm"><use href="#i-chevron-right"/></svg></li><li aria-current="page">Tomato row 1</li></ol>
+        <nav class="me-pager" aria-label="Pages"><button aria-label="Previous page"><svg class="me-ico" aria-hidden="true"><use href="#i-chevron-left"/></svg></button><button aria-current="page" aria-label="Page 1">1</button><button aria-label="Page 2">2</button><button aria-label="Next page"><svg class="me-ico" aria-hidden="true"><use href="#i-chevron-right"/></svg></button></nav>
+        <div class="me-tabs" role="tablist" aria-label="Views" id="tabs"><button class="me-tab" role="tab" aria-selected="true"><svg class="me-ico" aria-hidden="true"><use href="#i-overview"/></svg> Overview</button><button class="me-tab" role="tab" aria-selected="false" tabindex="-1"><svg class="me-ico" aria-hidden="true"><use href="#i-telemetry"/></svg> Telemetry</button><button class="me-tab" role="tab" aria-selected="false" tabindex="-1"><svg class="me-ico" aria-hidden="true"><use href="#i-calendar"/></svg> Schedule</button></div></div>
+
+      <div class="ctx"><span class="me-label">Rail, expanded and collapsed</span>
+        <div class="row" style="align-items:flex-start">
+          <nav class="me-side" aria-label="Expanded" style="padding:0;width:180px;position:static;container-type:normal"><div class="me-rail" role="group" aria-label="Expanded rail">
+            <button aria-current="page"><svg class="me-ico" aria-hidden="true"><use href="#i-overview"/></svg><span class="me-side-txt">Overview</span></button>
+            <button><svg class="me-ico" aria-hidden="true"><use href="#i-beds"/></svg><span class="me-side-txt">Beds</span><span class="me-badge" data-signal="warn">3</span></button>
+            <button><svg class="me-ico" aria-hidden="true"><use href="#i-irrigation"/></svg><span class="me-side-txt">Irrigation</span></button></div></nav>
+          <nav class="me-side" data-min aria-label="Collapsed" style="padding:0 12px;width:64px;position:static;container-type:normal"><div class="me-rail" role="group" aria-label="Collapsed rail">
+            <button aria-current="page"><svg class="me-ico" aria-hidden="true"><use href="#i-overview"/></svg><span class="me-side-txt">Overview</span></button>
+            <button><svg class="me-ico" aria-hidden="true"><use href="#i-beds"/></svg><span class="me-side-txt">Beds</span><span class="me-badge" data-signal="warn">3</span></button>
+            <button><svg class="me-ico" aria-hidden="true"><use href="#i-irrigation"/></svg><span class="me-side-txt">Irrigation</span></button></div></nav>
+        </div></div>
+
+      <div class="ctx"><span class="me-label">Split footer + accordion</span>
+        <div class="me-split" id="sp"><button aria-pressed="false" data-c="l"><svg class="me-ico" aria-hidden="true"><use href="#i-check"/></svg> Accept</button><button aria-pressed="false" data-c="r"><svg class="me-ico" aria-hidden="true"><use href="#i-close"/></svg> Cancel</button></div>
+        <div class="me-accordion me-panel"><details><summary class="me-label"><span class="me-row" style="gap:8px"><svg class="me-ico" aria-hidden="true"><use href="#i-thermometer"/></svg>Frost rules</span><svg class="me-ico acc-ico" aria-hidden="true"><use href="#i-chevron-down"/></svg></summary><div class="me-acc-body">The chevron turns with the panel.</div></details></div></div>
+
+      <div class="ctx"><span class="me-label">Status: weather, alerts, badges</span>
+        <div class="row"><span class="me-badge" data-signal="warn"><svg class="me-ico me-ico--sm" aria-hidden="true"><use href="#i-thermometer"/></svg> −1 °C</span><span class="me-badge"><svg class="me-ico me-ico--sm" aria-hidden="true"><use href="#i-sun"/></svg> Dry</span><span class="me-badge" data-signal="ok"><svg class="me-ico me-ico--sm" aria-hidden="true"><use href="#i-leaf"/></svg> Healthy</span><span class="me-badge" data-signal="err"><svg class="me-ico me-ico--sm" aria-hidden="true"><use href="#i-warning"/></svg> Offline</span></div>
+        <div class="me-alert" data-signal="info" role="status"><span class="me-glyph">i</span><div><div class="me-alert-title">Text glyphs stay in alerts</div>Rule 4: severity is colour + glyph. Icons support, they do not replace it.</div></div></div>
+
+      <div class="ctx"><span class="me-label">Meaningful vs decorative</span>
+        <div class="row">
+          <svg class="me-ico me-ico--lg" role="img" aria-label="Warning: low moisture" style="color:var(--warn-text)"><use href="#i-warning"/></svg><span>A standalone icon that carries meaning needs <code>role="img"</code> + a label.</span></div>
+        <div class="row"><svg class="me-ico me-ico--lg" aria-hidden="true"><use href="#i-leaf"/></svg><span>An icon next to text is decorative: <code>aria-hidden="true"</code>.</span></div></div>
+
+    </div>
+  </section>
+
+  <!-- ============ 5. HIT AREAS ============ -->
+  <section class="me-panel" aria-labelledby="h-hit">
+    <div class="bar"><div><h2 class="me-title" id="h-hit">Hit-area inspector</h2><p class="me-dim sub">Scans this page for icon-only controls. Rule: at least 24 × 24 always (WCAG 2.5.8), 44 × 44 on touch, and an accessible name.</p></div>
+      <div class="row"><label class="me-choice"><input type="checkbox" class="me-check" id="show-hits"> Outline hit areas</label><button class="me-btn" id="rescan"><svg class="me-ico" aria-hidden="true"><use href="#i-refresh"/></svg> Re-scan</button></div></div>
+    <div class="row"><span class="me-badge me-badge--fill" data-signal="ok" id="hit-sum">…</span><span class="me-hint" id="hit-env"></span></div>
+    <div class="me-table-wrap" style="max-height:260px;overflow:auto" tabindex="0" role="region" aria-label="Icon-only controls found on this page"><table class="mx" id="hit-t"><thead><tr><th>Control</th><th>Size</th><th>≥ 24</th><th>≥ 44 (touch)</th><th>Name</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- ============ 6. CONTRAST ============ -->
+  <section class="me-panel" aria-labelledby="h-con">
+    <div><h2 class="me-title" id="h-con">Contrast matrix</h2><p class="me-dim sub">Icon strokes are non-text graphics: 3:1 against the surface they sit on (WCAG 1.4.11). Recomputed live from the theme tokens.</p></div>
+    <div class="me-table-wrap" style="overflow:auto" tabindex="0" role="region" aria-label="Icon contrast by surface"><table class="mx" id="con-t"></table></div>
+  </section>
+
+</main>
+<div class="me-toasts" id="toasts" aria-live="polite"></div>
+
+<script src="monoedge.js"></script>
+<script>
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const ids = () => $$('#me-icons symbol').map(s => s.id.slice(2));
+
+/* ---- theme + density ---- */
+function seg(el, fn) { el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('button', el).forEach(x => x.setAttribute('aria-pressed', x === b)); fn(b.dataset.v); }); }
+seg($('#seg-theme'), v => { document.documentElement.dataset.theme = v; contrast(); });
+seg($('#seg-dens'), v => { v ? document.body.dataset.density = v : delete document.body.dataset.density; scan(); });
+
+/* ---- playground ---- */
+const pg = { icon: 'overview', size: '', sig: '', lit: true, stroke: 1.25 };
+function svgFor(name, size) { return '<svg class="me-ico' + (size ? ' me-ico--' + size : '') + '" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; }
+function renderPg() {
+  const z = $('#zoom-svg'); z.querySelector('use').setAttribute('href', '#i-' + pg.icon); z.style.strokeWidth = pg.stroke;
+  const zoom = $('#zoom'); pg.sig ? zoom.dataset.signal = pg.sig : zoom.removeAttribute('data-signal'); zoom.style.setProperty('--ico-l', pg.lit ? 'var(--sig)' : 'currentColor');
+  $('#stroke-o').textContent = (+pg.stroke).toFixed(2);
+  const wrap = n => '<div' + (pg.sig ? ' data-signal="' + pg.sig + '"' : '') + '>' + svgFor(pg.icon, pg.size).replace('<svg ', '<svg ' + n + ' ') + '</div>';
+  $('#states').innerHTML =
+    '<div style="color:var(--color-text-muted)">' + svgFor(pg.icon, pg.size) + '<span class="me-hint">Rest</span></div>' +
+    '<div' + (pg.sig ? ' data-signal="' + pg.sig + '"' : '') + ' style="color:var(--color-text-primary);--ico-l:var(--sig)">' + svgFor(pg.icon, pg.size) + '<span class="me-hint">Hover / selected</span></div>' +
+    '<div>' + svgFor(pg.icon, pg.size).replace('<svg ', '<svg style="color:var(--color-text-dim);opacity:.45" ') + '<span class="me-hint">Disabled</span></div>' +
+    '<div data-signal="err" style="color:var(--err-text);--ico-l:var(--err-text)">' + svgFor(pg.icon, pg.size) + '<span class="me-hint">Error</span></div>' +
+    '<div data-signal="ok" style="color:var(--ok-text);--ico-l:var(--ok-text)">' + svgFor(pg.icon, pg.size) + '<span class="me-hint">OK</span></div>';
+  $('#snip').textContent = '<svg class="me-ico' + (pg.size ? ' me-ico--' + pg.size : '') + '" aria-hidden="true"><use href="#i-' + pg.icon + '"/></svg>\n\n// in script\nME.icon(\'' + pg.icon + '\'' + (pg.size ? ', \'' + pg.size + '\'' : '') + ')';
+  $$('.ic-cell').forEach(c => c.setAttribute('aria-pressed', c.dataset.id === pg.icon));
+}
+const combo = ME.combobox($('#pg-icon'), { options: () => ids(), label: 'Icons' });
+$('#pg-icon').addEventListener('change', e => { const v = e.target.value.trim(); if (ids().includes(v)) { pg.icon = v; renderPg(); } });
+seg($('#seg-size'), v => { pg.size = v; renderPg(); });
+seg($('#seg-sig'), v => { pg.sig = v; renderPg(); });
+$('#sw-lit').addEventListener('click', e => { pg.lit = e.currentTarget.getAttribute('aria-checked') !== 'true'; e.currentTarget.setAttribute('aria-checked', pg.lit); renderPg(); });
+$('#stroke').addEventListener('input', e => { pg.stroke = e.target.value; const pct = (e.target.value - e.target.min) / (e.target.max - e.target.min) * 100; e.target.style.setProperty('--pct', pct + '%'); renderPg(); });
+$('#copy-snip').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#snip').textContent); $('#copy-note').textContent = 'Copied.'; } catch (_) { $('#copy-note').textContent = 'Select the snippet and copy it by hand.'; } });
+
+/* ---- the set ---- */
+function drawSet() {
+  const names = ids(); $('#set-n').textContent = names.length + ' icons';
+  $('#ic-grid').innerHTML = names.map(n => '<button class="ic-cell" data-id="' + n + '" aria-pressed="false" aria-label="' + n + '">' + svgFor(n, 'lg') + '<span>' + n + '</span></button>').join('');
+}
+$('#ic-grid').addEventListener('click', e => { const c = e.target.closest('.ic-cell'); if (!c) return; pg.icon = c.dataset.id; $('#pg-icon').value = pg.icon; renderPg(); $('#zoom').scrollIntoView({ block: 'nearest' }); });
+$('#set-q').addEventListener('input', e => { const q = e.target.value.trim().toLowerCase(); $$('.ic-cell').forEach(c => c.hidden = q && !c.dataset.id.includes(q)); });
+
+/* ---- ladder ---- */
+function drawLadder() {
+  $('#ladder').innerHTML = '<span></span>' + ['12', '16', '20', '24'].map(s => '<span class="me-label">' + s + '</span>').join('') +
+    ids().map(n => '<span class="me-hint">' + n + '</span>' + ['sm', '', 'lg', 'xl'].map(s => '<span style="text-align:center">' + svgFor(n, s) + '</span>').join('')).join('');
+}
+
+/* ---- contexts ---- */
+$('#toggles').addEventListener('click', e => { const b = e.target.closest('button'); if (b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); });
+ME.toolbar($('#tb'));
+$('#tb').addEventListener('click', e => { const b = e.target.closest('button[aria-pressed]'); if (b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); });
+let tbN = 0; const tbIcons = ['link', 'download', 'upload', 'refresh', 'save', 'bell'];
+$('#add-tb').addEventListener('click', () => { const n = tbIcons[tbN++ % tbIcons.length], b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', n[0].toUpperCase() + n.slice(1)); b.innerHTML = ME.icon(n); $('#tb').append(b); ME.toolbar($('#tb')); scan(); });
+$('#f1x').addEventListener('click', () => { $('#f1').value = ''; $('#f1').focus(); });
+$('#f2e').addEventListener('click', e => { const b = e.currentTarget, on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); b.setAttribute('aria-label', on ? 'Hide password' : 'Show password'); b.firstElementChild.firstElementChild.setAttribute('href', on ? '#i-eye' : '#i-eye'); $('#f2').type = on ? 'text' : 'password'; });
+ME.split($('#sp'));
+(function tabs() { const t = $$('#tabs [role=tab]'); t.forEach((b, i) => { b.addEventListener('click', () => t.forEach(x => { x.setAttribute('aria-selected', x === b); x.tabIndex = x === b ? 0 : -1; })); b.addEventListener('keydown', e => { const k = { ArrowRight: i + 1, ArrowLeft: i - 1 }[e.key]; if (k === undefined) return; e.preventDefault(); const n = t[(k + t.length) % t.length]; n.focus(); n.click(); }); }); })();
+
+/* ---- hit-area inspector ---- */
+const iconOnly = () => $$('button, a[href]').filter(e => e.children.length === 1 && e.firstElementChild.classList.contains('me-ico') && !e.textContent.trim() && e.offsetParent);
+function nameOf(e) { return e.getAttribute('aria-label') || ''; }
+function scan() {
+  const list = iconOnly(), touch = matchMedia('(pointer: coarse)').matches;
+  $('#hit-env').textContent = 'Pointer: ' + (touch ? 'coarse (touch rules apply)' : 'fine (mouse); open on a phone or emulate touch to see the 44px floor') + ' · density: ' + (document.body.dataset.density || 'default');
+  let bad = 0;
+  $('#hit-t tbody').innerHTML = list.map(e => {
+    const r = e.getBoundingClientRect(), w = Math.round(r.width * 10) / 10, h = Math.round(r.height * 10) / 10; e.dataset.size = w + '×' + h;
+    const ok24 = w >= 24 && h >= 24, ok44 = w >= 43.5 && h >= 43.5, named = !!nameOf(e), fail = !ok24 || !named || (touch && !ok44); if (fail) bad++;
+    const label = nameOf(e) || '(no name)';
+    return '<tr><td>' + label.replace(/</g, '&lt;') + '</td><td>' + w + ' × ' + h + '</td><td class="' + (ok24 ? 'ok' : 'bad') + '">' + (ok24 ? 'pass' : 'FAIL') + '</td><td class="' + (ok44 ? 'ok' : (touch ? 'bad' : '')) + '">' + (ok44 ? 'pass' : (touch ? 'FAIL' : 'n/a on mouse')) + '</td><td class="' + (named ? 'ok' : 'bad') + '">' + (named ? 'named' : 'MISSING') + '</td></tr>';
+  }).join('');
+  const s = $('#hit-sum'); s.textContent = list.length + ' icon-only controls · ' + (bad ? bad + ' failing' : 'all pass'); s.dataset.signal = bad ? 'err' : 'ok';
+}
+$('#rescan').addEventListener('click', scan);
+$('#show-hits').addEventListener('change', e => { document.body.classList.toggle('show-hits', e.target.checked); scan(); });
+
+/* ---- contrast ---- */
+const parse = c => { c = c.trim(); let m; if ((m = /^#([0-9a-f]{6})$/i.exec(c))) return [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16)).concat(1); if ((m = /^rgba?\(([^)]+)\)$/.exec(c))) { const p = m[1].split(',').map(parseFloat); return [p[0], p[1], p[2], p[3] ?? 1]; } return null; };
+const L = ([r, g, b]) => { const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }; return .2126 * f(r) + .7152 * f(g) + .0722 * f(b); };
+const ratio = (a, b) => { const [x, y] = [L(a), L(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); };
+function contrast() {
+  const cs = getComputedStyle(document.body), v = n => parse(cs.getPropertyValue(n));
+  const surfaces = [['canvas', '--color-canvas'], ['panel', '--color-panel'], ['surface', '--color-surface'], ['overlay', '--color-overlay']];
+  const ink = [['muted (rest)', '--color-text-muted'], ['primary', '--color-text-primary'], ['dim', '--color-text-dim'], ['accent', '--accent'], ['ok', '--ok-text'], ['warn', '--warn-text'], ['err', '--err-text'], ['info', '--info-text']];
+  $('#con-t').innerHTML = '<thead><tr><th>Stroke colour</th>' + surfaces.map(s => '<th>on ' + s[0] + '</th>').join('') + '</tr></thead><tbody>' +
+    ink.map(i => '<tr><td><span class="swatch" style="color:' + cs.getPropertyValue(i[1]) + '">' + svgFor('leaf') + '</span> ' + i[0] + '</td>' + surfaces.map(s => { const r = ratio(v(i[1]), v(s[1])); return '<td class="' + (r >= 3 ? 'ok' : 'bad') + '">' + r.toFixed(2) + ':1 ' + (r >= 3 ? '' : '✕') + '</td>'; }).join('') + '</tr>').join('') + '</tbody>';
+}
+
+drawSet(); drawLadder(); renderPg(); contrast(); scan();
+addEventListener('resize', scan);
+</script>
+</body>
+</html>
