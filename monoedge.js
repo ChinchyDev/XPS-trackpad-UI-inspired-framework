@@ -10,6 +10,7 @@
      ME.tree(root, nodes, opts)       tree view
      ME.toolbar(el)                   roving-tabindex toolbar
      ME.wizard(root, opts)            stepper / wizard
+     ME.icon(name, size)              <svg> markup for a sprite icon
      ME.split(el, opts)               split footer with a neutral state (click the chosen side again, or Esc, to undo)
    ========================================================================== */
 (() => {
@@ -22,6 +23,8 @@ function el(tag, attrs = {}, ...kids) {
   for (const [k, v] of Object.entries(attrs)) { if (v === false || v == null) continue; if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else e.setAttribute(k, v === true ? '' : v); }
   e.append(...kids); return e;
 }
+/* icon markup from the sprite (load monoedge-icons.js first). size: 'sm' | 'lg' | 'xl' */
+const icon = (name, size) => `<svg class="me-ico${size ? ' me-ico--' + size : ''}" aria-hidden="true" focusable="false"><use href="#i-${name}"/></svg>`;
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fire = (t, name, detail) => t.dispatchEvent(new CustomEvent(name, { bubbles: true, detail }));
 const fireNative = (t, name) => t.dispatchEvent(new Event(name, { bubbles: true }));
@@ -280,7 +283,6 @@ function parseDate(s) {
   const d = new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0));
   return d.getMonth() === +m[2] - 1 && d.getDate() === +m[3] ? d : null;
 }
-const CAL_ICON = '<svg class="me-ico" aria-hidden="true" viewBox="0 0 16 16"><path d="M2 3h12v11H2z"/><path d="M2 6.5h12" style="stroke:var(--ico-l,currentColor)"/><path d="M5 1v3M11 1v3"/></svg>';
 
 function datepicker(input, o = {}) {
   const anchor = input.closest('.me-anchor'), withTime = o.time ?? input.hasAttribute('data-time'), ws = o.weekStart ?? 1, step = o.minuteStep || 5;
@@ -288,12 +290,12 @@ function datepicker(input, o = {}) {
   const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
   const clamp = d => min && d < min ? new Date(min) : max && d > max ? new Date(max) : d;
   const trigger = el('button', { type: 'button', class: 'me-affix', 'aria-label': o.triggerLabel || 'Choose date', 'aria-haspopup': 'dialog', 'aria-expanded': 'false' });
-  trigger.innerHTML = CAL_ICON; anchor.append(trigger);
+  trigger.innerHTML = icon('calendar'); anchor.append(trigger);
   const tid = nid('me-cal');
   const pop = el('div', { class: 'me-pop me-cal', popover: 'manual', role: 'dialog', 'aria-label': 'Choose date' });
   const title = el('span', { class: 'me-cal-title', id: tid, 'aria-live': 'polite' });
-  const prev = el('button', { type: 'button', class: 'me-cal-nav', 'aria-label': 'Previous month', text: '‹' });
-  const next = el('button', { type: 'button', class: 'me-cal-nav', 'aria-label': 'Next month', text: '›' });
+  const prev = el('button', { type: 'button', class: 'me-cal-nav', 'aria-label': 'Previous month' }); prev.innerHTML = icon('chevron-left');
+  const next = el('button', { type: 'button', class: 'me-cal-nav', 'aria-label': 'Next month' }); next.innerHTML = icon('chevron-right');
   const grid = el('table', { class: 'me-cal-grid', role: 'grid', 'aria-labelledby': tid });
   const todayB = el('button', { type: 'button', class: 'me-cal-act', text: 'Today' }), clearB = el('button', { type: 'button', class: 'me-cal-act', text: 'Clear' });
   const foot = el('div', { class: 'me-cal-foot' }, todayB, clearB);
@@ -392,7 +394,7 @@ function upload(root, o = {}) {
   function sync() { try { const dt = new DataTransfer(); files.forEach(f => dt.items.add(f)); input.files = dt.files; } catch (_) { } }
   function draw() {
     list.replaceChildren(...files.map(f => {
-      const b = el('button', { type: 'button', 'aria-label': `Remove ${f.name}`, text: '✕' });
+      const b = el('button', { type: 'button', 'aria-label': `Remove ${f.name}` }); b.innerHTML = icon('close');
       b.addEventListener('click', () => { if (f.url) URL.revokeObjectURL(f.url); files = files.filter(x => x !== f); sync(); draw(); input.focus(); fire(root, 'me-files', files); });
       return el('li', { class: 'me-file' }, f.url ? el('img', { class: 'me-thumb', src: f.url, alt: '' }) : null, el('span', { class: 'me-file-name', text: f.name }), el('span', { class: 'me-file-size', text: bytes(f.size) }), b);
     }));
@@ -498,6 +500,6 @@ function init() {
   $$('.me-tabs, .me-rail').forEach(tabsOverflow);
   $$('.me-toolbar').forEach(toolbar);
 }
-window.ME = { chart, fmt, combobox, datepicker, palette, upload, tabsOverflow, tree, toolbar, wizard, split, init };
+window.ME = { icon, chart, fmt, combobox, datepicker, palette, upload, tabsOverflow, tree, toolbar, wizard, split, init };
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

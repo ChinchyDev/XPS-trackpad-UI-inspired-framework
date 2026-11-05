@@ -35,12 +35,13 @@ Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 - [x] Removed legacy `me-scan`; the busy split button now orbits like a busy button (rule 7); `tests/animations.json` in sync
 - Follow-up: the horizontal-rail rules now exist in three copies (data-axis, two container blocks). A build step (1D) should generate them from one source
 
-### 1C. Icons
-- [ ] Draw the full ~40-icon set (9 exist in garden.html: overview, beds, irrigation, tasks, users, collapse, settings, docs, help). Spec: 16px grid, 1.25 stroke, square caps, mitre joins, no circles, one segment lit via `--ico-l`
-- [ ] Move the sprite out of garden.html into its own file
-- [ ] Icon-button sizing and hit-area rules
-- [ ] scroll bar needs a redesign, suggest ways of changing it
-
+### 1C. Icons (done; tests in `tests/icons.spec.js`)
+- [x] 46 icons drawn (the 9 + telemetry + components, plus 35 new): navigation, actions, direction, status, time / weather / garden. 16px grid, 1.25 stroke, square caps, mitre joins, straight segments only (no circles, arcs or curves), exactly one lit segment each via `--ico-l`
+- [x] Sprite moved out of garden.html: `icons/sprite.svg` is the source of truth; `npm run build:icons` generates `monoedge-icons.js`, which injects it (external `<use>` is blocked on file://). A test fails if the generated file is stale
+- [x] Icon-button sizing: `.me-ico--sm / --lg / --xl` (12 / 20 / 24); any icon-only button is at least 24px (WCAG 2.5.8), 44px on touch, and must have an `aria-label` (tests sweep the whole garden)
+- [x] `ME.icon(name, size)` for JS-built UI; calendar trigger, month arrows, upload remove, dialog close and pager now use the sprite
+- [x] Icon gallery in the Components view (hover lights the segment)
+- Follow-ups: hand-check the 1.25 stroke on a 16px grid for blur on a 1x display; more icons as components need them (home, image, star, logout, map); `link` and `refresh` could be revisited; the lit segment has no static (non-hover) use yet, e.g. an "active" tint
 
 ### 1D. Delivery (do after 1A so the API is settled)
 - [ ] Tokens as W3C DTCG JSON, built with Style Dictionary to CSS / Tailwind / JS (one source of truth)

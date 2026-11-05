@@ -587,6 +587,11 @@ dialog[data-scrim="none"]::backdrop  { background: transparent; backdrop-filter:
 .me-side-set > .me-label { padding-left: 2px; }
 /* icons: 16px grid, 1.25 stroke, square caps, mitred joins, no circles. One segment (stroke:var(--ico-l)) lights with the item. */
 .me-ico { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: square; stroke-linejoin: miter; }
+.me-ico--sm { width: 12px; height: 12px; } .me-ico--lg { width: 20px; height: 20px; } .me-ico--xl { width: 24px; height: 24px; }   /* the stroke scales with the icon (it lives in the 16-unit viewBox) */
+/* Icon-only controls: the glyph is small, the target is not. At least 24px (WCAG 2.5.8), 44px on touch. They must carry an aria-label. */
+.me :where(button, a):where(:has(> .me-ico:only-child)) { min-width: 24px; min-height: 24px; }   /* :where keeps this a floor, never an override */
+.me .me-btn--icon { display: inline-grid; place-items: center; min-width: 24px; min-height: var(--control-h); }
+@media (pointer: coarse) { .me :where(button, a):where(:has(> .me-ico:only-child)), .me .me-btn--icon { min-width: 44px; min-height: 44px; } }
 .me-rail > button:is(:hover, :focus-visible, [aria-current="page"], [aria-selected="true"]) { --ico-l: var(--sig); }
 .me-side .me-rail > button { justify-content: flex-start; }
 .me-side .me-rail > button > .me-side-txt { flex: 1; min-width: 0; text-align: left; }
