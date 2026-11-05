@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>monoedge starter</title>
+  <link rel="stylesheet" href="../monoedge.css">
+  <style>
+    /* Page-level layout only. Un-layered CSS beats the framework, so keep it to layout; use tokens for any colour. */
+    body { margin: 0; }
+    main { max-width: 960px; margin: 0 auto; padding: var(--space-8) var(--space-6); }
+    .head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-4); flex-wrap: wrap; }
+  </style>
+</head>
+<body class="me">
+<script src="../monoedge-icons.js"></script>
+
+<main class="me-stack" style="gap:24px">
+  <div class="head">
+    <div><div class="me-title">Starter</div><span class="me-dim">A page that already follows the monoedge rules. Copy it.</span></div>
+    <div class="me-row">
+      <div class="me-segmented" id="theme" role="group" aria-label="Theme"><button aria-pressed="true" data-v="dark">Dark</button><button aria-pressed="false" data-v="light">Light</button></div>
+      <button class="me-btn me-btn--primary" id="open-dlg">Add item</button>
+    </div>
+  </div>
+
+  <div class="me-alert" data-signal="warn" role="alert"><span class="me-glyph">!</span><div><div class="me-alert-title">Heads up</div>Alerts light their whole perimeter; severity is colour plus glyph.</div></div>
+
+  <div class="me-grid" style="--cell-min:200px">
+    <div class="me-stat"><span class="me-label">Active</span><span class="me-stat-value">24</span><span class="me-delta me-dim">across 4 groups</span></div>
+    <div class="me-stat" data-signal="warn"><span class="me-label">Moisture</span><span class="me-stat-value me-sig">41%</span><span class="me-delta">▼ 6 pts since Mon</span></div>
+    <div class="me-stat" data-signal="ok"><span class="me-label">Ready</span><span class="me-stat-value me-sig">7</span><span class="me-delta me-dim">within 14 days</span></div>
+  </div>
+
+  <div class="me-panel" style="padding:24px">
+    <div class="me-label" style="margin-bottom:16px">Visits per day</div>
+    <me-chart id="chart" values="[3,5,4,7,6,9,8]" labels='["M","T","W","T","F","S","S"]' unit=" visits" axis table label="Visits per day"></me-chart>
+  </div>
+
+  <div class="me-panel" style="padding:24px">
+    <div class="me-label" style="margin-bottom:16px">Details</div>
+    <div class="me-stack" style="max-width:420px">
+      <div class="me-field" id="f-name"><label class="me-label" for="name">Name</label><div class="me-anchor"><input id="name" placeholder="e.g. North 2"></div><span class="me-hint">Shown on the list.</span><span class="me-error-msg">Enter a name to continue.</span></div>
+      <me-switch label="Notify me" name="notify" checked></me-switch>
+      <div class="me-row"><button class="me-btn" id="save">Save</button></div>
+    </div>
+  </div>
+
+  <div class="me-table-wrap" data-me-scroll>
+    <table class="me-table">
+      <thead><tr><th class="me-label" scope="col">Name</th><th class="me-label" scope="col">Status</th><th class="me-label num" scope="col">Moisture</th></tr></thead>
+      <tbody>
+        <tr><td>North 1</td><td><span class="me-badge me-badge--fill" data-signal="ok">Active</span></td><td class="num">62%</td></tr>
+        <tr><td>North 2</td><td><span class="me-badge me-badge--fill" data-signal="warn">Dry</span></td><td class="num">41%</td></tr>
+        <tr><td>Tunnel</td><td><span class="me-badge me-badge--fill" data-signal="err">Offline</span></td><td class="num">n/a</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<dialog class="me-modal me-lit" id="dlg" data-lit="t" aria-labelledby="dlg-h">
+  <div class="me-modal-head"><span class="me-title" id="dlg-h">Add item</span><button class="me-btn me-btn--ghost me-btn--icon" aria-label="Close" data-close><svg class="me-ico" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+  <div class="me-modal-body me-stack">
+    <me-date label="Due date" name="due" hint="Arrows move, PageUp and PageDown change month."></me-date>
+  </div>
+  <div class="me-split" id="sp"><button data-c="l" aria-pressed="false">Save</button><button data-c="r" aria-pressed="false">Cancel</button></div>
+</dialog>
+
+<script src="../monoedge.js"></script>
+<script src="../monoedge-elements.js"></script>
+<script>
+  const $ = s => document.querySelector(s);
+  $('#theme').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; document.documentElement.dataset.theme = b.dataset.v; for (const x of $('#theme').children) x.setAttribute('aria-pressed', x === b); });
+  const dlg = $('#dlg');
+  $('#open-dlg').addEventListener('click', () => dlg.showModal());
+  dlg.addEventListener('click', e => { if (e.target.closest('[data-close]')) dlg.close(); });
+  ME.split($('#sp'));
+  $('#sp').addEventListener('click', e => { if (e.target.closest('button')) dlg.close(); });
+  $('#save').addEventListener('click', () => { const bad = !$('#name').value.trim(); $('#f-name').toggleAttribute('data-signal', bad); if (bad) $('#f-name').dataset.signal = 'err'; $('#name').setAttribute('aria-invalid', bad); });
+</script>
+</body>
+</html>

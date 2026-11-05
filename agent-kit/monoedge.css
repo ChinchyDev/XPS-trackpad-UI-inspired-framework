@@ -1,0 +1,799 @@
+/* ==========================================================================
+   MONOLITHIC EDGE-LIT UI FRAMEWORK  v1.1   (monoedge.css)
+   Rule zero: nothing is round. Max radius 2px. Light is structure.
+   ========================================================================== */
+
+/* ---------- 0. CASCADE LAYERS -------------------------------------------
+   Order (lowest to highest priority):  reset < tokens < base < components < utilities.
+   Un-layered CSS (a page's own \3c style>) always beats every layer, so an app can override anything without raising specificity.
+   Exception by design: !important inside layers inverts the order, so the reduced-motion rule lives in `reset` (it wins over every other !important). */
+@layer reset, tokens, base, components, utilities;
+
+@import url("fonts/fonts.css");   /* self-hosted: works offline */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap");   /* online mode: declared last so it takes priority; if it cannot load, the local faces above are used */
+@import url("dist/tokens.css") layer(tokens);   /* generated: see scripts/build-tokens.js */
+@import url("dist/fallback.css");               /* generated: color-mix() fallback for older Safari / Firefox, see scripts/build-fallback.js */
+
+@property --me-a { syntax: "<angle>"; inherits: false; initial-value: -40deg; }
+
+@layer reset {
+  .me, .me *, .me *::before, .me *::after { box-sizing: border-box; }
+  .me :where(h1,h2,h3,h4,p,ul,ol,figure){ margin: 0; padding: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .me *, .me *::before, .me *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  }
+}
+
+@layer tokens {
+  /* ---------- 1. TOKENS ---------------------------------------------------
+     Primitives (colours, radius, space, type, z-index, motion) are GENERATED into dist/tokens.css from tokens/*.tokens.json (W3C DTCG) and imported
+     into this layer at the top of the file. Edit the JSON, run `npm run build:tokens`. What stays here is behaviour built on the tokens. */
+  /* Single source of truth for emission: every state just sets --sig (signal) */
+  :root {
+    --sig: var(--accent);
+    --sig-text: var(--accent-text);
+    --sig-rgb: var(--accent-rgb);   /* channel triplet: feeds the color-mix() fallback (dist/fallback.css) */
+  }
+  /* Direction: logical properties flip by themselves; --dir flips the few things that cannot (shadow offsets, translations, gradient angles). */
+  :root { --dir: 1; }
+  :is([dir="rtl"], :dir(rtl)) { --dir: -1; }
+  [data-density="compact"] { --control-h: 28px; }
+  [data-density="roomy"]   { --control-h: 44px; }
+  @media (pointer: coarse) { :root, [data-density] { --control-h: 44px; } }  /* touch: 44px floor (a var() referencing itself is invalid, so set the value outright) */
+
+  /* signal scopes: set one attribute, whole component re-colours */
+  [data-signal="ok"]   { --sig: var(--ok);   --sig-text: var(--ok-text); --sig-rgb: var(--ok-rgb); }
+  [data-signal="warn"] { --sig: var(--warn); --sig-text: var(--warn-text); --sig-rgb: var(--warn-rgb); }
+  [data-signal="err"]  { --sig: var(--err);  --sig-text: var(--err-text); --sig-rgb: var(--err-rgb); }
+  [data-signal="info"] { --sig: var(--info); --sig-text: var(--info-text); --sig-rgb: var(--info-rgb); }
+
+  /* Derived emission (computed from --sig so any signal colour works in both themes) */
+  :root, [data-signal] {
+    --sig-fill: radial-gradient(ellipse at top, color-mix(in srgb, var(--sig) calc(25% - 17% * (1 - var(--glow-strength))), transparent) 0%, transparent 72%);
+    --sig-shadow: 0 0 calc(12px * var(--glow-strength)) color-mix(in srgb, var(--sig) 45%, transparent),
+                  0 1px 3px color-mix(in srgb, var(--sig) calc(20% * (1 - var(--glow-strength))), transparent);
+    --sig-tick-shadow: 0 0 calc(8px * var(--glow-strength)) color-mix(in srgb, var(--sig) 60%, transparent);
+  }
+  @media (prefers-contrast: more) {
+    :root, [data-theme="dark"] { --stroke-divider: rgba(255,255,255,.4); --stroke-divider-hover: rgba(255,255,255,.7); --tick-idle: rgba(255,255,255,.8); --stroke-control: rgba(255,255,255,.8); }
+    [data-theme="light"] { --stroke-divider: rgba(0,0,0,.5); --stroke-divider-hover: rgba(0,0,0,.8); --tick-idle: rgba(0,0,0,.85); --stroke-control: rgba(0,0,0,.85); }
+  }
+}
+
+@layer base {
+  /* ---------- 2. BASE ------------------------------------------------------ */
+  .me { font: 12px/18px var(--font-ui); letter-spacing: .02em; color: var(--color-text-primary);
+        background: var(--color-canvas); -webkit-font-smoothing: antialiased; }
+  .me :where(button, input, select, textarea) { font: inherit; letter-spacing: inherit; color: inherit; }
+  .me-label { font-size: 10px; line-height: 14px; letter-spacing: .15em; text-transform: uppercase; color: var(--color-text-muted); }
+  .me-title { font: 600 17px/22px var(--font-display); letter-spacing: .14em; text-transform: uppercase; }
+
+
+  /* Global keyboard focus: spec 4.1(3). Offset collapses to 0 inside tight rows. */
+  .me :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 1px solid var(--accent); outline-offset: 3px;
+  }
+  .me :where(.me-tab, .me-tabs > button, .me-table button, .me-menu-item, .me-split button, .me-list > button, .me-rail > button, .me-pager button, .me-segmented > button):focus-visible { outline-offset: -3px; }
+  /* Disabled: dim + kill emission (glow off) but keep structure visible so the control is still discoverable */
+  .me [disabled], .me [aria-disabled="true"] { opacity: .4; pointer-events: none; cursor: not-allowed; filter: saturate(0); }
+  @media (forced-colors: active) { .me * { forced-color-adjust: auto; } .me :focus-visible { outline: 2px solid Highlight; } }
+}
+
+@layer components {
+  /* ---------- 3. GRID (hairline layout, wrap-safe) -------------------------- */
+  /* Each cell draws its own LEFT and TOP hairline (inset); the container draws the RIGHT and BOTTOM edge.
+     Correct at any wrap width, and unused cells stay clean (the old 1px-gap trick painted them gray). */
+  .me-grid { container: me-grid / inline-size; display: grid; gap: 0; background: var(--color-panel);
+             border: 1px solid var(--stroke-divider); border-width: 0 1px 1px 0; border-radius: var(--radius-micro);
+             grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--cell-min, 280px)), 1fr)); overflow: hidden; }
+  .me-grid > * { padding: var(--space-6); min-width: 0; box-shadow: inset calc(1px * var(--dir)) 0 0 var(--stroke-divider), inset 0 1px 0 var(--stroke-divider); }
+  .me-stack { display: flex; flex-direction: column; gap: var(--space-4); }
+  .me-row   { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+  .me-panel { background: var(--color-panel); border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); }
+  .me-rule  { height: 1px; background: var(--stroke-divider); border: 0; margin: 0; }
+
+  /* ---------- 4. BUTTONS (flush, top light-bar) ----------------------------- */
+  .me-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    min-height: var(--control-h); padding: 0 var(--space-4); cursor: pointer; text-transform: uppercase;
+    font-size: 11px; letter-spacing: .1em; font-weight: 600;
+    background: var(--color-surface); border: 1px solid var(--stroke-control); border-radius: var(--radius-soft);
+    color: var(--color-text-muted); transition: color var(--dur), border-color var(--dur), background var(--dur); }
+  .me-btn::before { content: ""; position: absolute; inset-inline-start: -1px; inset-inline-end: -1px; top: -1px; height: 2px;
+    background: var(--sig); box-shadow: var(--sig-shadow); opacity: 0; transition: opacity var(--dur) var(--ease); pointer-events: none; }
+  .me-btn:hover { color: var(--color-text-primary); border-color: var(--stroke-divider-hover); }
+  .me-btn:hover::before { opacity: .5; }
+  .me-btn:active, .me-btn[aria-pressed="true"] { color: var(--color-text-primary); background: var(--sig-fill), var(--color-surface); }
+  .me-btn:active::before, .me-btn[aria-pressed="true"]::before { opacity: 1; }
+  .me-btn--primary { color: var(--color-text-primary); border-color: var(--sig); background: var(--sig-fill), var(--color-surface); }
+  .me-btn--primary::before { opacity: 1; }
+  .me-btn--ghost { background: transparent; border-color: var(--stroke-divider); }
+  .me-btn--danger { --sig: var(--err); --sig-text: var(--err-text); }
+  .me-btn--icon { width: var(--control-h); padding: 0; }
+  /* loading: the edge light orbits the perimeter, starting top-left and travelling anticlockwise */
+  .me-btn[aria-busy="true"] { pointer-events: none; color: var(--color-text-dim); }
+  .me-btn[aria-busy="true"]::before { inset: -1px; height: auto; padding: 2px; border-radius: inherit; opacity: 1; box-shadow: none;
+    background: conic-gradient(from var(--me-a), var(--sig) 0deg, color-mix(in srgb, var(--sig) 35%, transparent) 40deg, transparent 95deg, transparent 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+    filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); animation: me-orbit 1.5s linear infinite; }
+  @keyframes me-orbit { from { --me-a: -40deg } to { --me-a: -400deg } }
+  /* opposing actions: only the HOT one wears the full perimeter. Click moves the heat to the clicked one.
+     <div class="me-pair"><button class="me-btn" data-hot>..</button><button class="me-btn">..</button></div> */
+  .me-pair { display: inline-flex; gap: var(--space-3); flex-wrap: wrap; }
+  .me-pair > .me-btn[data-hot] { color: var(--color-text-primary); border-color: var(--sig); background: var(--sig-fill), var(--color-surface); }
+  .me-pair > .me-btn[data-hot]::before { opacity: 1; }
+  .me-btn-group { display: inline-flex; } .me-btn-group > .me-btn + .me-btn { margin-inline-start: -1px; border-radius: 0; }
+  .me-btn-group > .me-btn:first-child { border-start-start-radius: var(--radius-soft); border-start-end-radius: 0; border-end-end-radius: 0; border-end-start-radius: var(--radius-soft); }
+  .me-btn-group > .me-btn:last-child  { border-start-start-radius: 0; border-start-end-radius: var(--radius-soft); border-end-end-radius: var(--radius-soft); border-end-start-radius: 0; }
+
+  /* ---------- 5. FIELDS (XPS boundary ticks) -------------------------------- */
+  .me-field { display: flex; flex-direction: column; gap: var(--space-2); }
+  .me-field > label, .me-field > .me-label { display: flex; justify-content: space-between; }
+  .me-hint  { font-size: 11px; line-height: 16px; color: var(--color-text-dim); }
+  .me-error-msg { font-size: 11px; line-height: 16px; color: var(--err-text); display: none; }
+  .me-error-msg::before { content: "\2715  "; }                 /* not colour-only: glyph + text */
+  .me-field[data-signal="err"] .me-error-msg { display: block; }
+  .me-field[data-signal="err"] .me-hint { display: none; }
+
+  .me-anchor { position: relative; display: flex; align-items: center; min-height: var(--control-h); padding: 0 var(--space-4);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-text-muted) 3%, transparent), color-mix(in srgb, var(--color-text-muted) 11%, transparent));
+    border-radius: var(--radius-micro); }
+  .me-anchor::before, .me-anchor::after { content: ""; position: absolute; top: 10%; bottom: 10%; width: 1px;
+    background: linear-gradient(180deg, transparent, var(--tick-idle) 16%, var(--tick-idle) 84%, transparent);
+    transition: all var(--dur) var(--ease); pointer-events: none; }
+  .me-anchor::before { inset-inline-start: 0 } .me-anchor::after { inset-inline-end: 0 }
+  .me-anchor:hover::before, .me-anchor:hover::after { top: 4%; bottom: 4%; }
+  .me-anchor:focus-within::before, .me-anchor:focus-within::after { width: 2px; }
+  .me-anchor:focus-within::before, .me-anchor:focus-within::after,
+  [data-signal="err"] .me-anchor::before, [data-signal="err"] .me-anchor::after,
+  .me-anchor[data-signal]::before, .me-anchor[data-signal]::after { top: 0; bottom: 0; background: linear-gradient(180deg, transparent, var(--sig) 30%, var(--sig) 70%, transparent);
+    filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); }
+  /* second cue (WCAG 2.4.13): the side ticks AND a 2px bar on the top and bottom edge, in the signal colour, so the lit area is at least the 2px perimeter */
+  .me-anchor:focus-within { box-shadow: inset 0 2px 0 var(--sig), inset 0 -2px 0 var(--sig); }
+  .me-anchor:has(:disabled)::before, .me-anchor:has(:disabled)::after { background: var(--stroke-divider); box-shadow: none; }
+  /* error bottom hint-line so error also reads w/o colour */
+  [data-signal="err"] .me-anchor { box-shadow: inset 0 -1px 0 var(--sig); }
+  .me-anchor > :where(input, select, textarea):focus-visible { outline: 0; }
+  @media (forced-colors: active) { .me-anchor:focus-within { outline: 2px solid Highlight; } }
+  .me-anchor > :where(input, select, textarea) { width: 100%; min-width: 0; background: transparent; border: 0; outline: 0; padding: 0; }
+  .me-anchor :where(input, textarea)::placeholder { color: var(--color-text-dim); opacity: 1; }
+  .me-anchor > textarea { padding: var(--space-3) 0; min-height: 88px; resize: vertical; }
+  .me-anchor:has(> textarea) { align-items: stretch; }
+  .me-anchor > :where(.me-affix) { color: var(--color-text-dim); white-space: nowrap; padding-inline-end: var(--space-2); }
+  .me-anchor > .me-affix:last-child { padding: 0 0 0 var(--space-2); }
+  /* inline action inside a field (show/hide password, clear, copy) */
+  .me-anchor > button.me-affix { align-self: stretch; padding: 0 0 0 var(--space-3); background: transparent; border: 0; cursor: pointer; text-transform: uppercase; font-size: 10px; letter-spacing: .12em; color: var(--color-text-muted); }
+  .me-anchor > button.me-affix:hover { color: var(--color-text-primary); }
+  .me-anchor > button.me-affix:focus-visible { outline-offset: -3px; }
+  /* select */
+  .me-anchor > select { appearance: none; cursor: pointer; padding-inline-end: 20px; color-scheme: inherit; }
+  /* the open list is drawn by the browser from the option's own colours: set them explicitly (default text was black on dark) */
+  .me-anchor > select option, .me-anchor > select optgroup { background: var(--color-overlay); color: var(--color-text-primary); }
+  .me-anchor:has(> select)::after { inset-inline-end: 0 }
+  .me-select-caret { position: absolute; inset-inline-end: var(--space-4); top: 50%; width: 6px; height: 6px; pointer-events: none;
+    border-inline-end: 1px solid var(--color-text-muted); border-bottom: 1px solid var(--color-text-muted); transform: translateY(-70%) rotate(45deg); }
+  /* number stepper (hairline +/-) */
+  .me-stepper { display: flex; align-items: center; gap: 0; }
+  .me-stepper button { width: var(--control-h); min-height: var(--control-h); background: transparent; border: 0; border-inline-start: 1px solid var(--stroke-divider); cursor: pointer; color: var(--color-text-muted); }
+  .me-stepper button:hover { color: var(--color-text-primary); background: var(--sig-fill); }
+
+  /* ---------- 6. SELECTION CONTROLS ---------------------------------------- */
+  /* label wrapper gives a >=44px touch row on coarse pointers */
+  .me-choice { display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; min-height: max(24px, calc(var(--control-h) - 8px)); }
+  /* Checkbox / radio are deliberately plain: tick or dot, no light. The only colour is the tick/dot itself. */
+  .me-check, .me-radio { position: relative; flex: none; width: 14px; height: 14px; margin: 0; appearance: none; cursor: pointer;
+    background: transparent; border: 1px solid var(--stroke-control); border-radius: var(--radius-micro); transition: border-color var(--dur), background var(--dur); }
+  .me-choice:hover :where(.me-check,.me-radio) { border-color: var(--color-text-muted); }
+  .me-check:checked, .me-radio:checked, .me-check:indeterminate { border-color: var(--accent); }
+  .me-check:checked::after { content: ""; position: absolute; inset-inline-start: 3px; top: 0; width: 4px; height: 8px; border: solid var(--accent); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  .me-radio:checked::after { content: ""; position: absolute; inset: 3px; background: var(--accent); }                /* square dot: still no circles */
+  .me-check:indeterminate::after { content: ""; position: absolute; inset-inline-start: 3px; inset-inline-end: 3px; top: 50%; height: 2px; margin-top: -1px; background: var(--accent); }
+  .me-check[data-signal="err"], .me-radio[data-signal="err"] { border-color: var(--err); }
+  .me-check:disabled + *, .me-radio:disabled + * { opacity: .4; }
+
+  /* Switch: when ON the thumb's light trails back across the track and fades out, so the set colour is visible at a glance */
+  .me-switch { position: relative; flex: none; width: 36px; height: 18px; padding: 0; cursor: pointer;
+    background: transparent; border: 1px solid var(--stroke-control); border-radius: var(--radius-micro); transition: background var(--dur), border-color var(--dur); }
+  .me-switch::after { content: ""; position: absolute; top: 2px; bottom: 2px; inset-inline-start: 2px; width: 3px; background: var(--color-text-muted);
+    transition: transform var(--dur) var(--ease), background var(--dur); }
+  .me-switch[aria-checked="true"] { border-color: var(--sig);
+    background: linear-gradient(calc(90deg * var(--dir)), transparent 0%, color-mix(in srgb, var(--sig) calc(14% + var(--wash) * 3%), transparent) 100%); }   /* dark ~32%, light ~53% so it still reads without glow */
+  .me-switch[aria-checked="true"]::after { transform: translateX(calc(26px * var(--dir))); background: var(--sig); box-shadow: var(--sig-shadow); }
+  .me-switch:hover { border-color: var(--color-text-muted); }
+  .me-switch[aria-checked="true"]:hover { border-color: var(--sig); }
+
+  .me-segmented { display: inline-flex; border: 1px solid var(--stroke-control); border-radius: var(--radius-soft); }
+  .me-segmented > button { position: relative; min-height: calc(var(--control-h) - 2px); padding: 0 var(--space-4); background: transparent; border: 0; cursor: pointer;
+    color: var(--color-text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: .1em; }
+  .me-segmented > button + button { border-inline-start: 1px solid var(--stroke-divider); }
+  .me-segmented > button[aria-pressed="true"] { color: var(--color-text-primary); background: var(--sig-fill); box-shadow: inset 0 2px 0 var(--sig); }
+
+  .me-slider { appearance: none; width: 100%; height: 20px; margin: 0; background: transparent; cursor: pointer; --pct: 50%; }
+  .me-slider::-webkit-slider-runnable-track { height: 1px; background: linear-gradient(calc(90deg * var(--dir)), var(--sig) var(--pct), var(--stroke-control) var(--pct)); }
+  .me-slider::-moz-range-track { height: 1px; background: var(--stroke-control); }
+  .me-slider::-moz-range-progress { height: 1px; background: var(--sig); }
+  .me-slider::-webkit-slider-thumb { appearance: none; width: 2px; height: 18px; margin-top: -8.5px; background: var(--color-text-primary); border: 0; border-radius: 0; box-shadow: 0 -2px 6px color-mix(in srgb, var(--color-text-primary) calc(60% * var(--glow-strength)), transparent); }
+  .me-slider::-moz-range-thumb { width: 2px; height: 18px; background: var(--color-text-primary); border: 0; border-radius: 0; }
+  .me-slider:hover::-webkit-slider-thumb, .me-slider:focus-visible::-webkit-slider-thumb { background: var(--sig); box-shadow: var(--sig-shadow); }
+  .me-slider:focus-visible::-moz-range-thumb { background: var(--sig); }
+  .me-slider:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+  .me-slider:disabled { opacity: .4; }
+
+  /* ---------- 7. NAVIGATION ------------------------------------------------ */
+  /* ---- GROUP PANEL: related items share ONE framed panel (tabs = horizontal, .me-rail = vertical).
+     Rules: (1) dividers between items are DETACHED, they never touch the frame, and are visible even unlit;
+            (2) the selected item's leading edge (top for tabs, left for rails) is the light SOURCE;
+            (3) outer frame edges are attached, so their light is the source spilling round and FADING away from it;
+            (4) a divider is detached, so it becomes its own source: a centred bar that fades at both ends;
+            (5) no panel exists where there are no items: the space around a group is just canvas.            */
+  .me-tabs, .me-rail { --gi-frame: var(--stroke-divider-hover); display: flex; background: var(--color-surface); border-radius: var(--radius-soft); box-shadow: inset 0 0 0 1px var(--gi-frame); }
+  .me-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .me-rail { flex-direction: column; }
+  .me-side { container: me-side / inline-size; }          /* rails lie on their side when the side bar is wide (a top strip on phones)... */
+  .me-side-foot { container: me-foot / inline-size; }      /* ...and the footer icon group lies on its side whenever it has room (expanded, not the 64px rail) */
+  .me-rail[data-axis="x"] { flex-direction: row; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+
+  /* -- horizontal items (tabs, or a rail laid on its side) -- */
+  :is(.me-tabs, .me-rail[data-axis="x"]) > button { --gi-l: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) calc(50% - 50% * var(--dir)) 50% / 2px 58% no-repeat;
+    --gi-r: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) calc(50% + 50% * var(--dir)) 50% / 2px 58% no-repeat; }
+  :is(.me-tabs, .me-rail[data-axis="x"]) > button:first-child { --gi-l: linear-gradient(180deg, var(--sig), transparent 88%) calc(50% - 50% * var(--dir)) 0 / 2px 100% no-repeat; }
+  :is(.me-tabs, .me-rail[data-axis="x"]) > button:last-child  { --gi-r: linear-gradient(180deg, var(--sig), transparent 88%) calc(50% + 50% * var(--dir)) 0 / 2px 100% no-repeat; }
+  :is(.me-tabs, .me-rail[data-axis="x"]) > button { --gi-src: linear-gradient(calc(90deg * var(--dir)), transparent, var(--sig) 16%, var(--sig) 84%, transparent) 0 0 / 100% 2px no-repeat; --gi-t: none; --gi-b: none; }
+  :is(.me-tabs, .me-rail[data-axis="x"]) > button::after { top: 24%; bottom: 24%; inset-inline-end: 0; inset-inline-start: auto; width: 1px; height: auto;
+    background: linear-gradient(180deg, transparent, var(--gi-frame) 30%, var(--gi-frame) 70%, transparent); }
+
+  /* -- vertical items (rail): the same rules turned 90 degrees -- */
+  .me-rail:not([data-axis="x"]) > button { --gi-t: linear-gradient(calc(90deg * var(--dir)), transparent, var(--sig) 28%, var(--sig) 72%, transparent) 50% 0 / 58% 2px no-repeat;
+    --gi-b: linear-gradient(calc(90deg * var(--dir)), transparent, var(--sig) 28%, var(--sig) 72%, transparent) 50% 100% / 58% 2px no-repeat;
+    --gi-src: linear-gradient(180deg, transparent, var(--sig) 16%, var(--sig) 84%, transparent) calc(50% - 50% * var(--dir)) 0 / 2px 100% no-repeat; --gi-l: none; --gi-r: none; }
+  .me-rail:not([data-axis="x"]) > button:first-child { --gi-t: linear-gradient(calc(90deg * var(--dir)), var(--sig), transparent 88%) 0 0 / 100% 2px no-repeat; }
+  .me-rail:not([data-axis="x"]) > button:last-child  { --gi-b: linear-gradient(calc(90deg * var(--dir)), var(--sig), transparent 88%) 0 100% / 100% 2px no-repeat; }
+  .me-rail:not([data-axis="x"]) > button::after { inset-inline-start: 22%; inset-inline-end: 22%; bottom: 0; top: auto; height: 1px; width: auto;
+    background: linear-gradient(calc(90deg * var(--dir)), transparent, var(--gi-frame) 30%, var(--gi-frame) 70%, transparent); }
+
+  :is(.me-tabs, .me-rail) > button { position: relative; flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); background: transparent; border: 0; border-radius: 0; cursor: pointer;
+    color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; transition: color var(--dur), background var(--dur); }
+  :is(.me-tabs, .me-rail) > button::after { content: ""; position: absolute; pointer-events: none; }                   /* unlit detached divider */
+  :is(.me-tabs, .me-rail) > button:last-child::after { display: none; }
+  :is(.me-tabs, .me-rail) > button::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; border-radius: inherit;
+    background: var(--gi-src), var(--gi-t), var(--gi-b), var(--gi-l), var(--gi-r);
+    filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--sig)) drop-shadow(0 calc(1px * (1 - var(--glow-strength))) 0 rgba(255,255,255,calc(.9 * (1 - var(--glow-strength)))));
+    transition: opacity var(--dur) var(--ease); }
+  :is(.me-tabs, .me-rail) > button:hover { color: var(--color-text-primary); }
+  :is(.me-tabs, .me-rail) > button:is(:hover, :focus-visible)::before { opacity: .3; }
+  :is(.me-tabs, .me-rail) > button:is([aria-selected="true"], [aria-current="page"]) { color: var(--color-text-primary); }
+  :is(.me-tabs, .me-rail) > button:is([aria-selected="true"], [aria-current="page"])::before { opacity: 1; }
+  :is(.me-tabs, .me-rail[data-axis="x"]) > button:is([aria-selected="true"], [aria-current="page"]) { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent 80%); }
+  .me-rail:not([data-axis="x"]) > button:is([aria-selected="true"], [aria-current="page"]) { background: linear-gradient(calc(90deg * var(--dir)), color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent 80%); }
+  .me-tab, .me-rail[data-axis="x"] > button { padding: var(--space-4) var(--space-6); font-size: 13px; }
+  .me-rail > button { min-height: var(--control-h); padding: 0 var(--space-4); font-size: 11px; text-align: start; width: 100%; }
+  .me-rail[data-axis="x"] > button { width: auto; min-height: 0; }
+  .me-tab .me-badge { margin-inline-start: var(--space-2); }
+  /* -- rails laid on their side by CONTAINER QUERY (no JS). Same rules as the [data-axis="x"] block above, repeated under a container condition because
+        a media/container condition cannot sit inside :is(). Keep the three copies in sync (tests/garden.spec.js checks the computed result). -- */
+  @container me-side (min-width: 280px) {
+    .me-side .me-rail:not([data-h]) { flex-direction: row; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .me-side .me-rail:not([data-h]) > button { --gi-l: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) calc(50% - 50% * var(--dir)) 50% / 2px 58% no-repeat;
+      --gi-r: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) calc(50% + 50% * var(--dir)) 50% / 2px 58% no-repeat;
+      --gi-src: linear-gradient(calc(90deg * var(--dir)), transparent, var(--sig) 16%, var(--sig) 84%, transparent) 0 0 / 100% 2px no-repeat; --gi-t: none; --gi-b: none;
+      padding: var(--space-4) var(--space-6); font-size: 13px; width: auto; min-height: 0; }
+    .me-side .me-rail:not([data-h]) > button:first-child { --gi-l: linear-gradient(180deg, var(--sig), transparent 88%) calc(50% - 50% * var(--dir)) 0 / 2px 100% no-repeat; }
+    .me-side .me-rail:not([data-h]) > button:last-child  { --gi-r: linear-gradient(180deg, var(--sig), transparent 88%) calc(50% + 50% * var(--dir)) 0 / 2px 100% no-repeat; }
+    .me-side .me-rail:not([data-h]) > button::after { top: 24%; bottom: 24%; inset-inline-end: 0; inset-inline-start: auto; width: 1px; height: auto; background: linear-gradient(180deg, transparent, var(--gi-frame) 30%, var(--gi-frame) 70%, transparent); }
+    .me-side .me-rail:not([data-h]) > button:is([aria-selected="true"], [aria-current="page"]) { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent 80%); }
+    .me-side .me-rail:not([data-h])[data-more~="end"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), #000 calc(100% - 36px), transparent); mask-image: linear-gradient(calc(90deg * var(--dir)), #000 calc(100% - 36px), transparent); }
+    .me-side .me-rail:not([data-h])[data-more~="start"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px); mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px); }
+    .me-side .me-rail:not([data-h])[data-more~="start"][data-more~="end"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+  }
+  @container me-foot (min-width: 140px) {
+    .me-side .me-rail[data-h] { flex-direction: row; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .me-side .me-rail[data-h] > button { --gi-l: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) calc(50% - 50% * var(--dir)) 50% / 2px 58% no-repeat;
+      --gi-r: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent) calc(50% + 50% * var(--dir)) 50% / 2px 58% no-repeat;
+      --gi-src: linear-gradient(calc(90deg * var(--dir)), transparent, var(--sig) 16%, var(--sig) 84%, transparent) 0 0 / 100% 2px no-repeat; --gi-t: none; --gi-b: none;
+      padding: var(--space-4) var(--space-6); font-size: 13px; width: auto; min-height: 0; }
+    .me-side .me-rail[data-h] > button:first-child { --gi-l: linear-gradient(180deg, var(--sig), transparent 88%) calc(50% - 50% * var(--dir)) 0 / 2px 100% no-repeat; }
+    .me-side .me-rail[data-h] > button:last-child  { --gi-r: linear-gradient(180deg, var(--sig), transparent 88%) calc(50% + 50% * var(--dir)) 0 / 2px 100% no-repeat; }
+    .me-side .me-rail[data-h] > button::after { top: 24%; bottom: 24%; inset-inline-end: 0; inset-inline-start: auto; width: 1px; height: auto; background: linear-gradient(180deg, transparent, var(--gi-frame) 30%, var(--gi-frame) 70%, transparent); }
+    .me-side .me-rail[data-h] > button:is([aria-selected="true"], [aria-current="page"]) { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent 80%); }
+    .me-side .me-rail[data-h][data-more~="end"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), #000 calc(100% - 36px), transparent); mask-image: linear-gradient(calc(90deg * var(--dir)), #000 calc(100% - 36px), transparent); }
+    .me-side .me-rail[data-h][data-more~="start"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px); mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px); }
+    .me-side .me-rail[data-h][data-more~="start"][data-more~="end"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+  }
+
+
+  /* header strip: groups sit on bare canvas; nothing draws a panel where there is no group */
+  .me-nav { container: me-nav / inline-size; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--stroke-divider); }
+  .me-nav > .me-tabs { flex: 0 1 auto; min-width: 0; }
+  .me-nav-end { display: flex; align-items: center; gap: var(--space-3); margin-inline-start: auto; }
+
+  .me-crumbs { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+  .me-crumbs li + li::before { content: "/"; margin-inline-end: var(--space-2); color: var(--color-text-dim); }
+  .me-crumbs a { color: var(--color-text-muted); text-decoration: none; } .me-crumbs a:hover { color: var(--color-text-primary); }
+  .me-crumbs [aria-current] { color: var(--color-text-primary); }
+
+  .me-pager { display: inline-flex; border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); }
+  .me-pager button { min-width: var(--control-h); min-height: calc(var(--control-h) - 2px); background: transparent; border: 0; border-inline-start: 1px solid var(--stroke-divider); color: var(--color-text-muted); cursor: pointer; }
+  .me-pager button:first-child { border-inline-start: 0; }
+  .me-pager button:hover { color: var(--color-text-primary); }
+  .me-pager button[aria-current="page"] { color: var(--color-text-primary); box-shadow: inset 0 2px 0 var(--sig); background: var(--sig-fill); }
+
+  .me-link { --sig: var(--accent); --sig-text: var(--accent-text); /* links never inherit a status signal */
+    color: var(--sig-text); text-decoration: none; background: linear-gradient(var(--sig), var(--sig)) 0 100% / 100% 1px no-repeat; padding-bottom: 1px; transition: background-size var(--dur); }
+  .me-link:hover { background-size: 100% 2px; }
+
+  /* ---------- 8. DATA DISPLAY ---------------------------------------------- */
+  .me-table-wrap { overflow: auto; border: 1px solid var(--stroke-divider); border-radius: var(--radius-micro); max-height: 360px;
+    /* edge-light scroll hint: appears only on the side that still has content */
+    background:
+      linear-gradient(calc(90deg * var(--dir)), var(--color-panel) 30%, transparent) 0 0 / 28px 100% no-repeat local,
+      linear-gradient(270deg, var(--color-panel) 30%, transparent) 100% 0 / 28px 100% no-repeat local,
+      linear-gradient(calc(90deg * var(--dir)), color-mix(in srgb, var(--sig) 45%, transparent), transparent) 0 0 / 14px 100% no-repeat scroll,
+      linear-gradient(270deg, color-mix(in srgb, var(--sig) 45%, transparent), transparent) 100% 0 / 14px 100% no-repeat scroll;
+    background-color: var(--color-panel); }   /* covers match the surface they sit on */
+  .me-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .me-table th, .me-table td { padding: var(--space-3) var(--space-4); text-align: start; border-bottom: 1px solid var(--stroke-divider); border-inline-end: 1px solid var(--stroke-divider); white-space: nowrap; }
+  .me-table :is(th,td):last-child { border-inline-end: 0; }
+  .me-table tbody tr:last-child td { border-bottom: 0; }
+  .me-table thead th { position: sticky; top: 0; z-index: 1; background: var(--color-surface); font-weight: 400; }
+  .me-table th button { all: unset; cursor: pointer; display: inline-flex; gap: var(--space-2); align-items: center; text-transform: inherit; letter-spacing: inherit; }
+  .me-table th[aria-sort] button::after { content: "\2195"; color: var(--color-text-dim); }
+  .me-table th[aria-sort="ascending"] button::after { content: "\2191"; color: var(--sig-text); }
+  .me-table th[aria-sort="descending"] button::after { content: "\2193"; color: var(--sig-text); }
+  .me-table td.num, .me-table th.num { text-align: end; font-variant-numeric: tabular-nums; }
+  .me-table tbody tr { position: relative; transition: background var(--dur); }
+  .me-table tbody tr > :first-child { position: relative; }
+  .me-table tbody tr > :first-child::before { content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 2px; pointer-events: none; opacity: 0;
+    background: linear-gradient(180deg, transparent, var(--sig) 24%, var(--sig) 76%, transparent); filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); transition: opacity var(--dur) var(--ease), width var(--dur) var(--ease); }
+  .me-table tbody tr:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--sig) 4%, transparent); }              /* hover: faint bar + faint wash */
+  .me-table tbody tr:is(:hover, :focus-visible) > :first-child::before { opacity: .38; }
+  .me-table tbody tr[aria-selected="true"] { background: linear-gradient(calc(90deg * var(--dir)), color-mix(in srgb, var(--sig) calc(var(--wash) * 1.8%), transparent), transparent 70%); }   /* selected: full bar, wider, wash */
+  .me-table tbody tr[aria-selected="true"] > :first-child::before { opacity: 1; width: 3px; }
+  .me-table caption { text-align: start; padding: var(--space-3) var(--space-4); caption-side: top; }
+  .me-table-empty { padding: var(--space-8); text-align: center; }
+
+  /* Badge. Two kinds only:
+       plain  (.me-badge)              roles, counts, due dates: just small text, no box, no brackets. A signal tints the text.
+       status (.me-badge.me-badge--fill) a status word: solid block with reversed text. Nothing that is not a status gets a fill. */
+  .me-badge { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; height: 18px; padding: 0; font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--color-text-muted); background: none; border: 0; border-radius: 0; }
+  .me-badge[data-signal] { color: var(--sig-text); font-weight: 700; }
+  .me-badge--fill { padding: 0 var(--space-2); background: var(--sig); color: var(--on-signal) !important; font-weight: 700; border-radius: var(--radius-micro); }
+  [data-theme="light"] .me-badge--fill { background: var(--sig-text); color: #fff !important; }   /* darker fill so white text passes AA */
+  .me-badge--fill .me-dot { background: currentColor; filter: none; height: 10px; }
+  /* Status beacon: a short vertical light-bar (not a dot) that fades at both ends; pulse = it breathes */
+  .me-dot { flex: none; width: 2px; height: 12px; background: linear-gradient(180deg, transparent, var(--sig) 28%, var(--sig) 72%, transparent); filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--sig)); }
+  .me-dot--pulse { animation: me-pulse 2s infinite; }
+  @keyframes me-pulse { 50% { opacity: .35; transform: scaleY(.6) } }
+  .me-kbd { display: inline-block; padding: 0 5px; min-width: 18px; text-align: center; font-size: 10px; border: 1px solid var(--stroke-control); border-bottom-width: 2px; border-radius: var(--radius-micro); color: var(--color-text-muted); }
+
+  .me-stat { display: flex; flex-direction: column; gap: var(--space-1); }
+  .me-stat-value { font: 500 34px/36px var(--font-display); letter-spacing: 0; font-variant-numeric: lining-nums tabular-nums; }
+  .me-delta { font-size: 11px; color: var(--sig-text); }
+
+  .me-meter { position: relative; height: 4px; background: var(--stroke-divider); }   /* progress: hairline channel + light-bar */
+  .me-meter > i { position: absolute; inset: 0 auto 0 0; width: var(--v, 0%); background: var(--sig); box-shadow: var(--sig-shadow); transition: width .5s var(--ease); }
+  .me-meter[data-indeterminate] > i { width: 30%; animation: me-slide 1.4s var(--ease) infinite; }
+  @keyframes me-slide { from { transform: translateX(-100%) } to { transform: translateX(340%) } }
+  .me-meter-ticks { background-image: repeating-linear-gradient(calc(90deg * var(--dir)), var(--color-panel) 0 1px, transparent 1px 10%); }
+
+  .me-skeleton { height: 12px; background: linear-gradient(calc(90deg * var(--dir)), var(--stroke-divider) 0 40%, var(--stroke-divider-hover) 50%, var(--stroke-divider) 60% 100%) 0 0 / 250% 100%; animation: me-shimmer 1.4s linear infinite; }
+  @keyframes me-shimmer { to { background-position: -150% 0 } }
+
+  .me-empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-8); text-align: center; border: 1px dashed var(--stroke-control); border-radius: var(--radius-micro); }
+
+  /* ---------- 9. FEEDBACK -------------------------------------------------- */
+  /* Every alert (info, ok, warn, err) wears the FULL perimeter: four bars that fade at both ends (see toolkit 10b). */
+  .me-alert { position: relative; display: flex; gap: var(--space-3); padding: var(--space-3) var(--space-4);
+    background: var(--color-surface); border: 1px solid var(--stroke-divider); border-radius: var(--radius-float);
+    --lit-in: 12%; --lit-out: 88%; --lit-t: var(--lit-h); --lit-b: var(--lit-h); --lit-l: var(--lit-v); --lit-r: var(--lit-v); }
+  .me-alert-title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--sig-text); font-weight: 600; }
+  .me-alert > .me-glyph { color: var(--sig-text); font-weight: 700; flex: none; width: 14px; text-align: center; }  /* glyph per signal => not colour-only */
+
+  /* Notifications are a NOTCH: they hang from the top edge of the viewport, open from the middle outward, and only the
+     BOTTOM edge is lit. That edge appears first (it peeks out alone) to catch the eye, then the body drops in behind it. */
+  .me-toasts { position: fixed; top: 0; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: var(--space-2); z-index: var(--z-toast);
+    width: min(440px, calc(100vw - 32px)); pointer-events: none; }
+  .me-toasts > .me-alert { pointer-events: auto; width: 100%; justify-content: center; align-items: center; text-align: start; border: 0; border-start-start-radius: 0; border-start-end-radius: 0; border-end-end-radius: var(--radius-float); border-end-start-radius: var(--radius-float);
+    background: var(--color-overlay); padding: var(--space-3) var(--space-6) calc(var(--space-3) + 2px);
+    --lit-t: none; --lit-l: none; --lit-r: none; --lit-wt: none; --lit-in: 8%; --lit-out: 92%;
+    animation: me-notch-in 1.5s var(--ease) both; }
+  .me-toasts > .me-alert.is-out { animation: me-notch-out .8s var(--ease) both; }
+  .me-toasts > .me-alert .me-alert-title { display: none; }
+  @keyframes me-notch-in {
+    0%   { clip-path: inset(0 50% -24px 50%); transform: translateY(calc(-100% + 3px)); }   /* only the bottom bar shows, as a point at the centre */
+    30%  { clip-path: inset(0 -24px -24px -24px); transform: translateY(calc(-100% + 3px)); } /* the bar spreads outward along the top edge */
+    100% { clip-path: inset(0 -24px -24px -24px); transform: translateY(0); }                 /* then the body drops behind it */
+  }
+  @keyframes me-notch-out {
+    0%   { clip-path: inset(0 -24px -24px -24px); transform: translateY(0); }
+    55%  { clip-path: inset(0 -24px -24px -24px); transform: translateY(calc(-100% + 3px)); }
+    100% { clip-path: inset(0 50% -24px 50%); transform: translateY(calc(-100% + 3px)); }
+  }
+
+  [data-tip] { position: relative; }
+  [data-tip]::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(4px); white-space: nowrap; z-index: var(--z-tip);
+    padding: 4px 8px; font-size: 11px; background: var(--color-surface); color: var(--color-text-primary); border: 1px solid var(--stroke-divider-hover);
+    border-radius: var(--radius-float); box-shadow: none; opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s var(--ease); }
+  [data-tip]:is(:hover, :focus-visible)::after { opacity: 1; transform: translateX(-50%); transition-delay: .35s; }
+
+  /* ---------- 10. OVERLAYS ------------------------------------------------- */
+  .me-menu { position: absolute; z-index: var(--z-dropdown); min-width: 200px; padding: 0; list-style: none; background: var(--color-overlay);
+    border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); box-shadow: none; }
+  .me-menu[hidden] { display: none; }
+  .me-menu-item { display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); width: 100%; padding: var(--space-2) var(--space-4); min-height: calc(var(--control-h) - 4px);
+    background: transparent; border: 0; border-bottom: 1px solid var(--stroke-divider); text-align: start; cursor: pointer; color: var(--color-text-muted); box-shadow: inset 0 0 0 var(--sig); }
+  .me-menu li:last-child .me-menu-item { border-bottom: 0; }
+  .me-menu-item:is(:hover, :focus-visible, [aria-selected="true"]) { color: var(--color-text-primary); box-shadow: inset calc(2px * var(--dir)) 0 0 var(--sig); background: var(--sig-fill); outline: 0; }
+  .me-menu-item[data-signal="err"] { color: var(--err-text); }
+
+  dialog.me-modal { container: me-modal / inline-size; padding: 0; width: min(520px, calc(100vw - 32px)); background: var(--color-overlay); color: var(--color-text-primary);
+    border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); box-shadow: none; }
+  dialog.me-modal::backdrop { background: var(--scrim); backdrop-filter: var(--scrim-filter); }
+  .me-modal-head { padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--stroke-divider); display: flex; justify-content: space-between; align-items: center; }
+  .me-modal-body { padding: var(--space-6); max-height: 60vh; overflow: auto; }
+
+  /* split action footer (accept / cancel) - generalised from v1.0 */
+  .me-split { position: relative; display: grid; grid-template-columns: 1fr 1fr; min-height: 48px; border-top: 1px solid var(--stroke-divider); --l: var(--accent); --r: var(--warn); --l-rgb: var(--accent-rgb); --r-rgb: var(--warn-rgb); }
+  .me-split::after { content: ""; position: absolute; top: 15%; bottom: 15%; inset-inline-start: 50%; width: 1px; background: var(--stroke-divider-active); transition: all var(--dur) var(--ease); pointer-events: none; }
+  .me-split[data-chosen="l"]::after { background: var(--l); box-shadow: 0 0 calc(10px * var(--glow-strength)) var(--l); }
+  .me-split[data-chosen="r"]::after { background: var(--r); box-shadow: 0 0 calc(10px * var(--glow-strength)) var(--r); }
+  .me-split > button { position: relative; background: transparent; border: 0; cursor: pointer; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; transition: color var(--dur); }
+  .me-split > button:hover { color: var(--color-text-primary); }
+  .me-split > button[aria-pressed="true"] { color: var(--color-text-primary); }
+  /* Selected side: 1px light on top, bottom and OUTER edge; the edge facing the divider stays open.
+     The light is brightest next to the divider and fades outward (mask), as in the original XPS example. */
+  .me-split > button::after { content: ""; position: absolute; inset: -1px; pointer-events: none; opacity: 0; }
+  .me-split > button[aria-pressed="true"] { color: var(--color-text-primary); }
+  .me-split > button[aria-pressed="true"]::after { opacity: 1; animation: me-edge-reveal .3s var(--ease) both; }
+  .me-split > button:first-of-type[aria-pressed="true"] { background: radial-gradient(ellipse at 100% 50%, color-mix(in srgb, var(--l) 22%, transparent) 0%, transparent 80%); }
+  .me-split > button:first-of-type::after { border: 1px solid var(--l); border-inline-end: 0; border-start-start-radius: var(--radius-float); border-start-end-radius: 0; border-end-end-radius: 0; border-end-start-radius: var(--radius-float);
+    box-shadow: inset calc(4px * var(--glow-strength)) 0 10px color-mix(in srgb, var(--l) 25%, transparent), calc(-2px * var(--glow-strength)) 0 8px color-mix(in srgb, var(--l) 25%, transparent);
+    -webkit-mask-image: linear-gradient(calc(-90deg * var(--dir)), #000 0%, rgba(0,0,0,.2) 70%, transparent 100%); mask-image: linear-gradient(calc(-90deg * var(--dir)), #000 0%, rgba(0,0,0,.2) 70%, transparent 100%); }
+  .me-split > button:last-of-type[aria-pressed="true"] { background: radial-gradient(ellipse at 0% 50%, color-mix(in srgb, var(--r) 22%, transparent) 0%, transparent 80%); }
+  .me-split > button:last-of-type::after { border: 1px solid var(--r); border-inline-start: 0; border-start-start-radius: 0; border-start-end-radius: var(--radius-float); border-end-end-radius: var(--radius-float); border-end-start-radius: 0;
+    box-shadow: inset calc(-4px * var(--glow-strength)) 0 10px color-mix(in srgb, var(--r) 25%, transparent), calc(2px * var(--glow-strength)) 0 8px color-mix(in srgb, var(--r) 25%, transparent);
+    -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), #000 0%, rgba(0,0,0,.2) 70%, transparent 100%); mask-image: linear-gradient(calc(90deg * var(--dir)), #000 0%, rgba(0,0,0,.2) 70%, transparent 100%); }
+  .me-split[data-chosen="l"]::after { box-shadow: 0 0 calc(10px * var(--glow-strength)) var(--l), calc(-4px * var(--glow-strength)) 0 12px color-mix(in srgb, var(--l) calc(100% * var(--glow-strength)), transparent); }
+  .me-split[data-chosen="r"]::after { box-shadow: 0 0 calc(10px * var(--glow-strength)) var(--r), calc(4px * var(--glow-strength)) 0 12px color-mix(in srgb, var(--r) calc(100% * var(--glow-strength)), transparent); }
+  .me-split > button[aria-busy="true"] { pointer-events: none; color: var(--color-text-dim); }
+  /* busy split button: the same orbiting edge light as .me-btn (rule 7), in that side's colour */
+  .me-split > button:first-of-type[aria-busy="true"] { --sig: var(--l); }
+  .me-split > button:last-of-type[aria-busy="true"]  { --sig: var(--r); }
+  .me-split > button[aria-busy="true"]::before { content: ""; position: absolute; inset: 0; pointer-events: none; padding: 2px; border-radius: var(--radius-float);
+    background: conic-gradient(from var(--me-a), var(--sig) 0deg, color-mix(in srgb, var(--sig) 35%, transparent) 40deg, transparent 95deg, transparent 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+    filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); animation: me-orbit 1.5s linear infinite; }
+  @keyframes me-edge-reveal { from { opacity: 0; transform: scale(.98) } to { opacity: 1; transform: scale(1) } }
+
+  /* ---------- 10b. EDGE LIGHT TOOLKIT --------------------------------------
+     Light is a bar that LOSES ENERGY toward its ends (like the XPS etch lines), never a full-length stroke.
+       data-lit="t r b l"   which edges emit (any subset)
+       --lit-span: 60%      length of each bar (default 100%, still fading at both ends)
+       --lit-ax / --lit-ay  where along the edge the bar sits (0%..100%, default 50% = centred)
+       --lit-level: 0..1    illumination: rest .35 / hover .65 / active 1 (opacity of the whole light)
+     Depth is independent:  data-depth="frame | none | shadow"   (shadow is a light-theme tool)         */
+  .me-lit:where(:not(dialog, .me-menu)) { position: relative; }
+  .me-lit, .me-alert {
+    --lit-h: linear-gradient(calc(90deg * var(--dir)),  transparent 0, var(--sig) var(--lit-in, 38%), var(--sig) var(--lit-out, 62%), transparent 100%);
+    --lit-v: linear-gradient(180deg, transparent 0, var(--sig) var(--lit-in, 38%), var(--sig) var(--lit-out, 62%), transparent 100%);
+    --lit-bg: var(--lit-t, none) var(--lit-ax, 50%) 0    / var(--lit-span, 100%) 2px no-repeat,
+              var(--lit-b, none) var(--lit-ax, 50%) 100% / var(--lit-span, 100%) 2px no-repeat,
+              var(--lit-l, none) 0    var(--lit-ay, 50%) / 2px var(--lit-span, 100%) no-repeat,
+              var(--lit-r, none) 100% var(--lit-ay, 50%) / 2px var(--lit-span, 100%) no-repeat,
+              var(--lit-wt, none) var(--lit-ax, 50%) 0    / var(--lit-span, 100%) 36px no-repeat,
+              var(--lit-wb, none) var(--lit-ax, 50%) 100% / var(--lit-span, 100%) 36px no-repeat;
+    --lit-wash-c: color-mix(in srgb, var(--sig) calc(var(--wash) * 1%), transparent);
+  }
+  .me-lit[data-lit~="t"] { --lit-wt: radial-gradient(ellipse 60% 100% at 50% 0%, var(--lit-wash-c), transparent); }
+  .me-lit[data-lit~="b"] { --lit-wb: radial-gradient(ellipse 60% 100% at 50% 100%, var(--lit-wash-c), transparent); }
+  .me-lit::before, .me-alert::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; z-index: 1;
+    background: var(--lit-bg); opacity: var(--lit-level, 1); transition: opacity var(--dur) var(--ease);
+    filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--sig))
+            drop-shadow(0 calc(1px * (1 - var(--glow-strength))) 0 rgba(255,255,255,calc(.95 * (1 - var(--glow-strength))))); }  /* light: pressed-ink etch */
+  .me-lit[data-lit~="t"] { --lit-t: var(--lit-h); }
+  .me-lit[data-lit~="b"] { --lit-b: var(--lit-h); }
+  .me-lit[data-lit~="l"] { --lit-l: var(--lit-v); }
+  .me-lit[data-lit~="r"] { --lit-r: var(--lit-v); }
+  .me-lit[data-lit-level="rest"]  { --lit-level: .15; }
+  .me-lit[data-lit-level="hover"] { --lit-level: .55; }
+  /* Interactive lit controls get the three levels (rest .2 / hover .6 / pressed 1) automatically; data-lit-hover opts any other element in; data-lit-level overrides. */
+  :is(.me-lit[data-lit-hover], :is(button, a[href], summary, [role="button"], [role="menuitem"], [role="tab"], [role="switch"]).me-lit:not([data-lit-level])) { --lit-level: .2; }
+  :is(.me-lit[data-lit-hover], :is(button, a[href], summary, [role="button"], [role="menuitem"], [role="tab"], [role="switch"]).me-lit:not([data-lit-level])):is(:hover, :focus-visible) { --lit-level: .6; }
+  :is(.me-lit[data-lit-hover], :is(button, a[href], summary, [role="button"], [role="menuitem"], [role="tab"], [role="switch"]).me-lit:not([data-lit-level])):is(:active, [aria-pressed="true"], [aria-selected="true"]) { --lit-level: 1; }
+  /* a button's built-in top bar is replaced by the edge-light layer when it opts in */
+  .me-btn.me-lit::before { inset: -1px; height: auto; background: var(--lit-bg); box-shadow: none; opacity: var(--lit-level, 1); border-radius: inherit; }
+  [data-depth="frame"]  { box-shadow: none; border-color: var(--stroke-divider-hover); }
+  [data-depth="none"]   { box-shadow: none; }
+  [data-depth="shadow"] { box-shadow: var(--elev-2); }
+  dialog[data-scrim="dim"]::backdrop   { backdrop-filter: none; }
+  dialog[data-scrim="blur"]::backdrop  { background: transparent; }
+  dialog[data-scrim="none"]::backdrop  { background: transparent; backdrop-filter: none; }
+
+  /* light mode: a lit edge is an etch, so its ambient wash stays faint (the full wash reads as a smudge on near-white) */
+  [data-theme="light"] :is(.me-lit, .me-alert) { --lit-wash-c: color-mix(in srgb, var(--sig) 6%, transparent); }
+
+  /* ---------- 10c. SELECTION PANEL (one panel, light shows the selection) ---
+     Outer frame is dim and always visible. Selecting a row lights ONLY the dividers touching it,
+     as short fading bars. Outer edges never light.                                               */
+  .me-list { display: flex; flex-direction: column; background: var(--color-panel); border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-soft); overflow: hidden; --lit-w: 56%; }
+  .me-list > button { position: relative; display: flex; align-items: center; gap: var(--space-3); min-height: var(--control-h); padding: 0 var(--space-4); text-align: start;
+    background: transparent; border: 0; border-top: 1px solid var(--stroke-divider); cursor: pointer; color: var(--color-text-muted); transition: color var(--dur), background var(--dur); }
+  .me-list > button:first-child { border-top: 0; }
+  .me-list > button::before, .me-list > button::after { content: ""; position: absolute; inset-inline-start: 0; inset-inline-end: 0; height: 2px; pointer-events: none; opacity: 0;
+    background: linear-gradient(calc(90deg * var(--dir)), transparent, var(--sig) 38%, var(--sig) 62%, transparent) var(--lit-pos, 50%) 0 / var(--lit-w) 100% no-repeat;
+    filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--sig)); transition: opacity var(--dur) var(--ease); }
+  .me-list > button::before { top: -1px; }
+  .me-list > button::after { bottom: -1px; }
+  .me-list > button:first-child::before, .me-list > button:last-child::after { display: none; }
+  .me-list > button:is(:hover, :focus-visible) { color: var(--color-text-primary); }
+  .me-list > button:is(:hover, :focus-visible)::before, .me-list > button:is(:hover, :focus-visible)::after { opacity: .3; }
+  .me-list > button[aria-pressed="true"] { color: var(--color-text-primary);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--sig) 12%, transparent), transparent 38%, transparent 62%, color-mix(in srgb, var(--sig) 12%, transparent)); }
+  .me-list > button[aria-pressed="true"]:first-child { background: linear-gradient(0deg, color-mix(in srgb, var(--sig) 12%, transparent), transparent 55%); }
+  .me-list > button[aria-pressed="true"]:last-child  { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) 12%, transparent), transparent 55%); }
+  .me-list > button[aria-pressed="true"]::before, .me-list > button[aria-pressed="true"]::after { opacity: 1; }
+
+  /* ---------- 10d. SIDE NAV + BAR CHART ------------------------------------- */
+  .me-side { position: relative; z-index: 5; display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4); min-width: 0; }   /* no fill, no rule: the rails ARE the panels */
+  .me-side-set { display: flex; flex-direction: column; gap: var(--space-2); }
+  .me-side-set > .me-label { padding-inline-start: 2px; }
+  /* icons: 16px grid, 1.25 stroke, square caps, mitred joins, no circles. One segment (stroke:var(--ico-l)) lights with the item. */
+  .me-ico { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: square; stroke-linejoin: miter; }
+  /* directional glyphs (chevrons, collapse) mirror in RTL: put data-flip on the <svg> */
+  :is([dir="rtl"], :dir(rtl)) .me-ico[data-flip] { transform: scaleX(-1); }
+  .me-ico--sm { width: 12px; height: 12px; } .me-ico--lg { width: 20px; height: 20px; } .me-ico--xl { width: 24px; height: 24px; }   /* the stroke scales with the icon (it lives in the 16-unit viewBox) */
+  /* Icon-only controls: the glyph is small, the target is not. At least 24px (WCAG 2.5.8), 44px on touch. They must carry an aria-label. */
+  .me :where(button, a):where(:has(> .me-ico:only-child)) { min-width: 24px; min-height: 24px; }   /* :where keeps this a floor, never an override */
+  .me .me-btn--icon { display: inline-grid; place-items: center; min-width: 24px; min-height: var(--control-h); }
+  @media (pointer: coarse) { .me :where(button, a):where(:has(> .me-ico:only-child)), .me .me-btn--icon { min-width: 44px; min-height: 44px; } }
+  .me-rail > button:is(:hover, :focus-visible, [aria-current="page"], [aria-selected="true"]) { --ico-l: var(--sig); }
+  .me-side .me-rail > button { justify-content: flex-start; }
+  .me-side .me-rail > button > .me-side-txt { flex: 1; min-width: 0; text-align: start; }
+  /* collapsed: icon-only rail; the label becomes a floating tag on hover / focus */
+  .me-side[data-min] { align-items: stretch; padding-inline: var(--space-3); }
+  .me-side[data-min] .me-side-set > .me-label { display: none; }
+  /* a count becomes a tiny vertical light-bar on the button's outer edge; the number stays in the accessible name (text is clipped, not removed) */
+  .me-side[data-min] .me-rail > button > .me-badge { position: absolute; inset-inline-end: 4px; top: 26%; bottom: 26%; width: 2px; height: auto; padding: 0; overflow: hidden; font-size: 0; letter-spacing: 0; color: transparent;
+    background: var(--color-text-muted); }
+  .me-side[data-min] .me-rail > button > .me-badge[data-signal] { background: var(--sig); filter: drop-shadow(0 0 calc(4px * var(--glow-strength)) var(--sig)); }
+  .me-side[data-min] .me-rail > button > .me-badge[data-zero] { display: none; }
+  .me-side[data-min] .me-rail > button:is(:hover, :focus-visible) > .me-badge { display: none; }
+  .me-side[data-min] .me-rail > button { justify-content: center; padding: 0; }
+  .me-side[data-min] .me-rail > button > .me-side-txt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* visually hidden, still the accessible name */
+  .me-side[data-min] .me-rail > button:is(:hover, :focus-visible) > .me-side-txt { width: auto; height: auto; overflow: visible; clip-path: none; position: absolute; inset-inline-start: calc(100% + 12px); top: 50%; transform: translateY(-50%); flex: none; z-index: var(--z-tip);
+    padding: 4px 12px; white-space: nowrap; background: var(--color-overlay); border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); color: var(--color-text-primary); pointer-events: none; }
+  .me-side [data-collapse] .me-ico { transition: transform var(--dur) var(--ease); }
+  .me-side[data-min] [data-collapse] .me-ico { transform: scaleX(-1); }
+  :is([dir="rtl"], :dir(rtl)) .me-side [data-collapse] .me-ico { transform: scaleX(-1); }
+  :is([dir="rtl"], :dir(rtl)) .me-side[data-min] [data-collapse] .me-ico { transform: none; }
+
+  .me-bars { display: flex; align-items: flex-end; gap: var(--space-2); height: 128px; padding-top: var(--space-2); border-bottom: 1px solid var(--stroke-control); }
+  .me-bars > i { position: relative; flex: 1; height: var(--h, 50%); min-width: 6px; font-style: normal;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 2.5%), transparent), transparent);
+    border-top: 2px solid var(--sig); transition: height .5s var(--ease); }
+  .me-bars > i:hover { background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 4%), transparent), transparent); }
+  .me-bars-x { display: flex; gap: var(--space-2); }
+  .me-bars-x > span { flex: 1; text-align: center; font-size: 10px; color: var(--color-text-dim); letter-spacing: .1em; }
+
+  /* ---------- 10e. LINE / AREA CHART ---------------------------------------- */
+  /* Hairline axes, square joins. A series is a light-bar: a lit line with a fading wash beneath. Built by ME.chart() into an inline <svg>.
+     Series colour = --sig (set data-signal on the chart or on a series). A comparison series is data-alt: muted + dashed. */
+  .me-chart { position: relative; display: block; direction: ltr; }   /* a time axis reads left to right in every language */
+  .me-chart-body { position: relative; display: block; }
+  .me-chart[data-y] .me-chart-body { padding-inline-start: 44px; }
+  .me-chart-svg { display: block; width: 100%; height: 160px; overflow: visible; }
+  .me-chart-svg .grid { stroke: var(--stroke-divider); stroke-width: 1; shape-rendering: crispEdges; vector-effect: non-scaling-stroke; }
+  .me-chart-svg .axis { stroke: var(--stroke-control); stroke-width: 1; shape-rendering: crispEdges; vector-effect: non-scaling-stroke; }
+  .me-chart-svg .zero { stroke: var(--color-text-dim); stroke-width: 1; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; }
+  .me-chart-svg .line { fill: none; stroke: var(--sig); stroke-width: 2; stroke-linejoin: miter; stroke-linecap: square; vector-effect: non-scaling-stroke; }
+  .me-chart-svg .area { stroke: none; opacity: calc(var(--wash) / 13); }
+  .me-chart-svg [data-alt] .line { stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .me-chart-svg [data-alt] { --sig: var(--color-text-muted); --sig-text: var(--color-text-muted); }
+  .me-chart-svg .solo { fill: var(--sig); }
+  .me-chart-svg .pt { fill: var(--color-panel); stroke: var(--sig); stroke-width: 2; vector-effect: non-scaling-stroke; opacity: 0; }
+  .me-chart-svg .hit { fill: transparent; }
+  .me-chart-svg .hit:hover { fill: color-mix(in srgb, var(--accent) 7%, transparent); }
+  .me-chart-svg .hit:hover ~ .pt { opacity: 1; }
+  .me-chart-y { position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 38px; pointer-events: none; font-size: 10px; letter-spacing: .04em; color: var(--color-text-dim); font-variant-numeric: tabular-nums; }
+  .me-chart-y > span { position: absolute; inset-inline-end: 0; transform: translateY(-50%); white-space: nowrap; }
+  .me-chart-x { display: flex; justify-content: space-between; margin-top: var(--space-2); font-size: 10px; letter-spacing: .1em; color: var(--color-text-dim); }
+  .me-chart[data-y] .me-chart-x { margin-inline-start: 44px; }
+  .me-legend { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); margin: var(--space-3) 0 0; padding: 0; list-style: none; font-size: 11px; color: var(--color-text-muted); }
+  .me-chart[data-y] .me-legend { margin-inline-start: 44px; }
+  .me-legend > li::before { content: ""; display: inline-block; width: 16px; height: 2px; margin-inline-end: var(--space-2); vertical-align: middle; background: var(--sig); }
+  .me-legend > li[data-alt] { --sig: var(--color-text-muted); }
+  .me-legend > li[data-alt]::before { background: repeating-linear-gradient(calc(90deg * var(--dir)), var(--sig) 0 5px, transparent 5px 8px); }
+  /* sparkline: no axes, no labels, just the light-bar */
+  .me-spark { display: inline-block; width: 96px; height: 24px; vertical-align: middle; }
+  .me-spark .me-chart-svg { height: 100%; }
+  .me-spark .grid, .me-spark .axis, .me-spark .pt, .me-spark .zero { display: none; }
+  .me-spark .line { stroke-width: 1.5; }
+  .me-stat > .me-spark { width: 100%; height: 28px; margin-top: var(--space-2); }
+
+  /* ---------- 10f. POPOVER + LISTBOX (combobox, multi-select, command palette) ---- */
+  /* Popovers live in the top layer so a modal body never clips them. Positioned by ME (fixed coordinates). */
+  .me-pop { inset: auto; margin: 0; padding: 0; position: fixed; z-index: var(--z-dropdown); background: var(--color-overlay); color: var(--color-text-primary);
+    border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-float); box-shadow: none; max-width: calc(100vw - 8px); overflow: visible; }
+  .me-listbox { list-style: none; margin: 0; padding: 0; max-height: 280px; overflow: auto; }
+  .me-option { position: relative; display: flex; align-items: center; gap: var(--space-4); min-height: calc(var(--control-h) - 4px); padding: var(--space-2) var(--space-4);
+    color: var(--color-text-muted); cursor: pointer; border-bottom: 1px solid var(--stroke-divider); box-shadow: inset 0 0 0 var(--sig); }
+  .me-option-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .me-option mark { background: none; color: var(--sig-text); font-weight: 600; }
+  .me-option[data-active] { color: var(--color-text-primary); box-shadow: inset calc(2px * var(--dir)) 0 0 var(--sig); background: var(--sig-fill); }
+  .me-option[aria-selected="true"] { color: var(--color-text-primary); }
+  .me-option[aria-selected="true"]::after { content: "\2713"; color: var(--sig-text); font-weight: 700; }
+  .me-option-hint { font-size: 11px; color: var(--color-text-dim); white-space: nowrap; }
+  .me-option-group { padding: var(--space-2) var(--space-4); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--color-text-dim); border-bottom: 1px solid var(--stroke-divider); background: var(--color-surface); }
+  .me-option-empty { padding: var(--space-4); color: var(--color-text-dim); }
+  .me-listbox > :last-child { border-bottom: 0; }
+
+  /* multi-select / tag input: tags live inside the field, before the text cursor */
+  .me-anchor.me-tags { flex-wrap: wrap; gap: var(--space-1) var(--space-2); padding-block: 5px; }
+  .me-anchor.me-tags > input { flex: 1; min-width: 96px; width: auto; min-height: 26px; }
+  .me-tag { display: inline-flex; align-items: center; gap: var(--space-1); height: 26px; padding-inline-start: var(--space-2); color: var(--color-text-primary);
+    box-shadow: inset calc(2px * var(--dir)) 0 0 var(--sig); background: color-mix(in srgb, var(--sig) 9%, transparent); }
+  .me-tag > button { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; background: transparent; border: 0; cursor: pointer; color: var(--color-text-muted); }
+  .me-tag > button:hover { color: var(--err-text); }
+
+  /* ---------- 10g. DATE / TIME PICKER ---------------------------------------- */
+  .me-cal { width: 288px; padding: var(--space-3); }
+  .me-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2); }
+  .me-cal-title { font: 600 15px/20px var(--font-display); letter-spacing: .12em; text-transform: uppercase; }
+  .me-cal-nav { width: 32px; height: 32px; padding: 0; background: transparent; border: 0; cursor: pointer; color: var(--color-text-muted); font-size: 14px; }
+  .me-cal-nav:hover { color: var(--color-text-primary); background: var(--sig-fill); }
+  .me-cal-grid { border-collapse: collapse; width: 100%; table-layout: fixed; }
+  .me-cal-grid th { padding: 4px 0; font-size: 10px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase; color: var(--color-text-dim); }
+  .me-cal-grid td { padding: 0; text-align: center; }
+  .me-cal-day { width: 100%; height: 32px; padding: 0; background: transparent; border: 0; border-top: 2px solid transparent; border-radius: 0; cursor: pointer; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+  .me-cal-day:hover { color: var(--color-text-primary); background: var(--sig-fill); }
+  .me-cal-day[data-out] { color: var(--color-text-dim); }
+  .me-cal-day[aria-current="date"] { box-shadow: inset 0 -2px 0 var(--stroke-divider-active); color: var(--color-text-primary); }
+  .me-cal-grid td[aria-selected="true"] .me-cal-day { color: var(--color-text-primary); border-top-color: var(--sig);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.6%), transparent), transparent); }
+  .me-cal-day:disabled { opacity: .3; cursor: not-allowed; }
+  .me-cal-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); margin-top: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--stroke-divider); }
+  .me-cal-act { min-height: 28px; padding: 0 var(--space-2); background: transparent; border: 0; cursor: pointer; text-transform: uppercase; font-size: 10px; letter-spacing: .12em; color: var(--color-text-muted); }
+  .me-cal-act:hover { color: var(--color-text-primary); }
+  .me-cal-time { display: flex; align-items: center; gap: var(--space-1); margin-top: var(--space-2); }
+  .me-cal-time select { min-height: 28px; background: var(--color-surface); border: 1px solid var(--stroke-control); border-radius: var(--radius-micro); color: var(--color-text-primary); color-scheme: inherit; }
+  .me-cal-time select option { background: var(--color-overlay); color: var(--color-text-primary); }
+
+  /* ---------- 10h. COMMAND PALETTE ------------------------------------------- */
+  dialog.me-palette { width: min(560px, calc(100vw - 32px)); margin: 12vh auto auto; }
+  .me-palette .me-anchor { min-height: 52px; border-bottom: 1px solid var(--stroke-divider); }
+  .me-palette .me-listbox { max-height: min(50vh, 360px); }
+  .me-palette-foot { display: flex; flex-wrap: wrap; gap: var(--space-4); padding: var(--space-2) var(--space-4); border-top: 1px solid var(--stroke-divider); font-size: 11px; color: var(--color-text-dim); }
+
+  /* ---------- 10i. FILE UPLOAD ----------------------------------------------- */
+  /* Locatability: the dashed frame is always visible; the lit top edge appears on hover-drag / keyboard focus. */
+  .me-drop { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); min-height: 112px; padding: var(--space-6); text-align: center; cursor: pointer;
+    color: var(--color-text-muted); border: 1px dashed var(--stroke-control); border-radius: var(--radius-micro); transition: background var(--dur), border-color var(--dur), color var(--dur); }
+  .me-drop:hover { border-color: var(--color-text-muted); color: var(--color-text-primary); }
+  .me-drop::before { content: ""; position: absolute; inset-inline-start: 15%; inset-inline-end: 15%; top: -1px; height: 2px; opacity: 0; transition: opacity var(--dur);
+    background: linear-gradient(calc(90deg * var(--dir)), transparent, var(--sig) 30%, var(--sig) 70%, transparent); }
+  .me-field > .me-drop { justify-content: center; }   /* beats the .me-field > label row layout */
+  .me-drop u { text-decoration: underline; text-underline-offset: 3px; color: var(--sig-text); }
+  .me-drop[data-over], .me-drop:has(input:focus-visible) { border-style: solid; border-color: var(--stroke-divider-hover); background: var(--sig-fill); color: var(--color-text-primary); }
+  .me-drop[data-over]::before, .me-drop:has(input:focus-visible)::before { opacity: 1; }
+  .me-files { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: flex; flex-direction: column; }
+  .me-file { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--stroke-divider); }
+  .me-file:last-child { border-bottom: 0; }
+  .me-file-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .me-file-size { font-size: 11px; color: var(--color-text-dim); white-space: nowrap; }
+  .me-file > button { min-width: 28px; min-height: 28px; padding: 0 var(--space-2); background: transparent; border: 0; cursor: pointer; color: var(--color-text-muted); }
+  .me-file > button:hover { color: var(--err-text); }
+  .me-thumb { flex: none; width: 40px; height: 40px; object-fit: cover; border: 1px solid var(--stroke-divider-hover); border-radius: var(--radius-micro); }
+
+  /* ---------- 10j. TABS OVERFLOW HINT --------------------------------------- */
+  /* ME sets data-more="start end" on a scrolled tab strip: the clipped side fades out so hidden tabs are visibly there. */
+  :is(.me-tabs, .me-rail[data-axis="x"])[data-more~="end"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), #000 calc(100% - 36px), transparent); mask-image: linear-gradient(calc(90deg * var(--dir)), #000 calc(100% - 36px), transparent); }
+  :is(.me-tabs, .me-rail[data-axis="x"])[data-more~="start"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px); mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px); }
+  :is(.me-tabs, .me-rail[data-axis="x"])[data-more~="start"][data-more~="end"] { -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 36px, #000 calc(100% - 36px), transparent); }
+
+  /* ---------- 10k. TREE VIEW ------------------------------------------------- */
+  .me-tree, .me-tree ul { list-style: none; margin: 0; padding: 0; }
+  .me-tree ul { margin-inline-start: 11px; padding-inline-start: var(--space-3); border-inline-start: 1px solid var(--stroke-divider); }
+  .me-tree [role="treeitem"]:focus-visible { outline: 0; }
+  .me-tree-row { display: flex; align-items: center; gap: var(--space-2); min-height: 28px; padding: 0 var(--space-2); cursor: pointer; color: var(--color-text-muted); box-shadow: inset 0 0 0 var(--sig); }
+  .me-tree-row:hover { color: var(--color-text-primary); box-shadow: inset calc(1px * var(--dir)) 0 0 color-mix(in srgb, var(--sig) 45%, transparent); background: color-mix(in srgb, var(--sig) 5%, transparent); }
+  .me-tree [role="treeitem"]:focus-visible > .me-tree-row { outline: 1px solid var(--accent); outline-offset: -1px; }
+  .me-tree [aria-selected="true"] > .me-tree-row { color: var(--color-text-primary); box-shadow: inset calc(2px * var(--dir)) 0 0 var(--sig); background: linear-gradient(calc(90deg * var(--dir)), color-mix(in srgb, var(--sig) 14%, transparent), transparent 75%); }
+  .me-tree-twist { flex: none; width: 12px; text-align: center; color: var(--color-text-dim); }
+  [aria-expanded="false"] > .me-tree-row > .me-tree-twist::before { content: "+"; }
+  [aria-expanded="true"]  > .me-tree-row > .me-tree-twist::before { content: "\2212"; }
+  [aria-expanded="false"] > ul { display: none; }
+
+  /* ---------- 10l. TOOLBAR ---------------------------------------------------- */
+  .me-toolbar { display: inline-flex; align-items: center; gap: 2px; padding: 2px; max-width: 100%; flex-wrap: wrap; background: var(--color-surface); border-radius: var(--radius-soft); box-shadow: inset 0 0 0 1px var(--stroke-divider-hover); }
+  .me-toolbar > button { min-width: calc(var(--control-h) - 4px); height: calc(var(--control-h) - 4px); padding: 0 var(--space-3); background: transparent; border: 0; border-top: 2px solid transparent; cursor: pointer; color: var(--color-text-muted); }
+  .me-toolbar > button:hover { color: var(--color-text-primary); background: var(--sig-fill); }
+  .me-toolbar > button[aria-pressed="true"] { color: var(--color-text-primary); border-top-color: var(--sig); background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.4%), transparent), transparent); }
+  .me-toolbar-sep { align-self: stretch; width: 1px; margin: 6px var(--space-1); background: linear-gradient(180deg, transparent, var(--stroke-divider-active) 30%, var(--stroke-divider-active) 70%, transparent); }
+
+  /* ---------- 10n. SCROLL: lit thumb + edge lights ----------------------------
+     Decision (scrollbar lab): B + C combined. Native scrolling always stays (wheel, touch, keyboard, find-in-page).
+     - THUMB (B): a 2px accent light-bar you can drag. Hidden at rest; appears on hover, focus and while scrolling; fades after ~1s. Swells and glows when grabbed.
+     - EDGE LIGHTS (C): the edge facing more content lights and the content fades. ON for small scrollers (a short table) and always on touch, where it leads.
+     Always accent, whatever the surrounding signal. Built by ME.scroll(el) / data-me-scroll; the native bar returns in forced-colors. */
+  .me-scroll { position: relative; display: flow-root; min-width: 0; min-height: 0; --scroll-color: var(--accent); --fy-t: 0px; --fy-b: 0px; --fx-l: 0px; --fx-r: 0px; }
+  .me-scroll[data-more~="top"] { --fy-t: 28px; } .me-scroll[data-more~="bottom"] { --fy-b: 28px; } .me-scroll[data-more~="left"] { --fx-l: 28px; } .me-scroll[data-more~="right"] { --fx-r: 28px; }
+  .me-scroll > .me-scroll-view { scrollbar-width: none; }
+  .me-scroll > .me-scroll-view::-webkit-scrollbar { display: none; }
+  .me-scroll[data-more] > .me-scroll-view {
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 var(--fy-t), #000 calc(100% - var(--fy-b)), transparent 100%), linear-gradient(calc(90deg * var(--dir)), transparent 0, #000 var(--fx-l), #000 calc(100% - var(--fx-r)), transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 var(--fy-t), #000 calc(100% - var(--fy-b)), transparent 100%), linear-gradient(calc(90deg * var(--dir)), transparent 0, #000 var(--fx-l), #000 calc(100% - var(--fx-r)), transparent 100%);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .me-scroll-view:focus-visible { outline: 1px solid var(--accent); outline-offset: -2px; }
+
+  .me-scroll-edge { position: absolute; z-index: 3; pointer-events: none; opacity: 0; transition: opacity var(--dur) var(--ease); background: var(--scroll-color); filter: drop-shadow(0 0 calc(5px * var(--glow-strength)) var(--scroll-color)); }
+  .me-scroll-edge[data-edge="top"], .me-scroll-edge[data-edge="bottom"] { inset-inline-start: 12%; inset-inline-end: 12%; height: 2px; -webkit-mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(calc(90deg * var(--dir)), transparent, #000 30%, #000 70%, transparent); }
+  .me-scroll-edge[data-edge="left"], .me-scroll-edge[data-edge="right"] { top: 12%; bottom: 12%; width: 2px; -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent); }
+  .me-scroll-edge[data-edge="top"] { top: 0; } .me-scroll-edge[data-edge="bottom"] { bottom: 0; } .me-scroll-edge[data-edge="left"] { left: 0; } .me-scroll-edge[data-edge="right"] { right: 0; }
+  .me-scroll[data-more~="top"] > [data-edge="top"], .me-scroll[data-more~="bottom"] > [data-edge="bottom"], .me-scroll[data-more~="left"] > [data-edge="left"], .me-scroll[data-more~="right"] > [data-edge="right"] { opacity: 1; }
+
+  .me-scroll-track { position: absolute; z-index: 4; opacity: 0; transition: opacity .3s; touch-action: none; }
+  .me-scroll-track[data-axis="y"] { top: 0; inset-inline-end: 0; bottom: 0; width: 14px; }
+  .me-scroll-track[data-axis="x"] { inset-inline-start: 0; bottom: 0; inset-inline-end: 14px; height: 14px; }
+  .me-scroll[data-both] > .me-scroll-track[data-axis="y"] { bottom: 14px; } .me-scroll[data-both] > .me-scroll-track[data-axis="x"] { inset-inline-end: 14px; } .me-scroll:not([data-both]) > .me-scroll-track[data-axis="x"] { inset-inline-end: 0; }
+  .me-scroll-track::before { content: ""; position: absolute; background: var(--stroke-divider); }
+  .me-scroll-track[data-axis="y"]::before { inset-inline-end: 3px; top: 6px; bottom: 6px; width: 1px; } .me-scroll-track[data-axis="x"]::before { bottom: 3px; inset-inline-start: 6px; inset-inline-end: 6px; height: 1px; }
+  .me-scroll-thumb { position: absolute; background: var(--scroll-color); opacity: .5; transition: width var(--dur) var(--ease), height var(--dur) var(--ease), opacity var(--dur), box-shadow var(--dur); }
+  .me-scroll-track[data-axis="y"] > .me-scroll-thumb { inset-inline-end: 3px; width: 2px; min-height: 28px; } .me-scroll-track[data-axis="x"] > .me-scroll-thumb { bottom: 3px; height: 2px; min-width: 28px; }
+  .me-scroll:is(:hover, :focus-within) > .me-scroll-track, .me-scroll[data-active] > .me-scroll-track { opacity: 1; }
+  .me-scroll[data-active] .me-scroll-thumb { opacity: .85; }
+  .me-scroll-track:hover .me-scroll-thumb, .me-scroll-track[data-drag] .me-scroll-thumb { opacity: 1; box-shadow: 0 0 calc(8px * var(--glow-strength)) var(--scroll-color); }
+  .me-scroll-track[data-axis="y"]:is(:hover, [data-drag]) > .me-scroll-thumb { width: 5px; inset-inline-end: 1px; } .me-scroll-track[data-axis="x"]:is(:hover, [data-drag]) > .me-scroll-thumb { height: 5px; bottom: 1px; }
+  .me-scroll-corner { position: absolute; inset-inline-end: 0; bottom: 0; width: 14px; height: 14px; z-index: 3; background: var(--scroll-corner, var(--color-panel)); }
+  .me-scroll:not([data-both]) > .me-scroll-corner { display: none; }
+  /* touch: the edge lights lead; the thumb is only an indicator while you scroll (never on hover, which touch does not have) */
+  @media (pointer: coarse) {
+    .me-scroll:is(:hover, :focus-within) > .me-scroll-track:not(:is([data-drag])) { opacity: 0; }
+    .me-scroll[data-active] > .me-scroll-track { opacity: 1; }
+    .me-scroll-track[data-axis="y"] { width: 24px; } .me-scroll-track[data-axis="x"] { height: 24px; }
+    .me-scroll-track[data-axis="y"] > .me-scroll-thumb { width: 4px; inset-inline-end: 4px; } .me-scroll-track[data-axis="x"] > .me-scroll-thumb { height: 4px; bottom: 4px; }
+  }
+  @media (forced-colors: active) {   /* high-contrast mode: give the native scrollbar back */
+    .me-scroll > .me-scroll-view { scrollbar-width: auto; mask-image: none; -webkit-mask-image: none; }
+    .me-scroll > .me-scroll-view::-webkit-scrollbar { display: initial; }
+    .me-scroll > :is(.me-scroll-track, .me-scroll-edge, .me-scroll-corner) { display: none; }
+  }
+
+  /* touch floor: the toolbar and pager trim 2-4px off --control-h for their frame; on touch each target is the full 44px (found by the icon lab's hit-area inspector) */
+  @media (pointer: coarse) { .me-toolbar > button { min-width: var(--control-h); height: var(--control-h); } .me-pager button { min-height: var(--control-h); } }
+
+  /* ---------- 10m. STEPPER / WIZARD ------------------------------------------ */
+  .me-steps { display: flex; gap: var(--space-2); list-style: none; margin: 0; padding: 0; counter-reset: me-step; }
+  .me-steps > li { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: var(--space-3) var(--space-3) var(--space-3) 0; color: var(--color-text-dim); box-shadow: inset 0 1px 0 var(--stroke-divider-hover); }
+  .me-steps > li::before { counter-increment: me-step; content: "0" counter(me-step); font-size: 10px; letter-spacing: .15em; }
+  .me-steps > li[data-done] { --sig: var(--ok); --sig-text: var(--ok-text); color: var(--color-text-muted); box-shadow: inset 0 1px 0 var(--sig); }
+  .me-steps > li[data-done]::before { content: "\2713  0" counter(me-step); color: var(--sig-text); }
+  .me-steps > li[aria-current="step"] { color: var(--color-text-primary); box-shadow: inset 0 2px 0 var(--sig); background: linear-gradient(180deg, color-mix(in srgb, var(--sig) calc(var(--wash) * 1.2%), transparent), transparent 70%); }
+  .me-steps > li[aria-current="step"]::before { color: var(--sig-text); }
+
+  /* ---------- 11. DISCLOSURE ----------------------------------------------- */
+  .me-accordion > details { border-bottom: 1px solid var(--stroke-divider); }
+  .me-accordion summary { display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) var(--space-4); min-height: var(--control-h); cursor: pointer; list-style: none; color: var(--color-text-muted); box-shadow: inset 0 0 0 var(--sig); }
+  .me-accordion summary::-webkit-details-marker { display: none; }
+  .me-accordion summary::after { content: "+"; font-size: 14px; }
+  .me-accordion details[open] > summary { color: var(--color-text-primary); box-shadow: inset calc(2px * var(--dir)) 0 0 var(--sig); background: var(--sig-fill); }
+  .me-accordion details[open] > summary::after { content: "\2212"; }
+  .me-accordion summary:hover { color: var(--color-text-primary); }
+  .me-accordion .me-acc-body { padding: var(--space-4); color: var(--color-text-muted); }
+  /* custom elements (monoedge-elements.js) need a box model; everything inside is the ordinary framework markup */
+  me-icon, me-switch { display: inline-flex; } me-chart, me-date, me-combobox { display: block; } me-scroll { display: block; overflow: auto; }
+
+  /* ---------- 12. RESPONSIVE: container queries, not viewport media queries ---------- */
+  /* A component answers to the room it is given, so the same grid, nav or dialog behaves the same in a sidebar, a panel or a phone. */
+  @container me-grid (max-width: 640px) { .me-grid > * { padding: var(--space-4); } }
+  @container me-nav (max-width: 640px) { .me-tab { padding: var(--space-3) var(--space-4); } .me-nav > .me-tabs { flex-basis: 100%; } .me-nav-end { flex: 1 1 100%; margin-inline-start: 0; } }
+  @container me-modal (max-width: 480px) { .me-modal-body { padding: var(--space-4); } }
+}
+
+@layer utilities {
+  .me-dim   { color: var(--color-text-dim); }
+  .me-num   { font-variant-numeric: tabular-nums; }
+  .me-sig   { color: var(--sig-text); }
+  .me-sr    { position:absolute; width:1px; height:1px; overflow:hidden; clip-path: inset(50%); white-space:nowrap; }
+  .me-truncate { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  .me [hidden], .me[hidden] { display: none !important; }   /* component display rules must never defeat the hidden attribute */
+  @media print { .me { background: #fff; color: #000; } .me-btn::before, .me-dot { box-shadow: none; } }
+}

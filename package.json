@@ -7,8 +7,9 @@
     "build:icons": "node scripts/build-icons.js",
     "build:tokens": "node scripts/build-tokens.js",
     "build:fallback": "node scripts/build-fallback.js",
-    "build": "npm run build:icons && npm run build:tokens && npm run build:fallback",
-    "check:build": "node scripts/build-tokens.js --check && node scripts/build-fallback.js --check"
+    "build:kit": "node scripts/build-kit.js",
+    "build": "npm run build:icons && npm run build:tokens && npm run build:fallback && npm run build:kit",
+    "check:build": "node scripts/build-tokens.js --check && node scripts/build-fallback.js --check && node scripts/build-kit.js --check"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",

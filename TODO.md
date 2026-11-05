@@ -118,17 +118,18 @@ Decision: a combination. **Lit thumb (B)** is the default for most content and t
 **Quality and standards**
 - [ ] Full WCAG 2.2 AA audit by hand (1.4.3, 1.4.11, 1.4.1, 2.4.7, 2.4.11, 2.5.8, 3.3.1) on top of axe
 - [ ] Cross-browser pass: Chrome, Firefox, Safari
-- [ ] Performance budget: CSS under 30 KB gzipped, no JS for core components
-- [ ] Reduced-motion, forced-colors, high-contrast, print verified
-- [ ] Locatability rule: every interactive zone shows at least one edge cue at rest
+- [x] Performance budget (`tests/quality.spec.js`): CSS a page loads is 21 KB gzipped (budget 30), JS 13 + 3 + 1.5 KB, core components styled with scripts blocked, no third-party request except the optional Google Fonts import
+- [x] Reduced-motion, forced-colors, high-contrast, print verified (`tests/quality.spec.js`). Finding: these all hang off the `.me` scope class on `<body>`; a page without it silently loses them, so the agent guide and the starter now require it
+- [x] Locatability rule: every interactive zone shows at least one edge cue at rest (automated sweep of 6 garden views; exempt: breadcrumb links, range slider whose track is the cue)
 - [ ] Haptics and press micro-travel; guard against accidental activation of large flush zones; a literal 2D trackpad-style pad control
 
 **Release**
+- [x] **Agent kit** (`agent-kit/`): one folder with `DESIGN.md` (philosophy, 16 hard rules, generated token tables, component markup, page recipes, a11y floor, do/don't, checklist), the working framework, `tokens.json`, a Tailwind preset and `examples/starter.html`. Point an agent at it. Tests keep it current, self-contained, and truthful (every class and `ME.*` call it names exists; its starter passes axe in both themes)
 - [ ] Name and logo
 - [ ] Docs site generated from garden (one page per component, do / don't)
 - [ ] Package (npm), semver, changelog, licence
 - [ ] **Font licences:** Jost and Cormorant Garamond are SIL OFL 1.1. When packaging, ship the OFL text + copyright notices alongside `fonts/` (e.g. `fonts/OFL-Jost.txt`, `fonts/OFL-Cormorant.txt`), list them in the package licence/NOTICE file, and don't sell the fonts on their own. Decide whether the shipped CSS keeps the Google Fonts `@import` (privacy / GDPR: it sends visitors' IPs to Google) or only the self-hosted copy
-- [ ] Regenerate the spec document from the tokens (no hand-maintained duplicates)
+- [x] Spec regenerated from the tokens: `agent-kit/` (`npm run build:kit`, tested in `tests/kit.spec.js`). `monolithic_edge_lit_ui_framework.md` is the OLD spec (indigo, `#08090d`, 2px radius) and is now stale: delete it or replace with a pointer to `agent-kit/DESIGN.md`
 
 ---
 
