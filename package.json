@@ -19,5 +19,6 @@
     "postcss": "^8.5.32",
     "style-dictionary": "^5.8.0"
   },
-  "version": "0.9.0"
+  "version": "1.0.0",
+  "license": "MIT"
 }

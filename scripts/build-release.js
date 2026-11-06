@@ -8,11 +8,11 @@ const version = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf
 const outDir = path.join(root, 'release'), pkgDir = path.join(outDir, 'EdgeLit'), zip = path.join(outDir, `EdgeLit-${version}.zip`);
 
 const files = build('release');
-files.set('README.md', fs.readFileSync(path.join(root, 'docs-src/README.md')).toString().replace('Version 0.9.0.', `Version ${version}.`));
+files.set('README.md', fs.readFileSync(path.join(root, 'docs-src/README.md')).toString().replace(/Version \d+\.\d+\.\d+\./, `Version ${version}.`));
 files.set('docs/USER-GUIDE.md', fs.readFileSync(path.join(root, 'docs-src/USER-GUIDE.md')));
 files.set('docs/HOW-IT-WORKS.md', fs.readFileSync(path.join(root, 'docs-src/HOW-IT-WORKS.md')));
 files.set('NOTICE.md', fs.readFileSync(path.join(root, 'docs-src/NOTICE.md')));
-files.set('LICENSE.txt', fs.readFileSync(path.join(root, 'docs-src/LICENSE.txt')).toString().replace('version 0.9.0', `version ${version}`));
+files.set('LICENSE.txt', fs.readFileSync(path.join(root, 'docs-src/LICENSE.txt')).toString().replace(/version \d+\.\d+\.\d+/, `version ${version}`));
 // demos live in examples/, so their local asset links point one level up
 const up = h => h.replace(/(href|src)="(edgelit[^"]*\.(?:css|js))"/g, '$1="../$2"');
 for (const d of ['garden.html', 'dashboard.html']) files.set('examples/' + d, up(fs.readFileSync(path.join(root, d), 'utf8')));

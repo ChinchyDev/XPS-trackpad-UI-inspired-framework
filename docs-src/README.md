@@ -46,7 +46,7 @@ Keep `dist/` and `icons/` next to `edgelit.css`: it loads its tokens from there.
 | `docs/USER-GUIDE.md` | How to build with it, step by step |
 | `docs/HOW-IT-WORKS.md` | The ideas and the architecture |
 | `DESIGN.md` | The full design specification (the rules, every token, every component). It is also written so you can hand it to an AI agent: *"Read DESIGN.md, then build X in the EdgeLit style."* |
-| `NOTICE.md`, `LICENSE.txt` | Terms and font notice |
+| `NOTICE.md`, `LICENSE.txt` | MIT licence and font notice |
 
 ## Fonts need internet
 
@@ -67,4 +67,4 @@ Change the accent colour (default cyan) by setting four variables, in both theme
 
 Put that in your own stylesheet *after* `edgelit.css` (your CSS always wins over the framework's layers). Check that your text colour has 4.5:1 contrast against the panel colour.
 
-Version 0.9.0.
+Version 1.0.0. Released under the MIT License (see `LICENSE.txt`).

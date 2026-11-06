@@ -1,6 +1,6 @@
 # Notice
 
-**EdgeLit** (c) 2026. See `LICENSE.txt`.
+**EdgeLit** (c) 2026 ChinchyDev, released under the MIT License. See `LICENSE.txt`. The licence covers the framework code, documentation and icons; the fonts below are separate and keep their own licence.
 
 ## Fonts
 
