@@ -119,6 +119,12 @@ test.describe('accent derivation', () => {
     expect(r.light.fill).not.toBe('#facc15');
     expect(contrast(r.light.text, '#e9ecef')).toBeGreaterThanOrEqual(4.5);
   });
+  test('an accent that looks like a signal colour is warned about; a distinct one is not', () => {
+    expect(derive('#E60023').warnings.join(' ')).toMatch(/err signal/);   // brand red vs the critical red
+    expect(derive('#1D7654').warnings.join(' ')).toMatch(/ok signal/);    // brand green vs the ok green
+    expect(derive('#22d3ee').warnings).toEqual([]);                       // the default cyan
+    expect(derive('#7c3aed').warnings).toEqual([]);
+  });
 });
 
 test.describe('color-mix fallback', () => {

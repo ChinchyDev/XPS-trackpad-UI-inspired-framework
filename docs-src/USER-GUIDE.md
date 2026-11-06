@@ -112,7 +112,35 @@ They contain real inputs, so ordinary `<form>` submission and screen readers jus
 - **Tailwind:** `tailwind.preset.js` exposes the colours, spacing and radii as theme values. Add it under `presets` in your Tailwind config.
 - **React / Vue / Svelte:** write the same markup. Use the `<me-*>` elements for the interactive widgets (React 19 passes props through to custom elements; with older React set properties through a ref), or call `ME.*` in an effect.
 
-## 9. Rules to keep it looking right
+## 9. Use your own brand colours
+
+Everything is driven by colour tokens, so a company palette is a token change, not a rewrite. There are two routes.
+
+**A. Change the accent only (recommended, source repo).** The helper lives in the source repo's `scripts/` folder (it is not in the downloaded package). Give it one colour, any CSS format:
+
+```
+node scripts/derive-accent.js "#7c3aed"            # preview: shows the derived colours and the contrast report
+node scripts/derive-accent.js "#7c3aed" --write    # write them into tokens/*.tokens.json and rebuild dist/
+```
+
+It keeps your hue and saturation and moves only the lightness, and only as far as needed, so the accent clears 3:1 (light-bars, borders) and 4.5:1 (text) on every surface in both themes. Buttons, links, focus rings, charts and the light-bar glow all follow it.
+
+**B. Change surfaces and text too (works anywhere, including the downloaded package).** Override the colour variables in your own stylesheet, for both themes. Your CSS beats the framework's, so no component code changes:
+
+```css
+:root, [data-theme="dark"]  { --color-canvas: #111; --color-canvas-rgb: 17 17 17; --accent: #f42330; --accent-rgb: 244 35 48; /* ... */ }
+[data-theme="light"]        { --color-canvas: #efefef; --color-canvas-rgb: 239 239 239; --accent: #e50023; --accent-rgb: 229 0 35; /* ... */ }
+```
+
+Every colour has a matching `-rgb` variable (space-separated channels); set both or glows and tints keep the old colour. If you only have the package, run route A's preview once in the source repo to get contrast-safe accent values to paste in. Route B skips the build's contrast check, so check text on every surface yourself (4.5:1 for text, 3:1 for borders and light-bars).
+
+### Warnings you should heed
+
+- **Too close to a signal colour.** `derive-accent.js` prints a warning when your accent is easily mistaken for red (critical), amber (warning), green (ok) or sky-blue (notice). Passing the contrast check does not prevent this: with a red brand colour, a primary button and a "Delete" button look the same, and a "featured" badge looks like a "broken" one. Either pick a distinct accent, or move the clashing signal in `tokens/*.tokens.json` to a clearly different shade and rebuild. A warning does not stop `--write`; it is your decision.
+- **Pale brand colours** (yellows, light pastels) are darkened on light surfaces to stay readable, so the light theme will show a deeper version of your colour.
+- **Rule 4 still applies.** Use your accent and the four signal colours; do not introduce a second brand hue for decoration.
+
+## 10. Rules to keep it looking right
 
 1. No pure black or white backgrounds: use the surface tokens.
 2. No box-shadow, no gradients on surfaces.
@@ -125,7 +153,7 @@ They contain real inputs, so ordinary `<form>` submission and screen readers jus
 
 The complete list (16 rules with reasons) and a pre-flight checklist are in `DESIGN.md`.
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 | Problem | Cause and fix |
 |---|---|
