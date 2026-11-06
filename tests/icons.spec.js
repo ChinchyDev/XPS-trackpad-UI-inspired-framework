@@ -35,8 +35,8 @@ test.describe('sprite source', () => {
   test('no hard-coded colours or stroke widths (they come from .me-ico)', () => {
     for (const s of symbols) { expect(s.body, s.id).not.toMatch(/#[0-9a-f]{3,6}|stroke-width|fill=|rgb\(/i); }
   });
-  test('monoedge-icons.js is up to date with sprite.svg (run npm run build:icons)', () => {
-    expect(fs.readFileSync(path.join(root, 'monoedge-icons.js'), 'utf8')).toBe(build());
+  test('edgelit-icons.js is up to date with sprite.svg (run npm run build:icons)', () => {
+    expect(fs.readFileSync(path.join(root, 'edgelit-icons.js'), 'utf8')).toBe(build());
   });
   test('garden.html no longer carries its own sprite', () => {
     expect(read('garden.html')).not.toContain('<symbol');

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
 <!--
-  Monoedge icon sprite: the SOURCE OF TRUTH. Run `npm run build:icons` to regenerate monoedge-icons.js (the injector the pages load).
+  EdgeLit icon sprite: the SOURCE OF TRUTH. Run `npm run build:icons` to regenerate edgelit-icons.js (the injector the pages load).
   Spec: 16px grid, viewBox 0 0 16 16, stroke comes from .me-ico (1.25, square caps, mitre joins), fill none.
         Straight segments only: no circles, no arcs, no curves.
         Exactly ONE lit segment per icon: a path with style="stroke:var(--ico-l,currentColor)". It lights with hover / selected (--ico-l = signal).

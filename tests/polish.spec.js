@@ -152,7 +152,7 @@ test.describe('rails lie on their side by CSS container query', () => {
 });
 
 test('legacy me-scan keyframes are gone', () => {
-  expect(read('monoedge.css')).not.toContain('me-scan');
+  expect(read('edgelit.css')).not.toContain('me-scan');
   expect(read('tests/animations.json')).not.toContain('me-scan');
 });
 

@@ -8,7 +8,7 @@ const { build: buildFallback, convert } = require('../scripts/build-fallback');
 const { derive } = require('../scripts/derive-accent');
 const { gate, contrast } = require('../scripts/colors');
 
-const css = read('monoedge.css');
+const css = read('edgelit.css');
 
 test.describe('cascade layers', () => {
   const tree = postcss.parse(css);
@@ -17,7 +17,7 @@ test.describe('cascade layers', () => {
     expect(first.params.replace(/\s+/g, '')).toBe('reset,tokens,base,components,utilities');
     expect(tree.nodes.indexOf(first)).toBeLessThan(tree.nodes.findIndex(n => n.type === 'atrule' && n.name === 'import'));
   });
-  test('every rule in monoedge.css lives in a layer (only @import, @property, @layer statements and comments are top level)', () => {
+  test('every rule in edgelit.css lives in a layer (only @import, @property, @layer statements and comments are top level)', () => {
     const loose = tree.nodes.filter(n => n.type === 'rule' || (n.type === 'atrule' && !['import', 'layer', 'property'].includes(n.name)));
     expect(loose.map(n => n.selector || '@' + n.name)).toEqual([]);
     const blocks = tree.nodes.filter(n => n.type === 'atrule' && n.name === 'layer' && n.nodes).map(n => n.params);
@@ -62,7 +62,7 @@ test.describe('design tokens (W3C DTCG)', () => {
     t.accent.base.$value = '#bde8f2';
     expect(gate('light', themeForGate('light', t, 'light')).join('\n')).toMatch(/accent fill/);
   });
-  test('the primitives left monoedge.css: only the prefers-contrast overrides still set colour tokens by hand', () => {
+  test('the primitives left edgelit.css: only the prefers-contrast overrides still set colour tokens by hand', () => {
     const tokensLayer = postcss.parse(css).nodes.find(n => n.type === 'atrule' && n.name === 'layer' && n.params === 'tokens');
     const defined = []; tokensLayer.walkDecls(d => { if (d.parent.parent?.params?.includes('prefers-contrast')) return; if (/^--(color|radius|space|font|z|accent|ok|warn|err|info|stroke|wash|glow|scrim|elev|on-signal|tick)\b/.test(d.prop) && !/-rgb$/.test(d.prop)) defined.push(d.prop); });
     expect(defined).toEqual([]);
@@ -90,7 +90,7 @@ test.describe('design tokens (W3C DTCG)', () => {
     expect(p.spacing['4']).toBe('var(--space-4)'); expect(p.borderRadius.float).toBe('var(--radius-float)'); expect(p.fontFamily.display).toEqual(['var(--font-display)']);
   });
   test('every var(--x) used in the framework or the pages is defined somewhere', () => {
-    const files = ['monoedge.css', 'dist/tokens.css', 'dist/fallback.css', 'garden.html', 'gallery.html', 'dashboard.html', 'icons.html', 'monoedge.js', 'monoedge-icons.js'].map(read).join('\n');
+    const files = ['edgelit.css', 'dist/tokens.css', 'dist/fallback.css', 'garden.html', 'gallery.html', 'dashboard.html', 'icons.html', 'edgelit.js', 'edgelit-icons.js'].map(read).join('\n');
     const used = new Set([...files.matchAll(/var\((--[\w-]+)\s*[,)]/g)].map(m => m[1]));
     const declared = new Set([...files.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]).concat([...files.matchAll(/setProperty\(\s*'(--[\w-]+)'/g)].map(m => m[1])));
     const optional = new Set(['--ico-l', '--lit-t', '--lit-b', '--lit-l', '--lit-r', '--lit-wt', '--lit-wb', '--lit-level', '--lit-in', '--lit-out', '--lit-span', '--lit-ax', '--lit-ay', '--v', '--h', '--pct', '--gi-frame', '--c', '--lit-pos', '--scroll-corner']);   // set per element, with fallbacks
@@ -152,7 +152,7 @@ test.describe('color-mix fallback', () => {
 });
 
 test.describe('container queries', () => {
-  test('monoedge.css has no viewport width media queries left (pointer, motion, contrast and print remain)', () => {
+  test('edgelit.css has no viewport width media queries left (pointer, motion, contrast and print remain)', () => {
     const bad = []; postcss.parse(css).walkAtRules('media', a => { if (/(max|min)-width|(max|min)-height/.test(a.params)) bad.push(a.params); });
     expect(bad).toEqual([]);
   });

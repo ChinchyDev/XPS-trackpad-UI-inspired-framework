@@ -1,4 +1,4 @@
-// icons/sprite.svg (source of truth) -> monoedge-icons.js (injects the sprite into the page).
+// icons/sprite.svg (source of truth) -> edgelit-icons.js (injects the sprite into the page).
 // External <use href="icons.svg#i-x"> is blocked on file:// and cross-origin, so the sprite is injected inline by script instead.
 //   npm run build:icons
 // Load it as the first child of <body> (the sprite then exists before page scripts run); in <head> it injects at DOMContentLoaded.
@@ -15,5 +15,5 @@ function build() {
 })();
 `;
 }
-if (require.main === module) { fs.writeFileSync(path.join(root, 'monoedge-icons.js'), build()); console.log('monoedge-icons.js written'); }
+if (require.main === module) { fs.writeFileSync(path.join(root, 'edgelit-icons.js'), build()); console.log('edgelit-icons.js written'); }
 module.exports = { build };

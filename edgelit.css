@@ -1,6 +1,6 @@
 /* ==========================================================================
-   MONOLITHIC EDGE-LIT UI FRAMEWORK  v1.1   (monoedge.css)
-   Rule zero: nothing is round. Max radius 2px. Light is structure.
+   EDGELIT UI FRAMEWORK   (edgelit.css)
+   Rule zero: nothing is round. Max radius 4px. Light is structure.
    ========================================================================== */
 
 /* ---------- 0. CASCADE LAYERS -------------------------------------------
@@ -165,7 +165,7 @@
   .me-anchor > button.me-affix:hover { color: var(--color-text-primary); }
   .me-anchor > button.me-affix:focus-visible { outline-offset: -3px; }
   /* select */
-  .me-anchor > select { appearance: none; cursor: pointer; padding-inline-end: 20px; color-scheme: inherit; }
+  .me-anchor > select { appearance: none; border-radius: 0; cursor: pointer; padding-inline-end: 20px; color-scheme: inherit; }
   /* the open list is drawn by the browser from the option's own colours: set them explicitly (default text was black on dark) */
   .me-anchor > select option, .me-anchor > select optgroup { background: var(--color-overlay); color: var(--color-text-primary); }
   .me-anchor:has(> select)::after { inset-inline-end: 0 }
@@ -778,7 +778,7 @@
   .me-accordion details[open] > summary::after { content: "\2212"; }
   .me-accordion summary:hover { color: var(--color-text-primary); }
   .me-accordion .me-acc-body { padding: var(--space-4); color: var(--color-text-muted); }
-  /* custom elements (monoedge-elements.js) need a box model; everything inside is the ordinary framework markup */
+  /* custom elements (edgelit-elements.js) need a box model; everything inside is the ordinary framework markup */
   me-icon, me-switch { display: inline-flex; } me-chart, me-date, me-combobox { display: block; } me-scroll { display: block; overflow: auto; }
 
   /* ---------- 12. RESPONSIVE: container queries, not viewport media queries ---------- */

@@ -1,4 +1,4 @@
-// monoedge.js components exercised in garden.html: chart variants, date picker, combobox / multi-select / tag input,
+// edgelit.js components exercised in garden.html: chart variants, date picker, combobox / multi-select / tag input,
 // command palette, file upload, tabs overflow, tree, toolbar, wizard. (axe for these states lives in a11y.spec.js)
 const { test, expect } = require('../fixtures');
 const { url } = require('./helpers');

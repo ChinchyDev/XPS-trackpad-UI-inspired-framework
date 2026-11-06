@@ -8,9 +8,11 @@ const project = path.basename(__dirname).replace(/\W+/g, '-');
 
 exports.test = base.test.extend({
   context: async ({}, use, testInfo) => {
-    const ctx = await base.chromium.launchPersistentContext(
-      `C:/pw-profiles/${project}-${testInfo.parallelIndex}`,
-      { channel: 'msedge', headless: true, ...testInfo.project.use }
+    // Edge (Chromium) is the default. Firefox and WebKit are allowed for the cross-browser projects only; each gets its own profile folders.
+    const { browserName = 'chromium', defaultBrowserType, ...opts } = testInfo.project.use;
+    const ctx = await base[browserName].launchPersistentContext(
+      `C:/pw-profiles/${project}-${browserName}-${testInfo.parallelIndex}`,
+      { ...(browserName === 'chromium' ? { channel: 'msedge' } : {}), headless: true, ...opts }
     );
     await use(ctx);
     await ctx.close();

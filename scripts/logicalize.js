@@ -1,5 +1,5 @@
 // One-way refactor helper (kept for the record and for re-running on new CSS): rewrites physical CSS to logical CSS so the framework works in RTL.
-//   node scripts/logicalize.js monoedge.css [more.css|.html ...]      (HTML: only <style> blocks are touched)
+//   node scripts/logicalize.js edgelit.css [more.css|.html ...]      (HTML: only <style> blocks are touched)
 // What it does, and only where the LTR result stays pixel-identical:
 //   margin/padding/border/left/right (+ -width/-color/-style)  ->  logical (inline-start / inline-end)
 //   text-align: left|right                                      ->  start | end

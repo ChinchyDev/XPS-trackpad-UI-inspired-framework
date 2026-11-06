@@ -1,4 +1,4 @@
-// Builds agent-kit/: a self-contained folder you can drop into any project (or point an AI agent at) to use or reproduce the monoedge design.
+// Builds agent-kit/: a self-contained folder you can drop into any project (or point an AI agent at) to use or reproduce the edgelit design.
 //   npm run build:kit              write agent-kit/
 //   node scripts/build-kit.js --check   fail if agent-kit/ is out of date
 // DESIGN.md is generated from kit-src/DESIGN.template.md + the live tokens + the icon sprite, so values are never typed twice.
@@ -6,7 +6,7 @@ const fs = require('fs'); const path = require('path');
 const root = path.resolve(__dirname, '..'), out = path.join(root, 'agent-kit');
 const rd = f => fs.readFileSync(path.join(root, f), 'utf8');
 
-const FILES = ['monoedge.css', 'monoedge.js', 'monoedge-elements.js', 'monoedge-icons.js', 'icons/sprite.svg',
+const FILES = ['edgelit.css', 'edgelit.js', 'edgelit-elements.js', 'edgelit-icons.js', 'icons/sprite.svg',
   'dist/tokens.css', 'dist/tokens.json', 'dist/tokens.js', 'dist/fallback.css', 'dist/tailwind.preset.js',
   'fonts/fonts.css', 'fonts/jost-latin.woff2', 'fonts/jost-latin-ext.woff2', 'fonts/cormorant-garamond-latin.woff2', 'fonts/cormorant-garamond-latin-ext.woff2'];
 // kit file name -> source (flattened where the framework expects it at the top level)
@@ -33,18 +33,24 @@ function iconsList() {
   return [...rd('icons/sprite.svg').matchAll(/id="i-([a-z0-9-]+)"/g)].map(m => '`' + m[1] + '`').join(', ');
 }
 
-function build() {
+const FONT_FILES = f => f.startsWith('fonts/');
+const GOOGLE_ONLY = css => css.replace(/@import url\("fonts\/fonts\.css"\);[^\n]*\n/, '').replace(/ *\/\* online mode:[^*]*\*\//, '');
+/** variant 'kit' (agent-kit/: offline fonts bundled) or 'release' (the zip: no fonts, Google Fonts online only). */
+function build(variant = 'kit') {
+  const online = variant === 'release';
   const pkg = JSON.parse(rd('package.json'));
-  const design = rd('kit-src/DESIGN.template.md').replace('{{version}}', pkg.version || '0.0.0').replace('{{tokens}}', tokensSection()).replace('{{icons}}', iconsList());
+  const strip = (t, keep, drop) => t.replace(new RegExp(`<!--${drop}-->[\\s\\S]*?<!--/${drop}-->\\n?`, 'g'), '').replace(new RegExp(`<!--/?${keep}-->`, 'g'), '');
+  const design = strip(rd('kit-src/DESIGN.template.md'), online ? 'online' : 'local', online ? 'local' : 'online').replace('{{version}}', pkg.version || '0.0.0').replace('{{tokens}}', tokensSection()).replace('{{icons}}', iconsList());
   const files = new Map();
-  for (const f of FILES) files.set(RENAME[f] || f, fs.readFileSync(path.join(root, f)));
+  for (const f of FILES) { if (online && FONT_FILES(f)) continue; files.set(RENAME[f] || f, fs.readFileSync(path.join(root, f))); }
+  if (online) files.set('edgelit.css', Buffer.from(GOOGLE_ONLY(rd('edgelit.css'))));
   files.set('DESIGN.md', design);
-  files.set('README.md', rd('kit-src/README.md'));
-  files.set('LICENSE-FONTS.md', rd('kit-src/LICENSE-FONTS.md'));
+  if (!online) { files.set('README.md', rd('kit-src/README.md')); files.set('LICENSE-FONTS.md', rd('kit-src/LICENSE-FONTS.md')); }
   files.set('examples/starter.html', rd('kit-src/starter.html'));
   return files;
 }
 
+if (require.main === module) {
 const files = build();
 if (process.argv.includes('--check')) {
   const bad = [];
@@ -55,5 +61,6 @@ if (process.argv.includes('--check')) {
   fs.rmSync(out, { recursive: true, force: true });
   for (const [f, buf] of files) { const p = path.join(out, f); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, buf); }
   console.log(`agent-kit: ${files.size} files written.`);
+}
 }
 module.exports = { build };

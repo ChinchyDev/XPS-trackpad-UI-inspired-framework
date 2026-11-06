@@ -28,7 +28,7 @@ test.describe('icon lab', () => {
     expect(await page.locator('#zoom').evaluate(e => e.style.getPropertyValue('--ico-l'))).toBe('currentColor');
     await page.locator('#stroke').fill('2');
     await expect(page.locator('#stroke-o')).toHaveText('2.00');
-    expect(await page.locator('#zoom-svg').evaluate(e => e.style.strokeWidth)).toBe('2');
+    expect(await page.locator('#zoom-svg').evaluate(e => e.style.strokeWidth)).toMatch(/^2(px)?$/);
   });
   test('clicking an icon in the set selects it; the filter hides the rest', async ({ page }) => {
     await open(page);

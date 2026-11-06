@@ -10,8 +10,8 @@ test.describe('kit contents', () => {
   test('agent-kit is current (npm run build:kit)', () => {
     expect(() => execSync('node scripts/build-kit.js --check', { cwd: path.join(__dirname, '..'), stdio: 'pipe' })).not.toThrow();
   });
-  test('it is self-contained: every file monoedge.css and the starter reference exists inside the kit', () => {
-    const css = kit('monoedge.css'), html = kit('examples/starter.html');
+  test('it is self-contained: every file edgelit.css and the starter reference exists inside the kit', () => {
+    const css = kit('edgelit.css'), html = kit('examples/starter.html');
     const refs = [...css.matchAll(/@import url\("([^"]+)"/g)].map(m => m[1]).filter(u => !/^https?:/.test(u)).map(u => u.split('?')[0]);
     for (const r of refs) expect(fs.existsSync(path.join(__dirname, '..', 'agent-kit', r)), r).toBe(true);
     for (const m of html.matchAll(/(?:src|href)="(\.\.\/[^"]+)"/g)) expect(fs.existsSync(path.join(__dirname, '..', 'agent-kit', 'examples', m[1])), m[1]).toBe(true);
@@ -23,10 +23,10 @@ test.describe('kit contents', () => {
     for (const m of read('icons/sprite.svg').matchAll(/id="i-([a-z0-9-]+)"/g)) expect(d, m[1]).toContain('`' + m[1] + '`');
   });
   test('every me- class and ME.* helper the guide names really exists (the guide cannot rot)', () => {
-    const d = kit('DESIGN.md'), css = read('monoedge.css'), js = read('monoedge.js');
+    const d = kit('DESIGN.md'), css = read('edgelit.css'), js = read('edgelit.js');
     const classes = new Set([...d.matchAll(/\.?\b(me-[a-z][a-z0-9-]*)/g)].map(m => m[1]));
     const elements = new Set(['me-icon', 'me-chart', 'me-scroll', 'me-date', 'me-combobox', 'me-switch']);
-    for (const c of classes) if (!elements.has(c)) expect(css.includes(c) || read('monoedge-elements.js').includes(c), c).toBe(true);
+    for (const c of classes) if (!elements.has(c)) expect(css.includes(c) || read('edgelit-elements.js').includes(c), c).toBe(true);
     for (const m of d.matchAll(/ME\.([a-zA-Z]+)\(/g)) expect(js, 'ME.' + m[1]).toMatch(new RegExp('\\b' + m[1] + '\\b'));
   });
   test('the guide and the starter both say body needs class="me"', () => {

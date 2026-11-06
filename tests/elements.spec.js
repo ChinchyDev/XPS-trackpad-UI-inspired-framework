@@ -1,6 +1,6 @@
-// monoedge-elements.js: custom elements over monoedge.js (light DOM, form-friendly, attribute + property driven).
+// edgelit-elements.js: custom elements over edgelit.js (light DOM, form-friendly, attribute + property driven).
 const { test, expect } = require('../fixtures');
-const { url, read } = require('./helpers');
+const { url, read, settled } = require('./helpers');
 
 const open = async (page, hash = '#app-components') => { const e = []; page.on('pageerror', x => e.push(x.message)); await page.goto(url('garden.html', hash)); await page.waitForSelector('me-chart svg'); return e; };
 const form = page => page.evaluate(() => { const o = {}; for (const [k, v] of new FormData(document.querySelector('#wc-form')).entries()) o[k] = o[k] ? [].concat(o[k], v) : v; return o; });
@@ -13,8 +13,8 @@ test.describe('registration', () => {
     expect(names.length).toBe(6);
     for (const [n, ok] of names) expect(ok, n).toBe(true);
   });
-  test('it needs monoedge.js first and says so', () => {
-    expect(read('monoedge-elements.js')).toMatch(/needs monoedge\.js first/);
+  test('it needs edgelit.js first and says so', () => {
+    expect(read('edgelit-elements.js')).toMatch(/needs edgelit\.js first/);
   });
 });
 
@@ -177,7 +177,7 @@ test.describe('<me-switch>', () => {
 test.describe('elements are accessible in both themes', () => {
   const AxeBuilder = require('@axe-core/playwright').default;
   for (const [name, hash] of [['dark', '#app-components'], ['light', '#app-light-components']]) test(`axe ${name}`, async ({ page }) => {
-    await open(page, hash);
+    await open(page, hash); await settled(page);
     const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag22aa']).analyze();
     expect(r.violations.map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(' ')).join(' | ')}`)).toEqual([]);
   });

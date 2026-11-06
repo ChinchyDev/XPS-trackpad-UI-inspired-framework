@@ -1,4 +1,4 @@
-# monoedge agent kit
+# EdgeLit agent kit
 
 A self-contained design system folder. Drop it into a project, or point an AI agent at it.
 
@@ -6,21 +6,21 @@ A self-contained design system folder. Drop it into a project, or point an AI ag
 
 Put this folder anywhere the agent can read, then tell it:
 
-> Read `agent-kit/DESIGN.md` completely, then build/redesign **X** using the monoedge design system.
+> Read `agent-kit/DESIGN.md` completely, then build/redesign **X** using the EdgeLit design system.
 > Copy `examples/starter.html` as your starting point. Follow the hard rules and finish with the checklist in section 11.
 
-For a design task that is not a web page (slides, Figma, a mobile app, print), say so: *"Apply the monoedge design language (DESIGN.md sections 1 to 5 and 9) to **X**; you can't use the CSS, so reproduce the rules with `tokens.json`."*
+For a design task that is not a web page (slides, Figma, a mobile app, print), say so: *"Apply the EdgeLit design language (DESIGN.md sections 1 to 5 and 9) to **X**; you can't use the CSS, so reproduce the rules with `tokens.json`."*
 
 For Claude Code, you can also add one line to the project's `CLAUDE.md`:
 
 ```
-Design system: follow agent-kit/DESIGN.md for all UI work (monoedge, edge-lit). Its hard rules override default styling habits.
+Design system: follow agent-kit/DESIGN.md for all UI work (EdgeLit). Its hard rules override default styling habits.
 ```
 
 ## What's inside
 
 - `DESIGN.md`: philosophy, hard rules, tokens, component markup, page recipes, accessibility, do/don't, checklist. The agent's entry point.
-- `monoedge.css`, `monoedge.js`, `monoedge-elements.js`, `monoedge-icons.js`: the working framework (keep `dist/`, `fonts/`, `icons/` next to them).
+- `edgelit.css`, `edgelit.js`, `edgelit-elements.js`, `edgelit-icons.js`: the working framework (keep `dist/`, `fonts/`, `icons/` next to them).
 - `tokens.json`, `tailwind.preset.js`: the same tokens for other tools.
 - `examples/starter.html`: a complete page that already follows every rule; open it in a browser.
 

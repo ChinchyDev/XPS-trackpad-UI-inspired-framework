@@ -2,7 +2,7 @@
 // edge lights lead on small scrollers and on touch.
 const { test, expect } = require('../fixtures');
 const AxeBuilder = require('@axe-core/playwright').default;
-const { url } = require('./helpers');
+const { url, settled } = require('./helpers');
 
 const open = async (page, hash = '#app-components') => { await page.goto(url('garden.html', hash)); await page.waitForSelector('#sc-big'); await page.locator('#sc-l').scrollIntoViewIfNeeded(); };
 const wrapOf = id => `.me-scroll:has(> #${id})`;
@@ -177,7 +177,8 @@ test.describe('edge lights (C): lead on small scrollers, off on big ones (mouse)
 });
 
 test.describe('high contrast and motion', () => {
-  test('forced colors gives the native scrollbar back and hides the custom pieces', async ({ page }) => {
+  test('forced colors gives the native scrollbar back and hides the custom pieces', async ({ page, browserName }) => {
+    test.skip(browserName === 'firefox', 'Playwright Firefox emulation flips matchMedia but does not restyle the page, so this cannot be observed there');
     await open(page);
     await page.emulateMedia({ forcedColors: 'active' });
     expect(await page.locator('#sc-big').evaluate(e => getComputedStyle(e).scrollbarWidth)).toBe('auto');
@@ -214,7 +215,7 @@ test.describe('touch: edge lights lead, the thumb is only an indicator @responsi
 
 test.describe('a11y', () => {
   for (const [name, hash] of [['dark', '#app-components'], ['light', '#app-light-components']]) test(`axe: scrolling demos (${name})`, async ({ page }) => {
-    await open(page, hash);
+    await open(page, hash); await settled(page);
     const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag22aa']).analyze();
     expect(r.violations.map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(' ')).join(' | ')}`)).toEqual([]);
   });

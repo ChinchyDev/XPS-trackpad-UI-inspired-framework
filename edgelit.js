@@ -1,5 +1,5 @@
 /* ==========================================================================
-   monoedge.js : optional behaviour for the components CSS cannot do alone.
+   edgelit.js : optional behaviour for the components CSS cannot do alone.
    No dependencies, no build step. Everything hangs off window.ME.
      ME.chart(host, series, opts)     line / area / step / multi-series / sparkline
      ME.combobox(input, opts)         autocomplete, multi-select, tag input
@@ -24,7 +24,7 @@ function el(tag, attrs = {}, ...kids) {
   for (const [k, v] of Object.entries(attrs)) { if (v === false || v == null) continue; if (k === 'class') e.className = v; else if (k === 'text') e.textContent = v; else e.setAttribute(k, v === true ? '' : v); }
   e.append(...kids); return e;
 }
-/* icon markup from the sprite (load monoedge-icons.js first). size: 'sm' | 'lg' | 'xl'; flip: mirror in RTL (for direction-bearing glyphs such as chevrons) */
+/* icon markup from the sprite (load edgelit-icons.js first). size: 'sm' | 'lg' | 'xl'; flip: mirror in RTL (for direction-bearing glyphs such as chevrons) */
 const icon = (name, size, flip) => `<svg class="me-ico${size ? ' me-ico--' + size : ''}" aria-hidden="true" focusable="false"${flip ? ' data-flip' : ''}><use href="#i-${name}"/></svg>`;
 /* Horizontal arrow keys follow the reading direction: in RTL, ArrowLeft means "next". */
 const isRtl = t => getComputedStyle(t).direction === 'rtl';
@@ -547,7 +547,8 @@ function scroll(view, o = {}) {
 function split(el, o = {}) {
   const btns = $$('button', el);
   const set = c => { btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === c))); c ? el.dataset.chosen = c : el.removeAttribute('data-chosen'); fire(el, 'me-split', c); o.onChange?.(c); };
-  el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.getAttribute('aria-busy') === 'true') return; set(b.getAttribute('aria-pressed') === 'true' && !o.sticky ? null : b.dataset.c); });
+  el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.getAttribute('aria-busy') === 'true') return; b.focus({ preventScroll: true });   /* Safari does not focus a clicked button, and Esc is heard on the footer */
+    set(b.getAttribute('aria-pressed') === 'true' && !o.sticky ? null : b.dataset.c); });
   el.addEventListener('keydown', e => { if (e.key === 'Escape' && el.dataset.chosen) { e.stopPropagation(); set(null); } });
   return { set, get chosen() { return el.dataset.chosen || null; } };
 }

@@ -58,7 +58,7 @@
   "control-h": {
     "$type": "dimension",
     "$value": "36px",
-    "$description": "Default control height. Density and touch overrides stay in monoedge.css."
+    "$description": "Default control height. Density and touch overrides stay in edgelit.css."
   },
   "ease": {
     "$type": "other",

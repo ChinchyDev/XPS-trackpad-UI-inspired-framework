@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plotline — Garden Management</title>
-<link rel="stylesheet" href="monoedge.css">
+<link rel="stylesheet" href="edgelit.css">
 <style>
-  /* Page layout only. Controls, states and light effects all come from monoedge.css. */
+  /* Page layout only. Controls, states and light effects all come from edgelit.css. */
   body { margin: 0; min-height: 100vh; }
   [hidden] { display: none !important; }
 
@@ -66,7 +66,7 @@
 </style>
 </head>
 <body class="me">
-<script src="monoedge-icons.js"></script>   <!-- first in <body>: the sprite exists before any script reads it -->
+<script src="edgelit-icons.js"></script>   <!-- first in <body>: the sprite exists before any script reads it -->
 
 <!-- =============================== LOGIN =============================== -->
 <main id="login">
@@ -306,7 +306,7 @@
           </div></div>
 
         <div class="me-panel" style="padding:24px"><div class="me-label" id="wc-l" style="margin-bottom:6px">Web components</div>
-          <p class="me-dim" style="margin:0 0 16px">The same components as custom elements for any framework (<code>monoedge-elements.js</code>). Light DOM, so forms and screen readers see ordinary inputs.</p>
+          <p class="me-dim" style="margin:0 0 16px">The same components as custom elements for any framework (<code>edgelit-elements.js</code>). Light DOM, so forms and screen readers see ordinary inputs.</p>
           <form id="wc-form" class="me-stack" aria-labelledby="wc-l">
             <div class="me-row"><me-icon name="leaf" size="lg"></me-icon><me-icon name="warning" size="lg" label="Warning: low moisture" data-signal="warn" style="color:var(--warn-text)"></me-icon><me-icon name="chevron-right" flip></me-icon><span class="me-hint">&lt;me-icon&gt;</span></div>
             <me-chart id="wc-chart" values="[3,5,4,7,6,9]" labels='["Mon","Tue","Wed","Thu","Fri","Sat"]' unit=" visits" axis table caption="Visits per day" data-signal="info"></me-chart>
@@ -402,8 +402,8 @@
 
 <div class="me-toasts" id="toasts" aria-live="polite"></div>
 
-<script src="monoedge.js"></script>
-<script src="monoedge-elements.js"></script>
+<script src="edgelit.js"></script>
+<script src="edgelit-elements.js"></script>
 <script>
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -429,7 +429,7 @@ const status=b=>b.moisture<35?{k:'warn',t:'Needs water'}:(b.harvest!==null&&b.ha
 /* ------------------------------ helpers ------------------------------ */
 /* notch notification: hangs from the top edge, one at a time */
 function toast(sig,msg){const c=$('#toasts');c.replaceChildren();const t=document.createElement('div');t.className='me-alert';t.dataset.signal=sig;t.setAttribute('role','status');t.innerHTML='<span class="me-glyph">'+({ok:'✓',warn:'!',err:'✕'}[sig]||'i')+'</span><div></div>';t.lastChild.textContent=msg;c.append(t);setTimeout(()=>{t.classList.add('is-out');setTimeout(()=>t.hidden=true,850);},4800);}
-/* side rails lie on their side by CSS container query (monoedge.css), no JS */
+/* side rails lie on their side by CSS container query (edgelit.css), no JS */
 $('[data-collapse]').addEventListener('click',e=>{const app=$('#app'),on=!app.hasAttribute('data-min');app.toggleAttribute('data-min',on);$('#side').toggleAttribute('data-min',on);e.currentTarget.setAttribute('aria-expanded',String(!on));});
 function fieldErr(id,bad){const f=document.getElementById(id);bad?f.dataset.signal='err':f.removeAttribute('data-signal');const i=$('input,select',f);if(i){i.setAttribute('aria-invalid',bad);}return bad;}
 function bars(el,vals){const mx=Math.max(...vals);el.innerHTML=vals.map((v,i)=>'<i style="--h:'+Math.round(v/mx*100)+'%" data-tip="'+'MTWTFSS'[i]+': '+v+' L"></i>').join('');}
@@ -572,7 +572,7 @@ $('#invite').addEventListener('click',()=>{resetSplit('#sp-inv');fieldErr('iv-f'
 bindSplit('#sp-inv','#dlg-inv',()=>{const em=$('#iv-email').value.trim();if(fieldErr('iv-f',!/^\S+@\S+\.\S+$/.test(em)))return false;users.push({n:em,e:em,r:$('#iv-role').value,s:'Invited'});renderUsers();toast('ok','Invite sent to '+em+'.');});
 bindSplit('#sp-del','#dlg-del',()=>{const u=users.splice(delIdx,1)[0];renderUsers();toast('warn',u.n+' removed.');});
 
-/* ------------------------------ library wiring (monoedge.js) ------------------------------ */
+/* ------------------------------ library wiring (edgelit.js) ------------------------------ */
 const isoDay=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 function dueLabel(v){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec((v||'').trim());if(!m)return 'Today';const d=new Date(+m[1],+m[2]-1,+m[3]);return isoDay(d)===isoDay(new Date())?'Today':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});}
 const CROPS=['Tomato','Squash','Carrot','Lettuce','Beans','Apple','Strawberry','Mixed herbs','Seedlings','Kale','Garlic','Leek','Beetroot','Courgette','Pea'];

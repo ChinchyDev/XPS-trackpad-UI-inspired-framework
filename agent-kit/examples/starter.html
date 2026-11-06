@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>monoedge starter</title>
-  <link rel="stylesheet" href="../monoedge.css">
+  <title>edgelit starter</title>
+  <link rel="stylesheet" href="../edgelit.css">
   <style>
     /* Page-level layout only. Un-layered CSS beats the framework, so keep it to layout; use tokens for any colour. */
     body { margin: 0; }
@@ -13,11 +13,11 @@
   </style>
 </head>
 <body class="me">
-<script src="../monoedge-icons.js"></script>
+<script src="../edgelit-icons.js"></script>
 
 <main class="me-stack" style="gap:24px">
   <div class="head">
-    <div><div class="me-title">Starter</div><span class="me-dim">A page that already follows the monoedge rules. Copy it.</span></div>
+    <div><div class="me-title">Starter</div><span class="me-dim">A page that already follows the edgelit rules. Copy it.</span></div>
     <div class="me-row">
       <div class="me-segmented" id="theme" role="group" aria-label="Theme"><button aria-pressed="true" data-v="dark">Dark</button><button aria-pressed="false" data-v="light">Light</button></div>
       <button class="me-btn me-btn--primary" id="open-dlg">Add item</button>
@@ -66,8 +66,8 @@
   <div class="me-split" id="sp"><button data-c="l" aria-pressed="false">Save</button><button data-c="r" aria-pressed="false">Cancel</button></div>
 </dialog>
 
-<script src="../monoedge.js"></script>
-<script src="../monoedge-elements.js"></script>
+<script src="../edgelit.js"></script>
+<script src="../edgelit-elements.js"></script>
 <script>
   const $ = s => document.querySelector(s);
   $('#theme').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; document.documentElement.dataset.theme = b.dataset.v; for (const x of $('#theme').children) x.setAttribute('aria-pressed', x === b); });

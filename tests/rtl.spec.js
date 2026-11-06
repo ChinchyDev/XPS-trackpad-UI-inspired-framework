@@ -7,9 +7,9 @@ const postcss = require('postcss');
 const rtl = (page, hash = '#app') => page.goto(url('garden.html', hash.includes('rtl') ? hash : hash + '-rtl'));
 
 test.describe('source', () => {
-  const tree = postcss.parse(read('monoedge.css'));
+  const tree = postcss.parse(read('edgelit.css'));
   const PHYSICAL = /^(margin|padding)-(left|right)$|^border-(left|right)(-(width|color|style))?$|^(left|right)$/;
-  test('monoedge.css uses logical properties (physical left/right only where it is keyed to a physical side)', () => {
+  test('edgelit.css uses logical properties (physical left/right only where it is keyed to a physical side)', () => {
     const bad = [];
     tree.walkDecls(d => {
       if (!PHYSICAL.test(d.prop)) return;

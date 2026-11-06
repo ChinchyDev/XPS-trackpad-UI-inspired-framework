@@ -1,5 +1,5 @@
 /* ==========================================================================
-   monoedge-elements.js : custom elements over monoedge.js. Load AFTER monoedge.js (and monoedge-icons.js for <me-icon> and the date picker).
+   edgelit-elements.js : custom elements over edgelit.js. Load AFTER edgelit.js (and edgelit-icons.js for <me-icon> and the date picker).
    Light DOM on purpose: the framework's CSS and tokens apply as-is, forms see the real inputs, and assistive tech sees ordinary markup.
      <me-icon name="plus" size="lg" flip label="Add">
      <me-chart values="[1,2,3]" labels='["a","b","c"]' unit=" L" axis step spark table label="Water use" caption="...">   (.series = [{name,data,alt}] for several lines)
@@ -12,7 +12,7 @@
    ========================================================================== */
 (() => {
 'use strict';
-if (!window.ME) { console.error('monoedge-elements.js needs monoedge.js first'); return; }
+if (!window.ME) { console.error('edgelit-elements.js needs edgelit.js first'); return; }
 const define = (name, cls) => { if (!customElements.get(name)) customElements.define(name, cls); };
 let uid = 0; const nid = p => `${p}-${++uid}`;
 const json = (v, fb) => { if (v == null || v === '') return fb; try { return JSON.parse(v); } catch (_) { return fb; } };

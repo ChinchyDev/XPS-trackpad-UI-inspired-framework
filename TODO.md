@@ -1,4 +1,4 @@
-# Edge-Lit Framework: Road to v1.0
+# EdgeLit: Road to v1.0
 
 Design thesis (from XPS 14/16 2026): **flush surfaces + minimal edge indicators.**
 The 2024 invisible trackpad failed because users couldn't find its edges; the 2026 model added etched boundary lines. Rule: *a control may be unboxed, but never unlocatable.*
@@ -37,7 +37,7 @@ Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 
 ### 1C. Icons (done; tests in `tests/icons.spec.js`)
 - [x] 46 icons drawn (the 9 + telemetry + components, plus 35 new): navigation, actions, direction, status, time / weather / garden. 16px grid, 1.25 stroke, square caps, mitre joins, straight segments only (no circles, arcs or curves), exactly one lit segment each via `--ico-l`
-- [x] Sprite moved out of garden.html: `icons/sprite.svg` is the source of truth; `npm run build:icons` generates `monoedge-icons.js`, which injects it (external `<use>` is blocked on file://). A test fails if the generated file is stale
+- [x] Sprite moved out of garden.html: `icons/sprite.svg` is the source of truth; `npm run build:icons` generates `edgelit-icons.js`, which injects it (external `<use>` is blocked on file://). A test fails if the generated file is stale
 - [x] Icon-button sizing: `.me-ico--sm / --lg / --xl` (12 / 20 / 24); any icon-only button is at least 24px (WCAG 2.5.8), 44px on touch, and must have an `aria-label` (tests sweep the whole garden)
 - [x] `ME.icon(name, size)` for JS-built UI; calendar trigger, month arrows, upload remove, dialog close and pager now use the sprite
 - [x] Icon gallery in the Components view (hover lights the segment)
@@ -46,7 +46,7 @@ Should fields get a second focus cue so they meet WCAG 2.4.13. D...YES
 
 ### 1E. Scrollbar (decided and built: B + C; tests in `tests/scroll.spec.js`; lab deleted)
 Decision: a combination. **Lit thumb (B)** is the default for most content and the drag handle when the wheel is not available; **edge lights (C)** are added on small scrollers and lead on touch. Always accent, hidden at rest.
-- [x] `ME.scroll(el)` / `data-me-scroll`; styles in monoedge.css 10n. Native scrolling, keyboard and find-in-page untouched; the browser bar is hidden, and comes back in forced-colors
+- [x] `ME.scroll(el)` / `data-me-scroll`; styles in edgelit.css 10n. Native scrolling, keyboard and find-in-page untouched; the browser bar is hidden, and comes back in forced-colors
 - [x] Thumb: 2px accent light-bar, shows on hover / focus / while scrolling, fades after ~1s, swells and glows when grabbed, drag + click-track paging, both axes with a corner piece, hidden when content fits
 - [x] Edge lights: lit edge + content fade toward more content. Auto: on when the scroller is small (height <= 320px, width <= 480px) and always on touch; `data-me-scroll="on|off"` overrides
 - [x] Touch: thumb only while scrolling (never on hover), 24px track
@@ -55,21 +55,21 @@ Decision: a combination. **Lit thumb (B)** is the default for most content and t
 - Follow-ups: apply to the combobox / palette listboxes and the tree; thresholds (320 / 480) are a first guess, tune on real content; wrapper copies no flex/grid placement from the scroller (wrap a flex child in your own container); a `scroll-padding` / sticky-header check on long tables
 
 ### 1D. Delivery (done; tests in `tests/delivery.spec.js`, `rtl.spec.js`, `elements.spec.js`, `visual.spec.js`)
-- [x] **Tokens as W3C DTCG JSON** in `tokens/` (core, dark, light), built with **Style Dictionary 5** into `dist/tokens.css`, `tokens.js`, `tokens.json` and `tailwind.preset.js`. monoedge.css imports the generated CSS into its `tokens` layer. `npm run build:tokens`
+- [x] **Tokens as W3C DTCG JSON** in `tokens/` (core, dark, light), built with **Style Dictionary 5** into `dist/tokens.css`, `tokens.js`, `tokens.json` and `tailwind.preset.js`. edgelit.css imports the generated CSS into its `tokens` layer. `npm run build:tokens`
 - [x] **OKLCH**: signal colours are authored in OKLCH. A build **gate** checks every pair (text 4.5:1, light-bars and control edges 3:1) in both themes and fails the build. `node scripts/derive-accent.js "<any colour>" [--write]` derives a whole accent (fill + text, both themes) from one seed, moving only lightness and only as far as needed
 - [x] **Cascade layers**: `reset < tokens < base < components < utilities`, every rule is in one; a page's own un-layered CSS beats the framework with no specificity tricks
 - [x] **Logical properties** everywhere (`scripts/logicalize.js` did the conversion), plus a `--dir` (1 / -1) multiplier for the things that cannot be logical (shadow offsets, translations, gradient angles). **RTL** works: `dir="rtl"` mirrors layout, lit leading edges, switch travel, scroller thumbs and edge lights, directional icons (`data-flip`), calendar and tree and toolbar and tabs arrow keys; charts keep a left-to-right time axis. Try it: palette > "Switch to right-to-left", or `garden.html#app-rtl`
 - [x] **Container queries**: no viewport width media queries are left; grids, navs and dialogs answer to their own width (rails already did)
-- [x] **Web Components** (`monoedge-elements.js`): `<me-icon> <me-chart> <me-scroll> <me-date> <me-combobox> <me-switch>`. Light DOM, attribute and property driven, form-friendly (real inputs, hidden inputs for multi values), events bubble
+- [x] **Web Components** (`edgelit-elements.js`): `<me-icon> <me-chart> <me-scroll> <me-date> <me-combobox> <me-switch>`. Light DOM, attribute and property driven, form-friendly (real inputs, hidden inputs for multi values), events bubble
 - [x] **React**: no wrapper (decided). React 19 passes props to custom elements as properties and wires events; older React sets properties through a ref. A wrapper would only be worth it for typings; revisit if a React app needs them
 - [x] **color-mix() fallback**: `dist/fallback.css` (generated) re-emits every alpha `color-mix` as `rgb(var(--x-rgb) / P)` under `@supports not`, including custom properties. A test forces it on and checks it looks identical to color-mix
 - [x] **Visual regression** (was on the "still to add" list): 50+ baselines (dark, light, RTL, phone, fallback forced on); the safety net for all of the above
 - Real findings the gate and tests produced: light **OK** and **warning** light-bar colours were 2.79:1 and 2.36:1 (below 3:1), now darkened just enough; the scroller corner piece drew a dark square in every modal; the phone nav strip scroll depended on font load timing
-- Follow-ups: prefers-contrast stroke overrides are still hand-written (move into a `contrast` token set); RTL leftovers: `.me-lit` left/right edges, split-footer corner radii and gradient positions, non-inset shadow offsets, radial-gradient anchors; the horizontal-rail rules exist in three copies (generate them in the build); typography scale (sizes, tracking) is not tokenised yet; a single `dist/monoedge.css` bundle (inline the imports) belongs to Release packaging
+- Follow-ups: prefers-contrast stroke overrides are still hand-written (move into a `contrast` token set); RTL leftovers: `.me-lit` left/right edges, split-footer corner radii and gradient positions, non-inset shadow offsets, radial-gradient anchors; the horizontal-rail rules exist in three copies (generate them in the build); typography scale (sizes, tracking) is not tokenised yet; a single `dist/edgelit.css` bundle (inline the imports) belongs to Release packaging
 
 ---
 
-### 1A notes (all built; behaviour lives in `monoedge.js`, styles in `monoedge.css` sections 10e-10m)
+### 1A notes (all built; behaviour lives in `edgelit.js`, styles in `edgelit.css` sections 10e-10m)
 - Everything is in garden: Telemetry (charts), Components view (date/time, combobox, multi-select, tag input, upload, tree, toolbar, wizard, tabs overflow). Also wired into real flows: bed form (crop combobox, harvest date, photo), task due date, global search suggestions, Ctrl+K palette.
 - Popovers are top-layer and mounted inside an open `<dialog>` (otherwise a modal makes them inert).
 - Follow-ups: mobile pass on the popovers (date picker and listbox on phones), `Intl` locale for the calendar (en-GB hard-coded), upload progress / real network upload, tree multi-select + typeahead, chart legend toggling and keyboard-reachable data points, bar chart variants (stacked, negative).
@@ -79,7 +79,7 @@ Decision: a combination. **Lit thumb (B)** is the default for most content and t
 - `tests/a11y.spec.js`: axe WCAG 2.2 AA on 15 garden states x dark/light (incl. telemetry, components, palette, date picker, search suggestions)
 - `tests/library.spec.js`: chart variants, date/time picker, combobox / multi-select / tag input, palette, upload, tabs overflow, tree, toolbar, wizard
 - `tests/tracking.spec.js`:
-  - **component coverage**: every `.me-*` class in monoedge.css must appear in garden.html or be listed in `tests/coverage-baseline.json` (currently empty: all 69 covered)
+  - **component coverage**: every `.me-*` class in edgelit.css must appear in garden.html or be listed in `tests/coverage-baseline.json` (currently empty: all 69 covered)
   - **animation registry**: every `@keyframes` must be listed in `tests/animations.json`
   - runtime checks: notch duration and reduced motion, loading orbit direction
 - Bugs these tests found: collapsed rail had no accessible name; touch 44px floor was invalid CSS (self-referencing var); amber fill with light text failed contrast; select options black-on-dark
@@ -117,7 +117,7 @@ Decision: a combination. **Lit thumb (B)** is the default for most content and t
 ## 5. LATER (quality, standards, release)
 **Quality and standards**
 - [ ] Full WCAG 2.2 AA audit by hand (1.4.3, 1.4.11, 1.4.1, 2.4.7, 2.4.11, 2.5.8, 3.3.1) on top of axe
-- [ ] Cross-browser pass: Chrome, Firefox, Safari
+- [x] Cross-browser pass: Chromium, Firefox and WebKit projects run the whole suite (visual baselines stay Chromium-only). Real bugs found and fixed: **Safari does not focus a clicked button, so Esc never reached the split footer** (the footer now focuses the clicked button); a native `<select>` got a 5px radius in WebKit (over the 4px cap). Test-side: WebKit freezes colour transitions on off-screen elements (axe read half-way colours; axe tests now measure the settled state); Firefox's Playwright emulation of forced-colors / prefers-contrast flips `matchMedia` but does not restyle, so those two tests skip on Firefox (verify by hand in a real Firefox with Windows high contrast)
 - [x] Performance budget (`tests/quality.spec.js`): CSS a page loads is 21 KB gzipped (budget 30), JS 13 + 3 + 1.5 KB, core components styled with scripts blocked, no third-party request except the optional Google Fonts import
 - [x] Reduced-motion, forced-colors, high-contrast, print verified (`tests/quality.spec.js`). Finding: these all hang off the `.me` scope class on `<body>`; a page without it silently loses them, so the agent guide and the starter now require it
 - [x] Locatability rule: every interactive zone shows at least one edge cue at rest (automated sweep of 6 garden views; exempt: breadcrumb links, range slider whose track is the cue)
@@ -125,11 +125,12 @@ Decision: a combination. **Lit thumb (B)** is the default for most content and t
 
 **Release**
 - [x] **Agent kit** (`agent-kit/`): one folder with `DESIGN.md` (philosophy, 16 hard rules, generated token tables, component markup, page recipes, a11y floor, do/don't, checklist), the working framework, `tokens.json`, a Tailwind preset and `examples/starter.html`. Point an agent at it. Tests keep it current, self-contained, and truthful (every class and `ME.*` call it names exists; its starter passes axe in both themes)
-- [ ] Name and logo
-- [ ] Docs site generated from garden (one page per component, do / don't)
-- [ ] Package (npm), semver, changelog, licence
+- [x] Name: **EdgeLit** (files, package, docs renamed). Kept the short `me-` class prefix and `ME` global (a rename would touch every class, test and baseline; decide later). Logo still to do
+- [x] **Release zip for friends** (`npm run build:release` -> `release/EdgeLit-0.9.0.zip`, tested in `tests/release.spec.js`): framework without font files (Google Fonts online only, system fallback offline), README, user guide, how-it-works, DESIGN.md, NOTICE, placeholder LICENSE.txt, examples (starter, garden, dashboard). Zip made with bsdtar (PowerShell 5.1 Compress-Archive writes backslash paths that break on Mac/Linux). Source docs in `docs-src/`
+- [x] Docs: README, USER-GUIDE, HOW-IT-WORKS ship in the zip; a generated per-component docs site is not needed for private use
+- [ ] Private-use scope: npm / docs site / changelog not needed. Replace the placeholder `LICENSE.txt` terms if you want something other than "personal copy, don't redistribute"
 - [ ] **Font licences:** Jost and Cormorant Garamond are SIL OFL 1.1. When packaging, ship the OFL text + copyright notices alongside `fonts/` (e.g. `fonts/OFL-Jost.txt`, `fonts/OFL-Cormorant.txt`), list them in the package licence/NOTICE file, and don't sell the fonts on their own. Decide whether the shipped CSS keeps the Google Fonts `@import` (privacy / GDPR: it sends visitors' IPs to Google) or only the self-hosted copy
-- [x] Spec regenerated from the tokens: `agent-kit/` (`npm run build:kit`, tested in `tests/kit.spec.js`). `monolithic_edge_lit_ui_framework.md` is the OLD spec (indigo, `#08090d`, 2px radius) and is now stale: delete it or replace with a pointer to `agent-kit/DESIGN.md`
+- [x] Spec regenerated from the tokens: `agent-kit/` (`npm run build:kit`, tested in `tests/kit.spec.js`). The old hand-written spec (`monolithic_edge_lit_ui_framework.md`) and `GAP_REVIEW.md`, `elevation-lab.html`, `m_tmp.html` were deleted (still in git history)
 
 ---
 

@@ -1,7 +1,7 @@
 // axe-core on every garden view, both themes. Contrast is the check that matters most for this framework.
 const { test, expect } = require('../fixtures');
 const AxeBuilder = require('@axe-core/playwright').default;
-const { url } = require('./helpers');
+const { url, settled } = require('./helpers');
 
 // [name, dark hash, light hash]
 const states = [
@@ -20,6 +20,7 @@ for (const [name, dark, light] of states) for (const [theme, hash] of [['dark', 
   test(`axe: ${name} (${theme})`, async ({ page }) => {
     await page.goto(url('garden.html', hash));
     await page.waitForTimeout(1800); // let the notch entrance settle
+    await settled(page);
     const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag22aa']).analyze();
     const msgs = r.violations.map(v => `${v.id}: ${v.nodes.slice(0, 3).map(n => n.target.join(' ')).join(' | ')}`);
     expect(msgs).toEqual([]);

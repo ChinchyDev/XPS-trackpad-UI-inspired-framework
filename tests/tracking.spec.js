@@ -1,12 +1,12 @@
 // Keeps the two trackers honest.
-//  1. COMPONENT COVERAGE: every .me-* component in monoedge.css must appear in garden.html or be listed in
+//  1. COMPONENT COVERAGE: every .me-* component in edgelit.css must appear in garden.html or be listed in
 //     tests/coverage-baseline.json (known gaps). A NEW untested component fails; a newly covered one asks you to shrink the baseline.
-//  2. ANIMATION REGISTRY: every @keyframes in monoedge.css must be listed in tests/animations.json.
+//  2. ANIMATION REGISTRY: every @keyframes in edgelit.css must be listed in tests/animations.json.
 const { test, expect } = require('../fixtures');
 const fs = require('fs'); const path = require('path');
 const { url, read } = require('./helpers');
 
-const css = read('monoedge.css'), garden = read('garden.html') + read('monoedge.js');   // garden loads monoedge.js, so classes it builds count as exercised
+const css = read('edgelit.css'), garden = read('garden.html') + read('edgelit.js');   // garden loads edgelit.js, so classes it builds count as exercised
 const classes = [...new Set([...css.matchAll(/\.(me-[a-z0-9-]+)/g)].map(m => m[1]))];
 const comps = classes.filter(c => !/^me-(btn--|dot--|meter-ticks)/.test(c));
 

@@ -1,0 +1,10 @@
+EdgeLit, version 0.9.0
+
+Copyright (c) 2026. All rights reserved.
+
+This copy is shared with you personally. You may use it in your own projects, personal or commercial, and modify it for your own use.
+Please do not republish, resell, or redistribute EdgeLit itself (original or modified) without asking first.
+
+The software is provided "as is", without warranty of any kind.
+
+(Placeholder terms: the owner may replace this file with a different licence before wider distribution.)

@@ -1,4 +1,4 @@
-// Visual regression: the safety net for refactors of monoedge.css (layers, tokens, logical properties...).
+// Visual regression: the safety net for refactors of edgelit.css (layers, tokens, logical properties...).
 // Baselines live in tests/visual.spec.js-snapshots/. After an INTENDED visual change:  npx playwright test visual --update-snapshots
 // Dynamic things (today's date, the calendar) are masked or avoided so a baseline does not rot overnight.
 const { test, expect } = require('../fixtures');
